@@ -1,5 +1,4 @@
 /// <reference path="../typings/index.d.ts" />
-declare function require(x: string): any;
 module Lexer{
 	export interface LexDefinition{
 		type: string;
@@ -57,9 +56,4 @@ module Lexer{
 		}
 	}
 }
-
-var s = require("fs").readFileSync("/dev/stdin", "utf8");
-console.log(s);
-var lexer = new Lexer.Lexer(Lexer.def);
-console.log(lexer.exec(s));
 

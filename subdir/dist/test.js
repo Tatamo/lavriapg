@@ -60,3 +60,8 @@ var Lexer;
     }());
     Lexer_1.Lexer = Lexer;
 })(Lexer || (Lexer = {}));
+/// <reference path="./lexer.ts" />
+var s = require("fs").readFileSync("/dev/stdin", "utf8");
+console.log(s);
+var lexer = new Lexer.Lexer(Lexer.def);
+console.log(lexer.exec(s));

@@ -4,7 +4,7 @@
   "description": "lexical analyzer",
   "main": "lexer.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsc --out dist/test.js src/test.ts",
     "start": "node dist/lexer.js",
     "tsc": "tsc --watch --out dist/lexer.js src/lexer.ts",
     "tsc_make": "tsc --out dist/lexer.js src/lexer.ts",
