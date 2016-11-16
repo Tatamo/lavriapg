@@ -1,10 +1,11 @@
 /// <reference path="../typings/index.d.ts" />
 module Lexer{
-	export interface LexDefinition{
+	export interface LexDefinitionSection{
 		type: string;
 		pattern: string|RegExp;
 	}
-	export var def:Array<LexDefinition> = [
+	export interface LexDefinitions extends Array<LexDefinitionSection>{}
+	export var def:LexDefinitions = [
 		{"type":null, "pattern":" "},
 		{"type":null, "pattern":/\t|\r|\n/},
 		{"type":"LPAREN", "pattern":"("},
@@ -14,9 +15,9 @@ module Lexer{
 		{"type":"DIGITS", "pattern":/[1-9][0-9]*/},
 		{"type":"INVALID", "pattern":/./}
 	];
+	export interface TokenList extends Array<{token_type:string, value:string}>{}
 	export class Lexer{
-		constructor(public def: Array<LexDefinition>){
-		//constructor(public def: any){
+		constructor(public def: LexDefinitions){
 				for(var i=0; i<this.def.length; i++){
 					var token_pattern = this.def[i].pattern;
 					if(typeof token_pattern == "string"){
@@ -28,8 +29,8 @@ module Lexer{
 					throw new Error("invalid token definition: neither string nor RegExp object");
 				}
 		}
-		exec(str: string):Array<Array<string>>{
-			var result:Array<Array<string>> = [];
+		exec(str: string):TokenList{
+			var result:TokenList = [];
 			while(true){
 				if(str.length == 0) break;
 				for(var i=0; i<this.def.length; i++){
@@ -46,7 +47,7 @@ module Lexer{
 					}
 					if(token_type != null) {
 						console.log(token_type+" : "+match);
-						result.push([token_type, match]);
+						result.push({token_type:token_type, value:match});
 					}
 					str = str.substring(match.length);
 					break;
