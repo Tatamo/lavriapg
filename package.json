@@ -1,0 +1,19 @@
+{
+  "name": "parsergenerator",
+  "version": "1.0.0",
+  "description": "parsergenerator",
+  "main": "lexer.js",
+  "scripts": {
+    "test": "tsc --out dist/test.js src/test.ts",
+    "start": "node dist/parsergenerator.js",
+    "tsc": "tsc --watch --out dist/persergenerator.js src/parsergenerator.ts",
+    "tsc_make": "tsc --out dist/parsergenerator.js src/parsergenerator.ts",
+    "typings_install": "typings install"
+  },
+  "author": "Tatamo",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "typescript": "^2.1.1",
+    "typings": "^2.0.0"
+  }
+}
