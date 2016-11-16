@@ -1,0 +1,3 @@
+[submodule "lexer"]
+	path = lexer
+	url = https://github.com/Tatamo/lexer.git
