@@ -9,11 +9,15 @@ module ParserGenerator{
 	export var def:SyntaxDefinitions = [
 		{
 			ltoken: "EXP",
-			pattern: [["EXP", "ASTERISK", "TERM"], ["TERM"]]
+			pattern: [["EXP", "PLUS", "TERM"], ["TERM"]]
 		},
 		{
 			ltoken: "TERM",
-			pattern: [["TERM", "ASTERISK", "DIGITS"], ["DIGITS"]]
+			pattern: [["TERM", "ASTERISK", "ATOM"], ["ATOM"]]
+		},
+		{
+			ltoken: "ATOM",
+			pattern:[["DIGITS"], ["LPAREN", "EXP", "RPAREN"]]
 		}
 	];
 	export class TerminalSymbolDiscriminator{
