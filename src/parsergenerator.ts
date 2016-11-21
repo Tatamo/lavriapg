@@ -45,7 +45,7 @@ module ParserGenerator{
 					}
 				}
 				if(flg_token_not_found){
-					throw new Error("token not found in lexical definitions");
+					this.token_table.push({type : syntaxdef[i].ltoken, is_terminal : false});
 				}
 			}
 		}
