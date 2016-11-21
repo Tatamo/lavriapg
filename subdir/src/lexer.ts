@@ -4,7 +4,7 @@ module Lexer{
 		type: string;
 		pattern: string|RegExp;
 	}
-	export interface LexDefinitions extends Array<LexDefinitionSection>{}
+	export type LexDefinitions = Array<LexDefinitionSection>;
 	export var def:LexDefinitions = [
 		{"type":null, "pattern":" "},
 		{"type":null, "pattern":/\t|\r|\n/},
@@ -15,7 +15,7 @@ module Lexer{
 		{"type":"DIGITS", "pattern":/[1-9][0-9]*/},
 		{"type":"INVALID", "pattern":/./}
 	];
-	export interface TokenList extends Array<{token_type:string, value:string}>{}
+	export type TokenList = Array<{token_type:string, value:string}>;
 	export class Lexer{
 		constructor(public def: LexDefinitions){
 				for(var i=0; i<this.def.length; i++){
