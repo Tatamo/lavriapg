@@ -127,7 +127,10 @@ module ParserGenerator{
 				for(var ii=0; ii<def.pattern.length; ii++){
 					for(var iii=0; iii<def.pattern[ii].length; iii++){
 						let symb = def.pattern[ii][iii];
-						constraint.push({superset: def.ltoken, subset: symb});
+						// supersetとsubsetが同じ場合は制約を追加しない
+						if(def.ltoken != symb){
+							constraint.push({superset: def.ltoken, subset: symb});
+						}
 						// 左側の記号がすべてnullsに含まれている限り制約を追加していく
 						if(!this.isInNulls(symb)){
 							break;
@@ -137,18 +140,92 @@ module ParserGenerator{
 			}
 			console.log(constraint);
 
+			/*
+			// syntaxdefのltokenとindexの対応関数を作っておく
+			var ltoken2id = (() =>{
+				var table:{[key:string]:number} = {};
+				for(var i=0; i<this.syntaxdef.length;i++){
+					table[this.syntaxdef[i].ltoken] = i;
+				}
+				return (symbol: string):number =>{
+					return table[symbol];
+				};
+			})();*/
+
 			// FOLLOWを導出
-			var tmp_table:{[key:string]: Array<string>} = {};
+			var first_result:{[key:string]: Array<string>} = {};
 			// 初期化
 			for(var i=0; i<this.symbol_table.length; i++){
 				var symbol = this.symbol_table[i].symbol;
 				if(this.symbol_table[i].is_terminal) {
-					tmp_table[symbol] = [symbol];
+					first_result[symbol] = [symbol];
 				}
 				else {
-					tmp_table[symbol] = [];
+					first_result[symbol] = [];
 				}
 			}
+			// 包含関係にあるかどうかの判定
+			// supersetおよびsubsetはsortされていることを前提とする
+			var isInclude = (superset:Array<string>, subset:Array<string>) => {
+				var index =0;
+				var d = 0;
+				while(index<subset.length){
+					if(index+d >= superset.length){
+						return false;
+					}
+					else if(subset[index] == superset[index+d]){
+						index++;
+					}
+					else{
+						d++;
+					}
+				}
+				return true;
+			}
+			// 制約条件がすべて満たされたかどうかを判定する
+			var isConstraintFilled = (constraint:Array<{superset:string, subset:string}>, table:{[key:string]: Array<string>}):boolean=>{
+				for(var i=0; i<constraint.length; i++){
+					var superset = first_result[constraint[i].superset];
+					var subset = first_result[constraint[i].subset];
+					// tableのsubの要素がすべてsupに含まれていることを調べる
+					if(!isInclude(superset,subset)){
+						// subの要素がすべてsupに含まれていなかった
+						return false;
+					}
+				}
+				return true;
+			};
+			while(!isConstraintFilled(constraint, first_result)){
+				for(var i=0; i<constraint.length; i++){
+					var sup = constraint[i].superset;
+					var sub = constraint[i].subset;
+					// 包含関係にあるべき2つの集合が包含関係にない
+					if(!isInclude(first_result[sup], first_result[sub])){
+						// subset内の要素をsupersetに入れていく
+						var flg_changed = false;
+						for(var ii=0; ii<first_result[sub].length; ii++){
+							// 既に登録されている要素は登録しない
+							var flg_duplicated = false;
+							for(var iii=0; iii<first_result[sup].length; iii++){
+								if(first_result[sub][ii] == first_result[sup][ii]){
+									flg_duplicated = true;
+									break;
+								}
+							}
+							if(!flg_duplicated){
+								first_result[sup].push(first_result[sub][ii]);
+								flg_changed = true;
+							}
+						}
+						// 要素の追加が行われた場合、supersetをsortしておく
+						if(flg_changed){
+							first_result[sup].sort();
+						}
+					}
+				}
+			}
+			console.log(first_result);
+			this.first_table = first_result;
 		}
 	}
 }
