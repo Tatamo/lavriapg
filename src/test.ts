@@ -5,6 +5,8 @@ declare function require(x: string): any;
 
 //var lexer = new Lexer.Lexer(Lexer.def);
 
-var token_table = new ParserGenerator.TerminalSymbolDiscriminator(Lexer.def , ParserGenerator.def).token_table;
+var symbol_table = new ParserGenerator.TerminalSymbolDiscriminator(Lexer.def , ParserGenerator.def).symbol_table;
 
-console.log(token_table);
+console.log(symbol_table);
+
+new ParserGenerator.ParserGenerator(Lexer.def, ParserGenerator.def, symbol_table);

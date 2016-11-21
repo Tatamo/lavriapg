@@ -5,6 +5,7 @@ module ParserGenerator{
 		ltoken: string;
 		pattern: Array<Array<string>>;
 	}
+	// ltokenは重複しないことを前提とする
 	export type SyntaxDefinitions = Array<SyntaxDefinitionSection>;
 	export var def:SyntaxDefinitions = [
 		{
@@ -62,49 +63,31 @@ module ParserGenerator{
 		}
 	}
 	export class ParserGenerator{
-		/*private symbol2id_table: {[key:string]: number};
-		private id2symbol_table: Array<string>;*/
+		private nulls:Array<string>;
 		private first_table;
 		private follow_table;
 		constructor(private lexdef:Lexer.LexDefinitions, private syntaxdef:SyntaxDefinitions, private symbol_table: Array<{symbol:string, is_terminal:boolean}>){
-			this.first_table = {};
-			this.follow_table = {};
+			this.generateNulls();
+			this.generateFIRST();
 		}
-		/*private s2id(symbol: string): number{
-			return this.symbol2id_table[symbol];
-		}
-		private id2s(id: number): string{
-			return this.id2symbol_table[id];
-		}*/
-		private calcFIRST(){
-			var tmp_table:{[key:string]: Array<string>} = {};
-			// 初期化
-			for(var i=0; i<this.symbol_table.length; i++){
-				var symbol = this.symbol_table[i].symbol;
-				if(this.symbol_table[i].is_terminal) {
-					tmp_table[symbol] = [symbol];
-				}
-				else {
-					tmp_table[symbol] = [];
-				}
+		private isInNulls(x:string){
+			for(var i=0; i<this.nulls.length; i++){
+				if(this.nulls[i] == x) return true;
 			}
+			return false;
+		}
+		// nulls初期化
+		private generateNulls(){
 			// 制約条件を導出するために、
 			// 空列になりうる記号の集合nullsを導出
-			var nulls:Array<string> = [];
-			var isInNulls = (x) =>{
-				for(var i=0; i<nulls.length; i++){
-					if(nulls[i] == x) return true;
-				}
-				return false;
-			};
-			// nulls初期化
+			this.nulls = [];
 			for(var i=0; i<this.syntaxdef.length; i++){
 				var ltoken = this.syntaxdef[i].ltoken;
 				var pattern = this.syntaxdef[i].pattern;
 				for(var ii=0; ii<pattern.length; ii++){
 					// 右辺の記号の数が0の規則を持つ記号は空列になりうる
 					if(pattern[ii] == []){
-						nulls.push(ltoken);
+						this.nulls.push(ltoken);
 						break;
 					}
 				}
@@ -117,30 +100,54 @@ module ParserGenerator{
 					var ltoken = this.syntaxdef[i].ltoken;
 
 					// 既にnullsに含まれていればスキップ
-					if(isInNulls(ltoken)) continue;
+					if(this.isInNulls(ltoken)) continue;
 
 					var pattern = this.syntaxdef[i].pattern;
 					for(var ii=0; ii<pattern.length; ii++){
 						var flg_nulls = true;
 						for(var iii=0; iii<pattern[ii].length; iii++){
-							if(!isInNulls(pattern[ii][iii])){
+							if(!this.isInNulls(pattern[ii][iii])){
 								flg_nulls = false;
 								break;
 							}
 						}
 						if(flg_nulls){
-							nulls.push(ltoken);
+							this.nulls.push(ltoken);
 							flg_changed = true;
 						}
 					}
 				}
 			}
-			// nulls生成完了
-
+		}
+		private generateFIRST(){
 			// 包含についての制約を導出
 			var constraint:Array<{superset:string, subset:string}> = [];
 			for(var i=0; i<this.syntaxdef.length; i++){
 				var def = this.syntaxdef[i];
+				for(var ii=0; ii<def.pattern.length; ii++){
+					for(var iii=0; iii<def.pattern[ii].length; iii++){
+						let symb = def.pattern[ii][iii];
+						constraint.push({superset: def.ltoken, subset: symb});
+						// 左側の記号がすべてnullsに含まれている限り制約を追加していく
+						if(!this.isInNulls(symb)){
+							break;
+						}
+					}
+				}
+			}
+			console.log(constraint);
+
+			// FOLLOWを導出
+			var tmp_table:{[key:string]: Array<string>} = {};
+			// 初期化
+			for(var i=0; i<this.symbol_table.length; i++){
+				var symbol = this.symbol_table[i].symbol;
+				if(this.symbol_table[i].is_terminal) {
+					tmp_table[symbol] = [symbol];
+				}
+				else {
+					tmp_table[symbol] = [];
+				}
 			}
 		}
 	}
