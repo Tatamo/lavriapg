@@ -48,9 +48,10 @@ module Lexer{
 						if(str.substring(0,token_pattern.length) != token_pattern) continue;
 						match = token_pattern;
 					}
-					else if(token_pattern instanceof RegExp){
+					else{
+						// token_pattern: RegExp
 						if(str.search(token_pattern) != 0) continue;
-						match = token_pattern.exec(str)[0];
+						match = token_pattern.exec(str)![0]; // str.searchの結果が0なのでexecは必ずnull以外が返る
 					}
 					// token_typeがnullなら処理を飛ばします
 					if(token_type != null) {

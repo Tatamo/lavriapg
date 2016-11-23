@@ -2,7 +2,7 @@
     "compilerOptions": {
         "lib": ["dom", "es5", "es2015.core", "es2015.symbol"],
         "moduleResolution": "node",
-        //"strictNullChecks": true,
+        "strictNullChecks": true,
         "target": "es5",
         "outDir": "dist/",
         "declaration": true,
