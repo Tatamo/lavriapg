@@ -1,8 +1,8 @@
 /// <reference path="../typings/index.d.ts" />
 module Lexer{
-	export type LexToken = string|symbol;
+	export type Token = string|symbol;
 	export interface LexDefinitionSection{
-		token: LexToken|null;
+		token: Token|null;
 		pattern: string|RegExp;
 	}
 	export type LexDefinitions = Array<LexDefinitionSection>;
@@ -16,7 +16,7 @@ module Lexer{
 		{token:"DIGITS", pattern:/[1-9][0-9]*/},
 		{token:"INVALID", pattern:/./}
 	];
-	export type TokenList = Array<{token_type:LexToken, value:string}>;
+	export type TokenList = Array<{token_type:Token, value:string}>;
 	export class Lexer{
 		private symbol_eof;
 		constructor(public def: LexDefinitions){
@@ -41,7 +41,7 @@ module Lexer{
 			while(true){
 				if(str.length == 0) break;
 				for(var i=0; i<this.def.length; i++){
-					var token_type:LexToken|null = this.def[i].token;
+					var token_type:Token|null = this.def[i].token;
 					var token_pattern = this.def[i].pattern;
 					var match:string;
 					if(typeof token_pattern == "string"){
