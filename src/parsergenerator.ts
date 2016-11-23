@@ -7,9 +7,9 @@ module ParserGenerator{
 	type Constraint = Array<{superset:string, subset:string}>;
 	export class ParserGenerator{
 		private nulls:Array<string>;
-		private first_table;
-		private follow_table;
-		constructor(private lexdef:Lexer.LexDefinitions, private syntaxdef:SyntaxDefinitions, private symbol_discriminator: TerminalSymbolDiscriminator){
+		private first_map: Map<Lexer.Token, Array<Lexer.Token>>;
+		private follow_map: Map<Lexer.Token, Array<Lexer.Token>>;
+		constructor(private syntaxdef:SyntaxDefinitions, private symbol_discriminator: TerminalSymbolDiscriminator){
 			this.init();
 		}
 		init(){
@@ -68,7 +68,7 @@ module ParserGenerator{
 		}
 		// 包含関係にあるかどうかの判定
 		// supersetおよびsubsetはsortされていることを前提とする
-		private isInclude(superset:Array<string>, subset:Array<string>): boolean{
+		private isInclude(superset:Array<Lexer.Token>, subset:Array<Lexer.Token>): boolean{
 			var index =0;
 			var d = 0;
 			while(index<subset.length){
@@ -86,10 +86,10 @@ module ParserGenerator{
 		}
 		// 制約条件がすべて満たされたかどうかを判定する
 		// 与えられたtable内の配列がソートされていることを前提とする
-		private isConstraintFilled(constraint:Constraint, table:{[key:string]: Array<string>}): boolean{
+		private isConstraintFilled(constraint:Constraint, table:Map<Lexer.Token, Array<Lexer.Token>>): boolean{
 			for(var i=0; i<constraint.length; i++){
-				var superset = table[constraint[i].superset];
-				var subset = table[constraint[i].subset];
+				var superset = table.get(constraint[i].superset);
+				var subset = table.get(constraint[i].subset);
 				// tableのsubの要素がすべてsupに含まれていることを調べる
 				if(!this.isInclude(superset,subset)){
 					// subの要素がすべてsupに含まれていなかった
@@ -100,15 +100,16 @@ module ParserGenerator{
 		}
 		private generateFIRST(){
 			//FIRSTを導出
-			var first_result:{[key:string]: Array<string>} = {};
+			//var first_result:{[key:string]: Array<string>} = {};
+			var first_result: Map<Lexer.Token, Array<Lexer.Token>> = new Map();
 			// 初期化
 			var terminal_symbols = this.symbol_discriminator.getTerminalSymbols();
 			for(var i=0; i<terminal_symbols.length; i++){
-				first_result[terminal_symbols[i]] = [terminal_symbols[i]];
+				first_result.set(terminal_symbols[i], [terminal_symbols[i]]);
 			}
 			var nonterminal_symbols = this.symbol_discriminator.getNonterminalSymbols();
 			for(var i=0; i<nonterminal_symbols.length; i++){
-				first_result[nonterminal_symbols[i]] = [];
+				first_result.set(nonterminal_symbols[i], []);
 			}
 
 			// 包含についての制約を生成
@@ -138,33 +139,35 @@ module ParserGenerator{
 				for(var i=0; i<constraint.length; i++){
 					var sup = constraint[i].superset;
 					var sub = constraint[i].subset;
+					var superset = first_result.get(sup);
+					var subset = first_result.get(sub);
 					// 包含関係にあるべき2つの集合が包含関係にない
-					if(!this.isInclude(first_result[sup], first_result[sub])){
+					if(!this.isInclude(superset, subset)){
 						// subset内の要素をsupersetに入れていく
 						var flg_changed = false;
-						for(var ii=0; ii<first_result[sub].length; ii++){
+						for(var ii=0; ii<subset.length; ii++){
 							// 既に登録されている要素は登録しない
 							var flg_duplicated = false;
-							for(var iii=0; iii<first_result[sup].length; iii++){
-								if(first_result[sub][ii] == first_result[sup][ii]){
+							for(var iii=0; iii<superset.length; iii++){
+								if(subset[ii] == superset[ii]){
 									flg_duplicated = true;
 									break;
 								}
 							}
 							if(!flg_duplicated){
-								first_result[sup].push(first_result[sub][ii]);
+								superset.push(subset[ii]);
 								flg_changed = true;
 							}
 						}
 						// 要素の追加が行われた場合、supersetをsortしておく
 						if(flg_changed){
-							first_result[sup].sort();
+							superset.sort();
 						}
 					}
 				}
 			}
 			console.log("FIRST:",first_result);
-			this.first_table = first_result;
+			this.first_map = first_result;
 		}
 		private generateFOLLOW(){
 			var pushWithoutDuplicate = (value:any, array:Array<any>, cmp:(x:any,y:any)=>boolean =(x,y)=>{return x == y;}):boolean=>{
@@ -178,10 +181,10 @@ module ParserGenerator{
 			}
 			// FOLLOWを導出
 			// 初期化
-			var follow_result:{[key:string]: Array<string>} = {};
+			var follow_result:Map<Lexer.Token, Array<Lexer.Token>> = new Map();
 			var nonterminal_symbols = this.symbol_discriminator.getNonterminalSymbols();
 			for(var i=0; i<nonterminal_symbols.length; i++){
-				follow_result[nonterminal_symbols[i]] = [];
+				follow_result.set(nonterminal_symbols[i], []);
 			}
 
 			for(var i=0; i<this.syntaxdef.length; i++){
@@ -198,8 +201,8 @@ module ParserGenerator{
 						for(var d=1; iii+d<pattern[ii].length; d++){
 							var sub = pattern[ii][iii+d];
 							// FOLLOW(sup)にFIRST(sub)を重複を許さずに追加
-							for(var index = 0; index<this.first_table[sub].length; index++){
-								pushWithoutDuplicate(this.first_table[sub][index], follow_result[sup]);
+							for(var index = 0; index<this.first_map.get(sub).length; index++){
+								pushWithoutDuplicate(this.first_map.get(sub)[index], follow_result.get(sup));
 							}
 							// 記号がnullsに含まれている限り、右隣の記号のFIRSTもFOLLOWに加える
 							if(!this.isInNulls(sub)){
@@ -211,9 +214,13 @@ module ParserGenerator{
 				}
 			}
 			// ソートしておく
-			for(var symb in follow_result){
-				follow_result[symb].sort();
+			/*
+			for(let array of follow_result.values()){
+				array.sort();
 			}
+			*/
+			// とりあえずiterableを使わずに実装(target=es5)
+			follow_result.forEach((value,key,map)=>{value.sort();});
 			// 包含についての制約を生成
 			var constraint:Constraint = [];
 			for(var i=0; i<this.syntaxdef.length; i++){
@@ -246,33 +253,35 @@ module ParserGenerator{
 				for(var i=0; i<constraint.length; i++){
 					var sup = constraint[i].superset;
 					var sub = constraint[i].subset;
+					var superset = follow_result.get(sup);
+					var subset = follow_result.get(sub);
 					// 包含関係にあるべき2つの集合が包含関係にない
-					if(!this.isInclude(follow_result[sup], follow_result[sub])){
+					if(!this.isInclude(superset, subset)){
 						// subset内の要素をsupersetに入れていく
 						var flg_changed = false;
-						for(var ii=0; ii<follow_result[sub].length; ii++){
+						for(var ii=0; ii<subset.length; ii++){
 							// 既に登録されている要素は登録しない
 							var flg_duplicated = false;
-							for(var iii=0; iii<follow_result[sup].length; iii++){
-								if(follow_result[sub][ii] == follow_result[sup][ii]){
+							for(var iii=0; iii<superset.length; iii++){
+								if(subset[ii] == superset[ii]){
 									flg_duplicated = true;
 									break;
 								}
 							}
 							if(!flg_duplicated){
-								follow_result[sup].push(follow_result[sub][ii]);
+								superset.push(subset[ii]);
 								flg_changed = true;
 							}
 						}
 						// 要素の追加が行われた場合、supersetをsortしておく
 						if(flg_changed){
-							follow_result[sup].sort();
+							superset.sort();
 						}
 					}
 				}
 			}
 			console.log("FOLLOW:",follow_result);
-			this.follow_table = follow_result;
+			this.follow_map = follow_result;
 		}
 	}
 }

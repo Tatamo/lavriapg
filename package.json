@@ -4,7 +4,7 @@
   "description": "parsergenerator",
   "main": "lexer.js",
   "scripts": {
-    "test": "tsc --outFile dist/test.js src/test.ts --target es5 --lib es5,dom,es2015.core,es2015.symbol",
+    "test": "tsc --outFile dist/test.js src/test.ts --target es5 --lib es5,dom,es2015.core,es2015.symbol,es2015.collection,es2015.iterable",
     "start": "node dist/parsergenerator.js",
     "tsc": "tsc --watch --outFile dist/persergenerator.js",
     "tsc_make": "tsc --outFile dist/parsergenerator.js",

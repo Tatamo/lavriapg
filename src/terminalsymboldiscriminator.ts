@@ -1,27 +1,28 @@
 /// <reference path="syntaxdef.ts" />
+/// <reference path="../lexer/src/lexer.ts" />
 
 module ParserGenerator{
 	export class TerminalSymbolDiscriminator{
-		private terminal_symbols: Array<string>;
-		private nonterminal_symbols: Array<string>;
+		private terminal_symbols: Array<Lexer.Token>;
+		private nonterminal_symbols: Array<Lexer.Token>;
 		constructor(lexdef:Lexer.LexDefinitions, syntaxdef:SyntaxDefinitions){
-			var symbol_table:Array<{symbol:string, is_terminal:boolean}> = [];
+			var symbol_table:Array<{symbol:Lexer.Token, is_terminal:boolean}> = [];
 			// 字句規則からの登録
 			for(var i=0; i<lexdef.length; i++){
-				if(lexdef[i].type == null){
+				if(lexdef[i].token == null){
 					continue;
 				}
 				// 重複がなければ登録する
 				var flg_push = true;
 				for(var ii=0; ii<symbol_table.length; ii++){
-					if(symbol_table[ii].symbol == lexdef[i].type){
+					if(symbol_table[ii].symbol == lexdef[i].token){
 						flg_push = false;
 						break;
 					}
 				}
 				if(flg_push){
 					// 終端記号として登録
-					symbol_table.push({symbol: lexdef[i].type, is_terminal: true});
+					symbol_table.push({symbol: lexdef[i].token, is_terminal: true});
 				}
 			}
 			// 構文規則からの登録(左辺値のみ)
@@ -52,24 +53,24 @@ module ParserGenerator{
 				}
 			}
 		}
-		getTerminalSymbols():Array<string>{
+		getTerminalSymbols():Array<Lexer.Token>{
 			return this.terminal_symbols.slice();
 		}
-		getNonterminalSymbols():Array<string>{
+		getNonterminalSymbols():Array<Lexer.Token>{
 			return this.nonterminal_symbols.slice();
 		}
-		getAllSymbols():Array<string>{
+		getAllSymbols():Array<Lexer.Token>{
 			return this.terminal_symbols.concat(this.nonterminal_symbols);
 		}
 		// その都度生成するから呼び出し先で保持して
 		// true: terminal, false: nonterminal
-		getAllSymbolsMap():{[key:string]:boolean}{
-			var result = {};
+		getAllSymbolsMap():Map<Lexer.Token, boolean>{
+			var result = new Map();
 			for(var i=0; i<this.terminal_symbols.length; i++){
-				result[this.terminal_symbols[i]] = true;
+				result.set(this.terminal_symbols[i], true);
 			}
 			for(var i=0; i<this.nonterminal_symbols.length; i++){
-				result[this.nonterminal_symbols[i]] = false;
+				result.set(this.nonterminal_symbols[i], false);
 			}
 			return result;
 		}

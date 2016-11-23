@@ -9,4 +9,4 @@ var terminal_symbol_discriminator = new ParserGenerator.TerminalSymbolDiscrimina
 
 console.log("symbol table:",terminal_symbol_discriminator.getAllSymbolsMap());
 
-new ParserGenerator.ParserGenerator(Lexer.def, ParserGenerator.def, terminal_symbol_discriminator);
+new ParserGenerator.ParserGenerator(ParserGenerator.def, terminal_symbol_discriminator);
