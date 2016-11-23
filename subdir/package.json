@@ -4,10 +4,10 @@
   "description": "lexical analyzer",
   "main": "lexer.js",
   "scripts": {
-    "test": "tsc --out dist/test.js src/test.ts",
+    "test": "tsc --outFile dist/test.js src/test.ts --target es5 --lib es5,dom,es2015.core,es2015.symbol",
     "start": "node dist/lexer.js",
-    "tsc": "tsc --watch --out dist/lexer.js src/lexer.ts",
-    "tsc_make": "tsc --out dist/lexer.js src/lexer.ts",
+    "tsc": "tsc --watch --outFile dist/lexer.js",
+    "tsc_make": "tsc --outFile dist/lexer.js",
     "typings_install": "typings install"
   },
   "author": "Tatamo",

@@ -2,7 +2,7 @@
 module Lexer{
 	export type LexToken = string|symbol;
 	export interface LexDefinitionSection{
-		token: LexToken;
+		token: LexToken|null;
 		pattern: string|RegExp;
 	}
 	export type LexDefinitions = Array<LexDefinitionSection>;
@@ -18,28 +18,34 @@ module Lexer{
 	];
 	export type TokenList = Array<{token_type:LexToken, value:string}>;
 	export class Lexer{
+		private symbol_eof;
 		constructor(public def: LexDefinitions){
-				for(var i=0; i<this.def.length; i++){
-					var token_pattern = this.def[i].pattern;
-					if(typeof token_pattern == "string"){
-						continue;
-					}
-					else if(token_pattern instanceof RegExp){
-						continue;
-					}
-					throw new Error("invalid token definition: neither string nor RegExp object");
+			// 正しいトークン定義が与えられているかチェック
+			for(var i=0; i<this.def.length; i++){
+				var token_pattern = this.def[i].pattern;
+				if(typeof token_pattern == "string"){
+					continue;
 				}
+				else if(token_pattern instanceof RegExp){
+					continue;
+				}
+				throw new Error("invalid token definition: neither string nor RegExp object");
+			}
+			this.symbol_eof = Symbol("EOF");
+		}
+		getEOFSymbol():symbol{
+			return this.symbol_eof;
 		}
 		exec(str: string):TokenList{
 			var result:TokenList = [];
 			while(true){
 				if(str.length == 0) break;
 				for(var i=0; i<this.def.length; i++){
-					var token_type:LexToken = this.def[i].token;
+					var token_type:LexToken|null = this.def[i].token;
 					var token_pattern = this.def[i].pattern;
 					var match:string;
 					if(typeof token_pattern == "string"){
-						if(str.substring(0,token_pattern.length) != token_pattern) continue;;
+						if(str.substring(0,token_pattern.length) != token_pattern) continue;
 						match = token_pattern;
 					}
 					else if(token_pattern instanceof RegExp){
@@ -55,6 +61,8 @@ module Lexer{
 					break;
 				}
 			}
+			// 最後にEOFトークンを付与
+			result.push({token_type:this.getEOFSymbol(), value:""});
 			return result;
 		}
 	}

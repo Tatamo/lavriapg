@@ -1,17 +1,15 @@
 {
     "compilerOptions": {
-        "lib": ["es5", "es2015.core", "dom"],
-        "module": "commonjs",
+        "lib": ["dom", "es5", "es2015.core", "es2015.symbol"],
         "moduleResolution": "node",
-        "strictNullChecks": true,
+        //"strictNullChecks": true,
         "target": "es5",
         "outDir": "dist/",
         "declaration": true,
         "noEmitOnError": true
     },
     "include": [
-        "lib/*.d.ts",
-        "lib/*.ts"
+        "src/*.ts"
     ],
     "exclude": [
         "node_modules",
