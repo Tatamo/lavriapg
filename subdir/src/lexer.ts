@@ -1,21 +1,22 @@
 /// <reference path="../typings/index.d.ts" />
 module Lexer{
+	export type LexToken = string|symbol;
 	export interface LexDefinitionSection{
-		type: string;
+		token: LexToken;
 		pattern: string|RegExp;
 	}
 	export type LexDefinitions = Array<LexDefinitionSection>;
 	export var def:LexDefinitions = [
-		{"type":null, "pattern":" "},
-		{"type":null, "pattern":/\t|\r|\n/},
-		{"type":"LPAREN", "pattern":"("},
-		{"type":"RPAREN", "pattern":")"},
-		{"type":"PLUS", "pattern":"+"},
-		{"type":"ASTERISK", "pattern":"*"},
-		{"type":"DIGITS", "pattern":/[1-9][0-9]*/},
-		{"type":"INVALID", "pattern":/./}
+		{token:null, pattern:" "},
+		{token:null, pattern:/\t|\r|\n/},
+		{token:"LPAREN", pattern:"("},
+		{token:"RPAREN", pattern:")"},
+		{token:"PLUS", pattern:"+"},
+		{token:"ASTERISK", pattern:"*"},
+		{token:"DIGITS", pattern:/[1-9][0-9]*/},
+		{token:"INVALID", pattern:/./}
 	];
-	export type TokenList = Array<{token_type:string, value:string}>;
+	export type TokenList = Array<{token_type:LexToken, value:string}>;
 	export class Lexer{
 		constructor(public def: LexDefinitions){
 				for(var i=0; i<this.def.length; i++){
@@ -34,7 +35,7 @@ module Lexer{
 			while(true){
 				if(str.length == 0) break;
 				for(var i=0; i<this.def.length; i++){
-					var token_type:string = this.def[i].type;
+					var token_type:LexToken = this.def[i].token;
 					var token_pattern = this.def[i].pattern;
 					var match:string;
 					if(typeof token_pattern == "string"){
@@ -45,8 +46,9 @@ module Lexer{
 						if(str.search(token_pattern) != 0) continue;
 						match = token_pattern.exec(str)[0];
 					}
+					// token_typeがnullなら処理を飛ばします
 					if(token_type != null) {
-						console.log(token_type+" : "+match);
+						console.log(token_type," : "+match);
 						result.push({token_type:token_type, value:match});
 					}
 					str = str.substring(match.length);
