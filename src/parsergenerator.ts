@@ -22,9 +22,10 @@ module ParserGenerator{
 		}
 	];
 	export class TerminalSymbolDiscriminator{
-		symbol_table: Array<{symbol:string, is_terminal:boolean}>;
+		private terminal_symbols: Array<string>;
+		private nonterminal_symbols: Array<string>;
 		constructor(lexdef:Lexer.LexDefinitions, syntaxdef:SyntaxDefinitions){
-			this.symbol_table = [];
+			var symbol_table:Array<{symbol:string, is_terminal:boolean}> = [];
 			// 字句規則からの登録
 			for(var i=0; i<lexdef.length; i++){
 				if(lexdef[i].type == null){
@@ -32,41 +33,88 @@ module ParserGenerator{
 				}
 				// 重複がなければ登録する
 				var flg_push = true;
-				for(var ii=0; ii<this.symbol_table.length; ii++){
-					if(this.symbol_table[ii].symbol == lexdef[i].type){
+				for(var ii=0; ii<symbol_table.length; ii++){
+					if(symbol_table[ii].symbol == lexdef[i].type){
 						flg_push = false;
 						break;
 					}
 				}
 				if(flg_push){
 					// 終端記号として登録
-					this.symbol_table.push({symbol: lexdef[i].type, is_terminal: true});
+					symbol_table.push({symbol: lexdef[i].type, is_terminal: true});
 				}
 			}
 			// 構文規則からの登録(左辺値のみ)
 			for(var i=0; i<syntaxdef.length; i++){
 				var flg_token_not_found = true;
 				// 重複がなければ登録する
-				for(var ii=0; ii<this.symbol_table.length; ii++){
-					if(syntaxdef[i].ltoken == this.symbol_table[ii].symbol){
+				for(var ii=0; ii<symbol_table.length; ii++){
+					if(syntaxdef[i].ltoken == symbol_table[ii].symbol){
 						// もし既に登録されていた場合、終端記号ではないとする
-						this.symbol_table[ii].is_terminal = false;
+						symbol_table[ii].is_terminal = false;
 						flg_token_not_found = false;
 						break;
 					}
 				}
 				if(flg_token_not_found){
 					// 構文規則の左辺に現れる記号は非終端記号
-					this.symbol_table.push({symbol : syntaxdef[i].ltoken, is_terminal : false});
+					symbol_table.push({symbol : syntaxdef[i].ltoken, is_terminal : false});
+				}
+			}
+			this.terminal_symbols = [];
+			this.nonterminal_symbols = [];
+			for(var i=0; i<symbol_table.length; i++){
+				if(symbol_table[i].is_terminal){
+					this.terminal_symbols.push(symbol_table[i].symbol);
+				}
+				else{
+					this.nonterminal_symbols.push(symbol_table[i].symbol);
 				}
 			}
 		}
+		getTerminalSymbols():Array<string>{
+			return this.terminal_symbols.slice();
+		}
+		getNonterminalSymbols():Array<string>{
+			return this.nonterminal_symbols.slice();
+		}
+		getAllSymbols():Array<string>{
+			return this.terminal_symbols.concat(this.nonterminal_symbols);
+		}
+		// その都度生成するから呼び出し先で保持して
+		// true: terminal, false: nonterminal
+		getAllSymbolsMap():{[key:string]:boolean}{
+			var result = {};
+			for(var i=0; i<this.terminal_symbols.length; i++){
+				result[this.terminal_symbols[i]] = true;
+			}
+			for(var i=0; i<this.nonterminal_symbols.length; i++){
+				result[this.nonterminal_symbols[i]] = false;
+			}
+			return result;
+		}
+		isTerminalSymbol(symbol:string):boolean{
+			for(var i=0; i<this.terminal_symbols.length; i++){
+				if(this.terminal_symbols[i] == symbol) return true;
+			}
+			return false;
+		}
+		isNonterminalSymbol(symbol:string):boolean{
+			for(var i=0; i<this.nonterminal_symbols.length; i++){
+				if(this.nonterminal_symbols[i] == symbol) return true;
+			}
+			return false;
+		}
 	}
+	type Constraint = Array<{superset:string, subset:string}>;
 	export class ParserGenerator{
 		private nulls:Array<string>;
 		private first_table;
 		private follow_table;
-		constructor(private lexdef:Lexer.LexDefinitions, private syntaxdef:SyntaxDefinitions, private symbol_table: Array<{symbol:string, is_terminal:boolean}>){
+		constructor(private lexdef:Lexer.LexDefinitions, private syntaxdef:SyntaxDefinitions, private symbol_discriminator: TerminalSymbolDiscriminator){
+			this.init();
+		}
+		init(){
 			this.generateNulls();
 			this.generateFIRST();
 		}
@@ -119,9 +167,41 @@ module ParserGenerator{
 				}
 			}
 		}
+		// 包含関係にあるかどうかの判定
+		// supersetおよびsubsetはsortされていることを前提とする
+		private isInclude(superset:Array<string>, subset:Array<string>): boolean{
+			var index =0;
+			var d = 0;
+			while(index<subset.length){
+				if(index+d >= superset.length){
+					return false;
+				}
+				else if(subset[index] == superset[index+d]){
+					index++;
+				}
+				else{
+					d++;
+				}
+			}
+			return true;
+		}
+		// 制約条件がすべて満たされたかどうかを判定する
+		// 与えられたtable内の配列がソートされていることを前提とする
+		private isConstraintFilled(constraint:Constraint, table:{[key:string]: Array<string>}): boolean{
+			for(var i=0; i<constraint.length; i++){
+				var superset = table[constraint[i].superset];
+				var subset = table[constraint[i].subset];
+				// tableのsubの要素がすべてsupに含まれていることを調べる
+				if(!this.isInclude(superset,subset)){
+					// subの要素がすべてsupに含まれていなかった
+					return false;
+				}
+			}
+			return true;
+		}
 		private generateFIRST(){
-			// 包含についての制約を導出
-			var constraint:Array<{superset:string, subset:string}> = [];
+			// 包含についての制約を生成
+			var constraint:Constraint = [];
 			for(var i=0; i<this.syntaxdef.length; i++){
 				var def = this.syntaxdef[i];
 				for(var ii=0; ii<def.pattern.length; ii++){
@@ -140,67 +220,25 @@ module ParserGenerator{
 			}
 			console.log(constraint);
 
-			/*
-			// syntaxdefのltokenとindexの対応関数を作っておく
-			var ltoken2id = (() =>{
-				var table:{[key:string]:number} = {};
-				for(var i=0; i<this.syntaxdef.length;i++){
-					table[this.syntaxdef[i].ltoken] = i;
-				}
-				return (symbol: string):number =>{
-					return table[symbol];
-				};
-			})();*/
-
-			// FOLLOWを導出
+			//FIRSTを導出
 			var first_result:{[key:string]: Array<string>} = {};
 			// 初期化
-			for(var i=0; i<this.symbol_table.length; i++){
-				var symbol = this.symbol_table[i].symbol;
-				if(this.symbol_table[i].is_terminal) {
-					first_result[symbol] = [symbol];
-				}
-				else {
-					first_result[symbol] = [];
-				}
+			var terminal_symbols = this.symbol_discriminator.getTerminalSymbols();
+			for(var i=0; i<terminal_symbols.length; i++){
+				first_result[terminal_symbols[i]] = [terminal_symbols[i]];
 			}
-			// 包含関係にあるかどうかの判定
-			// supersetおよびsubsetはsortされていることを前提とする
-			var isInclude = (superset:Array<string>, subset:Array<string>) => {
-				var index =0;
-				var d = 0;
-				while(index<subset.length){
-					if(index+d >= superset.length){
-						return false;
-					}
-					else if(subset[index] == superset[index+d]){
-						index++;
-					}
-					else{
-						d++;
-					}
-				}
-				return true;
+			var nonterminal_symbols = this.symbol_discriminator.getNonterminalSymbols();
+			for(var i=0; i<nonterminal_symbols.length; i++){
+				first_result[nonterminal_symbols[i]] = [];
 			}
-			// 制約条件がすべて満たされたかどうかを判定する
-			var isConstraintFilled = (constraint:Array<{superset:string, subset:string}>, table:{[key:string]: Array<string>}):boolean=>{
-				for(var i=0; i<constraint.length; i++){
-					var superset = first_result[constraint[i].superset];
-					var subset = first_result[constraint[i].subset];
-					// tableのsubの要素がすべてsupに含まれていることを調べる
-					if(!isInclude(superset,subset)){
-						// subの要素がすべてsupに含まれていなかった
-						return false;
-					}
-				}
-				return true;
-			};
-			while(!isConstraintFilled(constraint, first_result)){
+
+			// 制約解消
+			while(!this.isConstraintFilled(constraint, first_result)){
 				for(var i=0; i<constraint.length; i++){
 					var sup = constraint[i].superset;
 					var sub = constraint[i].subset;
 					// 包含関係にあるべき2つの集合が包含関係にない
-					if(!isInclude(first_result[sup], first_result[sub])){
+					if(!this.isInclude(first_result[sup], first_result[sub])){
 						// subset内の要素をsupersetに入れていく
 						var flg_changed = false;
 						for(var ii=0; ii<first_result[sub].length; ii++){
@@ -224,8 +262,29 @@ module ParserGenerator{
 					}
 				}
 			}
-			console.log(first_result);
+			console.log("FIRST:",first_result);
 			this.first_table = first_result;
+		}
+		private generateFOLLOW(){
+			/*
+			// 包含についての制約を生成
+			var constraint:Constraint = [];
+			for(var i=0; i<this.syntaxdef.length; i++){
+				var def = this.syntaxdef[i];
+				for(var ii=0; ii<def.pattern.length; ii++){
+					for(var iii=0; iii<def.pattern[ii].length; iii++){
+						let symb = def.pattern[ii][iii];
+						// supersetとsubsetが同じ場合は制約を追加しない
+						if(def.ltoken != symb){
+							constraint.push({superset: def.ltoken, subset: symb});
+						}
+						// 左側の記号がすべてnullsに含まれている限り制約を追加していく
+						if(!this.isInNulls(symb)){
+							break;
+						}
+					}
+				}
+			}*/
 		}
 	}
 }
