@@ -4,10 +4,10 @@
   "description": "parsergenerator",
   "main": "lexer.js",
   "scripts": {
-    "test": "tsc --out dist/test.js src/test.ts",
+    "test": "tsc --outFile dist/test.js src/test.ts --target es5 --lib es5,dom,es2015.core,es2015.symbol",
     "start": "node dist/parsergenerator.js",
-    "tsc": "tsc --watch --out dist/persergenerator.js src/parsergenerator.ts",
-    "tsc_make": "tsc --out dist/parsergenerator.js src/parsergenerator.ts",
+    "tsc": "tsc --watch --outFile dist/persergenerator.js",
+    "tsc_make": "tsc --outFile dist/parsergenerator.js",
     "typings_install": "typings install"
   },
   "author": "Tatamo",
