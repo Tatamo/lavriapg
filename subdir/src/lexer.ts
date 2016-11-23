@@ -1,6 +1,7 @@
 /// <reference path="../typings/index.d.ts" />
 module Lexer{
 	export type Token = string|symbol;
+	export const SYMBOL_EOF = Symbol("EOF");
 	export interface LexDefinitionSection{
 		token: Token|null;
 		pattern: string|RegExp;
@@ -18,7 +19,6 @@ module Lexer{
 	];
 	export type TokenList = Array<{token_type:Token, value:string}>;
 	export class Lexer{
-		private symbol_eof;
 		constructor(public def: LexDefinitions){
 			// 正しいトークン定義が与えられているかチェック
 			for(var i=0; i<this.def.length; i++){
@@ -31,10 +31,6 @@ module Lexer{
 				}
 				throw new Error("invalid token definition: neither string nor RegExp object");
 			}
-			this.symbol_eof = Symbol("EOF");
-		}
-		getEOFSymbol():symbol{
-			return this.symbol_eof;
 		}
 		exec(str: string):TokenList{
 			var result:TokenList = [];
@@ -63,7 +59,7 @@ module Lexer{
 				}
 			}
 			// 最後にEOFトークンを付与
-			result.push({token_type:this.getEOFSymbol(), value:""});
+			result.push({token_type:SYMBOL_EOF, value:""});
 			return result;
 		}
 	}
