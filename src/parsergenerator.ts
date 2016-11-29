@@ -1,15 +1,22 @@
 /// <reference path="../lexer/src/lexer.ts" />
 /// <reference path="../typings/index.d.ts" />
 /// <reference path="syntaxdef.ts" />
-/// <reference path="terminalsymboldiscriminator.ts" />
+/// <reference path="symboldiscriminator.ts" />
 
 module ParserGenerator{
-	type Constraint = Array<{superset:string, subset:string}>;
+	type Constraint = Array<{superset:Lexer.Token, subset:Lexer.Token}>;
 	export class ParserGenerator{
-		private nulls:Array<string>;
+		private nulls:Array<Lexer.Token>;
 		private first_map: Map<Lexer.Token, Array<Lexer.Token>>;
 		private follow_map: Map<Lexer.Token, Array<Lexer.Token>>;
-		constructor(private syntaxdef:SyntaxDefinitions, private symbol_discriminator: TerminalSymbolDiscriminator){
+		private symbol_discriminator: SymbolDiscriminator;
+		constructor(private start_symbol, private syntaxdef:SyntaxDefinitions, lexdef: Lexer.LexDefinitions){
+			// 字句規則にSymbol(EOF)を追加
+			lexdef.push({token:Lexer.SYMBOL_EOF, pattern: ""});
+			// 構文規則に S' -> S $ を追加
+			this.syntaxdef.unshift( { ltoken: SYMBOL_SYNTAX, pattern: [[this.start_symbol, Lexer.SYMBOL_EOF]] } )
+			this.symbol_discriminator = new SymbolDiscriminator(lexdef, syntaxdef);
+
 			this.init();
 		}
 		init(){
@@ -17,7 +24,7 @@ module ParserGenerator{
 			this.generateFIRST();
 			this.generateFOLLOW();
 		}
-		private isInNulls(x:string){
+		private isInNulls(x:Lexer.Token){
 			for(var i=0; i<this.nulls.length; i++){
 				if(this.nulls[i] == x) return true;
 			}
@@ -219,8 +226,60 @@ module ParserGenerator{
 				array.sort();
 			}
 			*/
+
+			var sort_with_symbol = (x:Lexer.Token, y:Lexer.Token) =>{
+				let symbols = [];
+				return ((x:Lexer.Token, y:Lexer.Token) =>{
+					if(typeof x == "string" && typeof y == "string"){
+						if(x < y) return -1;
+						else if(x > y) return 1;
+						else return 0;
+					}
+					else if(typeof x == "string"){
+						return -1;
+					}
+					else if(typeof y == "string"){
+						return 1;
+					}
+					else {
+						// x, yともにsymbol
+						let i_x = -1, i_y = -1;
+						for(let i=0; i<symbols.length; i++){
+							if(symbols[i] == x) i_x = i;
+							if(symbols[i] == y) i_y = i;
+							if(i_x >= 0 && i_y >= 0) break;
+						}
+						// 両方とも登録されている場合は登録順に返す
+						if(i_x >= 0 && i_y >= 0) return i_x - i_y;
+						else if(i_x >= 0 && i_y < 0) {
+							// xだけ見つかった
+							symbols.push(y);
+							return -1; // xのほうが小さい
+						}
+						else if(i_x < 0 && i_y >= 0) {
+							// yだけ見つかった
+							symbols.push(x);
+							return 1; // yのほうが小さい
+						}
+						else {
+							// 両方見つからなかった
+							if(x == y) {
+								symbols.push(x);
+								return 0;
+							}
+							else {
+								// xのほうを先に登録 -> xのほうが小さい
+								symbols.push(x);
+								symbols.push(y);
+								return -1;
+							}
+						}
+					}
+				})(x,y);
+			}
+
 			// とりあえずiterableを使わずに実装(target=es5)
-			follow_result.forEach((value,key,map)=>{value.sort();});
+			follow_result.forEach((value,key,map)=>{value.sort(sort_with_symbol);});
 			// 包含についての制約を生成
 			var constraint:Constraint = [];
 			for(var i=0; i<this.syntaxdef.length; i++){
@@ -275,7 +334,7 @@ module ParserGenerator{
 						}
 						// 要素の追加が行われた場合、supersetをsortしておく
 						if(flg_changed){
-							superset.sort();
+							superset.sort(sort_with_symbol);
 						}
 					}
 				}

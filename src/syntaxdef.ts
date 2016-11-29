@@ -1,8 +1,9 @@
 // 構文規則の定義など
 module ParserGenerator{
+	export const SYMBOL_SYNTAX = Symbol("S'");
 	export interface SyntaxDefinitionSection{
-		ltoken: string;
-		pattern: Array<Array<string>>;
+		ltoken: Lexer.Token;
+		pattern: Array<Array<Lexer.Token>>;
 	}
 	// ltokenは重複しないことを前提とする
 	export type SyntaxDefinitions = Array<SyntaxDefinitionSection>;

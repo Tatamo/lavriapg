@@ -2,7 +2,7 @@
 /// <reference path="../lexer/src/lexer.ts" />
 
 module ParserGenerator{
-	export class TerminalSymbolDiscriminator{
+	export class SymbolDiscriminator{
 		private terminal_symbols: Array<Lexer.Token>;
 		private nonterminal_symbols: Array<Lexer.Token>;
 		constructor(lexdef:Lexer.LexDefinitions, syntaxdef:SyntaxDefinitions){
@@ -74,13 +74,13 @@ module ParserGenerator{
 			}
 			return result;
 		}
-		isTerminalSymbol(symbol:string):boolean{
+		isTerminalSymbol(symbol:Lexer.Token):boolean{
 			for(var i=0; i<this.terminal_symbols.length; i++){
 				if(this.terminal_symbols[i] == symbol) return true;
 			}
 			return false;
 		}
-		isNonterminalSymbol(symbol:string):boolean{
+		isNonterminalSymbol(symbol:Lexer.Token):boolean{
 			for(var i=0; i<this.nonterminal_symbols.length; i++){
 				if(this.nonterminal_symbols[i] == symbol) return true;
 			}
