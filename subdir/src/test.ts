@@ -1,4 +1,5 @@
-/// <reference path="./lexer.ts" />
+import * as Lexer from "./lexer";
+
 declare function require(x: string): any;
 
 var s = require("fs").readFileSync("/dev/stdin", "utf8");

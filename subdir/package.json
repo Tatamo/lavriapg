@@ -4,16 +4,18 @@
   "description": "lexical analyzer",
   "main": "lexer.js",
   "scripts": {
-    "test": "tsc --outFile dist/test.js src/test.ts --target es5 --lib es5,dom,es2015.core,es2015.symbol",
+    "test": "node dist/test.js",
     "start": "node dist/lexer.js",
-    "tsc": "tsc --watch --outFile dist/lexer.js",
-    "tsc_make": "tsc --outFile dist/lexer.js",
-    "typings_install": "typings install"
+    "tsc": "tsc --watch",
+    "tsc_make": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tatamo/lexer"
   },
   "author": "Tatamo",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "typescript": "^2.1.1",
-    "typings": "^2.0.0"
+    "typescript": "^2.1.1"
   }
 }
