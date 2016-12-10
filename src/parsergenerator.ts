@@ -21,11 +21,11 @@ module ParserGenerator{
 		}
 		init(){
 			this.generateNulls();
-			this.generateFIRST();
-			this.generateFOLLOW();
+			this.generateFirst();
+			//this.generateGOTOGraph();
 		}
 		private isInNulls(x:Lexer.Token){
-			for(var i=0; i<this.nulls.length; i++){
+			for(let i=0; i<this.nulls.length; i++){
 				if(this.nulls[i] == x) return true;
 			}
 			return false;
@@ -35,10 +35,10 @@ module ParserGenerator{
 			// 制約条件を導出するために、
 			// 空列になりうる記号の集合nullsを導出
 			this.nulls = [];
-			for(var i=0; i<this.syntaxdef.length; i++){
-				var ltoken = this.syntaxdef[i].ltoken;
-				var pattern = this.syntaxdef[i].pattern;
-				for(var ii=0; ii<pattern.length; ii++){
+			for(let i=0; i<this.syntaxdef.length; i++){
+				let ltoken = this.syntaxdef[i].ltoken;
+				let pattern = this.syntaxdef[i].pattern;
+				for(let ii=0; ii<pattern.length; ii++){
 					// 右辺の記号の数が0の規則を持つ記号は空列になりうる
 					if(pattern[ii] == []){
 						this.nulls.push(ltoken);
@@ -46,20 +46,20 @@ module ParserGenerator{
 					}
 				}
 			}
-			var flg_changed:boolean = true;
+			let flg_changed:boolean = true;
 			// 変更が起きなくなるまでループする
 			while(flg_changed){
 				flg_changed = false;
-				for(var i=0; i<this.syntaxdef.length; i++){
-					var ltoken = this.syntaxdef[i].ltoken;
+				for(let i=0; i<this.syntaxdef.length; i++){
+					let ltoken = this.syntaxdef[i].ltoken;
 
 					// 既にnullsに含まれていればスキップ
 					if(this.isInNulls(ltoken)) continue;
 
-					var pattern = this.syntaxdef[i].pattern;
-					for(var ii=0; ii<pattern.length; ii++){
-						var flg_nulls = true;
-						for(var iii=0; iii<pattern[ii].length; iii++){
+					let pattern = this.syntaxdef[i].pattern;
+					for(let ii=0; ii<pattern.length; ii++){
+						let flg_nulls = true;
+						for(let iii=0; iii<pattern[ii].length; iii++){
 							if(!this.isInNulls(pattern[ii][iii])){
 								flg_nulls = false;
 								break;
@@ -76,8 +76,8 @@ module ParserGenerator{
 		// 包含関係にあるかどうかの判定
 		// supersetおよびsubsetはsortされていることを前提とする
 		private isInclude(superset:Array<Lexer.Token>, subset:Array<Lexer.Token>): boolean{
-			var index =0;
-			var d = 0;
+			let index =0;
+			let d = 0;
 			while(index<subset.length){
 				if(index+d >= superset.length){
 					return false;
@@ -94,9 +94,9 @@ module ParserGenerator{
 		// 制約条件がすべて満たされたかどうかを判定する
 		// 与えられたtable内の配列がソートされていることを前提とする
 		private isConstraintFilled(constraint:Constraint, table:Map<Lexer.Token, Array<Lexer.Token>>): boolean{
-			for(var i=0; i<constraint.length; i++){
-				var superset = table.get(constraint[i].superset);
-				var subset = table.get(constraint[i].subset);
+			for(let i=0; i<constraint.length; i++){
+				let superset = table.get(constraint[i].superset);
+				let subset = table.get(constraint[i].subset);
 				// tableのsubの要素がすべてsupに含まれていることを調べる
 				if(!this.isInclude(superset,subset)){
 					// subの要素がすべてsupに含まれていなかった
@@ -105,29 +105,29 @@ module ParserGenerator{
 			}
 			return true;
 		}
-		private generateFIRST(){
-			//FIRSTを導出
-			//var first_result:{[key:string]: Array<string>} = {};
-			var first_result: Map<Lexer.Token, Array<Lexer.Token>> = new Map();
+		private generateFirst(){
+			//Firstを導出
+			//let first_result:{[key:string]: Array<string>} = {};
+			let first_result: Map<Lexer.Token, Array<Lexer.Token>> = new Map();
 			// 初期化
-			var terminal_symbols = this.symbol_discriminator.getTerminalSymbols();
-			for(var i=0; i<terminal_symbols.length; i++){
+			let terminal_symbols = this.symbol_discriminator.getTerminalSymbols();
+			for(let i=0; i<terminal_symbols.length; i++){
 				first_result.set(terminal_symbols[i], [terminal_symbols[i]]);
 			}
-			var nonterminal_symbols = this.symbol_discriminator.getNonterminalSymbols();
-			for(var i=0; i<nonterminal_symbols.length; i++){
+			let nonterminal_symbols = this.symbol_discriminator.getNonterminalSymbols();
+			for(let i=0; i<nonterminal_symbols.length; i++){
 				first_result.set(nonterminal_symbols[i], []);
 			}
 
 			// 包含についての制約を生成
-			var constraint:Constraint = [];
-			for(var i=0; i<this.syntaxdef.length; i++){
-				var def = this.syntaxdef[i];
-				var sup = def.ltoken;
-				var pattern = def.pattern;
-				for(var ii=0; ii<pattern.length; ii++){
-					for(var iii=0; iii<pattern[ii].length; iii++){
-						var sub = pattern[ii][iii];
+			let constraint:Constraint = [];
+			for(let i=0; i<this.syntaxdef.length; i++){
+				let def = this.syntaxdef[i];
+				let sup = def.ltoken;
+				let pattern = def.pattern;
+				for(let ii=0; ii<pattern.length; ii++){
+					for(let iii=0; iii<pattern[ii].length; iii++){
+						let sub = pattern[ii][iii];
 						// supersetとsubsetが同じ場合は制約を追加しない
 						if(sup != sub){
 							constraint.push({superset: sup, subset: sub});
@@ -143,19 +143,19 @@ module ParserGenerator{
 
 			// 制約解消
 			while(!this.isConstraintFilled(constraint, first_result)){
-				for(var i=0; i<constraint.length; i++){
-					var sup = constraint[i].superset;
-					var sub = constraint[i].subset;
-					var superset = first_result.get(sup);
-					var subset = first_result.get(sub);
+				for(let i=0; i<constraint.length; i++){
+					let sup = constraint[i].superset;
+					let sub = constraint[i].subset;
+					let superset = first_result.get(sup);
+					let subset = first_result.get(sub);
 					// 包含関係にあるべき2つの集合が包含関係にない
 					if(!this.isInclude(superset, subset)){
 						// subset内の要素をsupersetに入れていく
-						var flg_changed = false;
-						for(var ii=0; ii<subset.length; ii++){
+						let flg_changed = false;
+						for(let ii=0; ii<subset.length; ii++){
 							// 既に登録されている要素は登録しない
-							var flg_duplicated = false;
-							for(var iii=0; iii<superset.length; iii++){
+							let flg_duplicated = false;
+							for(let iii=0; iii<superset.length; iii++){
 								if(subset[ii] == superset[ii]){
 									flg_duplicated = true;
 									break;
@@ -173,12 +173,13 @@ module ParserGenerator{
 					}
 				}
 			}
-			console.log("FIRST:",first_result);
+			console.log("First:",first_result);
 			this.first_map = first_result;
 		}
-		private generateFOLLOW(){
-			var pushWithoutDuplicate = (value:any, array:Array<any>, cmp:(x:any,y:any)=>boolean =(x,y)=>{return x == y;}):boolean=>{
-				for(var i=0; i<array.length; i++){
+		/*
+		private generateFollow(){
+			let pushWithoutDuplicate = (value:any, array:Array<any>, cmp:(x:any,y:any)=>boolean =(x,y)=>{return x == y;}):boolean=>{
+				for(let i=0; i<array.length; i++){
 					if(cmp(array[i], value)) {
 						return false;
 					}
@@ -186,32 +187,32 @@ module ParserGenerator{
 				array.push(value);
 				return true;
 			}
-			// FOLLOWを導出
+			// Followを導出
 			// 初期化
-			var follow_result:Map<Lexer.Token, Array<Lexer.Token>> = new Map();
-			var nonterminal_symbols = this.symbol_discriminator.getNonterminalSymbols();
-			for(var i=0; i<nonterminal_symbols.length; i++){
+			let follow_result:Map<Lexer.Token, Array<Lexer.Token>> = new Map();
+			let nonterminal_symbols = this.symbol_discriminator.getNonterminalSymbols();
+			for(let i=0; i<nonterminal_symbols.length; i++){
 				follow_result.set(nonterminal_symbols[i], []);
 			}
 
-			for(var i=0; i<this.syntaxdef.length; i++){
-				var ltoken = this.syntaxdef[i].ltoken;
-				var pattern = this.syntaxdef[i].pattern;
-				for(var ii=0; ii<pattern.length; ii++){
+			for(let i=0; i<this.syntaxdef.length; i++){
+				let ltoken = this.syntaxdef[i].ltoken;
+				let pattern = this.syntaxdef[i].pattern;
+				for(let ii=0; ii<pattern.length; ii++){
 					// 一番右を除いてループ(べつにその必要はないが)
-					for(var iii=0; iii<pattern[ii].length-1; iii++){
-						var sup = pattern[ii][iii];
+					for(let iii=0; iii<pattern[ii].length-1; iii++){
+						let sup = pattern[ii][iii];
 						if(this.symbol_discriminator.isTerminalSymbol(sup)){
-							// 終端記号はFOLLOW(X)のXにはならない
+							// 終端記号はFollow(X)のXにはならない
 							break;
 						}
-						for(var d=1; iii+d<pattern[ii].length; d++){
-							var sub = pattern[ii][iii+d];
-							// FOLLOW(sup)にFIRST(sub)を重複を許さずに追加
-							for(var index = 0; index<this.first_map.get(sub).length; index++){
+						for(let d=1; iii+d<pattern[ii].length; d++){
+							let sub = pattern[ii][iii+d];
+							// Follow(sup)にFirst(sub)を重複を許さずに追加
+							for(let index = 0; index<this.first_map.get(sub).length; index++){
 								pushWithoutDuplicate(this.first_map.get(sub)[index], follow_result.get(sup));
 							}
-							// 記号がnullsに含まれている限り、右隣の記号のFIRSTもFOLLOWに加える
+							// 記号がnullsに含まれている限り、右隣の記号のFirstもFollowに加える
 							if(!this.isInNulls(sub)){
 								// 記号がnullsに含まれていない場合はその記号までで終了
 								break;
@@ -220,14 +221,8 @@ module ParserGenerator{
 					}
 				}
 			}
-			// ソートしておく
-			/*
-			for(let array of follow_result.values()){
-				array.sort();
-			}
-			*/
 
-			var sort_with_symbol = (x:Lexer.Token, y:Lexer.Token) =>{
+			let sort_with_symbol = (x:Lexer.Token, y:Lexer.Token) =>{
 				let symbols = [];
 				return ((x:Lexer.Token, y:Lexer.Token) =>{
 					if(typeof x == "string" && typeof y == "string"){
@@ -281,15 +276,15 @@ module ParserGenerator{
 			// とりあえずiterableを使わずに実装(target=es5)
 			follow_result.forEach((value,key,map)=>{value.sort(sort_with_symbol);});
 			// 包含についての制約を生成
-			var constraint:Constraint = [];
-			for(var i=0; i<this.syntaxdef.length; i++){
-				var def = this.syntaxdef[i];
-				var sub = def.ltoken; // 左辺の記号はsubsetになる
-				var pattern = def.pattern;
-				for(var ii=0; ii<pattern.length; ii++){
+			let constraint:Constraint = [];
+			for(let i=0; i<this.syntaxdef.length; i++){
+				let def = this.syntaxdef[i];
+				let sub = def.ltoken; // 左辺の記号はsubsetになる
+				let pattern = def.pattern;
+				for(let ii=0; ii<pattern.length; ii++){
 					// 右端から左に見ていく
-					for(var iii=pattern[ii].length-1; iii>=0; iii--){
-						var sup = pattern[ii][iii];
+					for(let iii=pattern[ii].length-1; iii>=0; iii--){
+						let sup = pattern[ii][iii];
 						// supが終端記号ならスキップ(nullsに含まれていないことは自明なのでここでbreakする)
 						if(this.symbol_discriminator.isTerminalSymbol(sup)){
 							break;
@@ -309,19 +304,19 @@ module ParserGenerator{
 
 			// 制約解消
 			while(!this.isConstraintFilled(constraint, follow_result)){
-				for(var i=0; i<constraint.length; i++){
-					var sup = constraint[i].superset;
-					var sub = constraint[i].subset;
-					var superset = follow_result.get(sup);
-					var subset = follow_result.get(sub);
+				for(let i=0; i<constraint.length; i++){
+					let sup = constraint[i].superset;
+					let sub = constraint[i].subset;
+					let superset = follow_result.get(sup);
+					let subset = follow_result.get(sub);
 					// 包含関係にあるべき2つの集合が包含関係にない
 					if(!this.isInclude(superset, subset)){
 						// subset内の要素をsupersetに入れていく
-						var flg_changed = false;
-						for(var ii=0; ii<subset.length; ii++){
+						let flg_changed = false;
+						for(let ii=0; ii<subset.length; ii++){
 							// 既に登録されている要素は登録しない
-							var flg_duplicated = false;
-							for(var iii=0; iii<superset.length; iii++){
+							let flg_duplicated = false;
+							for(let iii=0; iii<superset.length; iii++){
 								if(subset[ii] == superset[ii]){
 									flg_duplicated = true;
 									break;
@@ -339,9 +334,207 @@ module ParserGenerator{
 					}
 				}
 			}
-			console.log("FOLLOW:",follow_result);
+			console.log("Follow:",follow_result);
 			this.follow_map = follow_result;
+		}*/
+		private getFirst(arg: Lexer.Token);
+		private getFirst(arg: Array<Lexer.Token>);
+		private getFirst(arg: Lexer.Token|Array<Lexer.Token>){
+			if(!Array.isArray(arg)){
+				return this.first_map.get(arg);
+			}
+			let w: Array<Lexer.Token> = arg;
+
+			let result: Array<Lexer.Token> = [];
+			for(let i=0; i<w.length; i++){
+				// ちょっと処理効率が悪い
+				let add = this.first_map.get(w[i]); // i文字目のFirst集合を取得
+				for(let j=0; j<add.length; j++){
+					let flg_duplicated:boolean = false;
+					for(let k=0; k<result.length; k++){
+						if(add[j] == result[k]){
+							flg_duplicated = true;
+							break;
+						}
+					}
+					if(!flg_duplicated){
+						result.push(add[j]);
+					}
+				}
+				if(!this.isInNulls(w[i])){
+					// w[i] ∉ Nulls ならばここでストップ
+					break;
+				}
+			}
+			return result;
 		}
+		/*
+		// バグがあるしそもそも設計自体正しくなかったので書き直す
+		private generateGOTOGraph(){
+			type Clause = { ltoken: Lexer.Token, pattern: Array<Lexer.Token> };
+			type GraphEdge = { to: number, label: Lexer.Token };
+			type GraphNode = { edge: Array<GraphEdge>, clause: Array<Clause> };
+			let graph: Array<GraphNode> = [];
+
+			// こんなところで関数定義しまくるな
+
+			// 非終端記号xに対し、それが左辺として対応する定義を返す
+			let findDef = (x:Lexer.Token):SyntaxDefinitionSection =>{
+				for(let i=0; i<this.syntaxdef.length; i++){
+					if(this.syntaxdef[i].ltoken == x){
+						return this.syntaxdef[i];
+					}
+				}
+				return null;
+			};
+			// 2つの配列の要素が同じであるか、等号演算子を用いた浅い比較を行う
+			let checkSameArray = <T>(p1: Array<T>, p2: Array<T>): boolean =>{
+				if(p1.length != p2.length) return false;
+				let len = p1.length;
+				for(let i=0; i<len; i++){
+					if(p1[i] != p2[i]) return false;
+				}
+				return true;
+			};
+			// 2つのノードが辺を除いて同一であるか調べる
+			// TODO: このコードが正しく動く証明
+			let checkSameStateNode = (node1: GraphNode, node2:GraphNode): boolean =>{
+				let c1 = node1.clause;
+				let c2 = node2.clause;
+				if(c1.length != c2.length) return false;
+				let len = c1.length;
+				for(let i = 0; i<len; i++){
+					if(c1[i].ltoken != c2[i].ltoken) return false;
+					let p1 = c1[i].pattern;
+					let p2 = c2[i].pattern;
+					if(!checkSameArray(p1, p2)) return false;
+				}
+				return true;
+			};
+			// ノードに対するクロージャー展開
+			let expandGraphNode = (node: GraphNode): void =>{
+				// ノードが持つ項をすべて調べる
+				// 項の数はループ中に増加しうる
+				for(let i=0; i<node.clause.length; i++){
+					let ltoken = node.clause[i].ltoken;
+					let pattern = node.clause[i].pattern;
+
+					let dot_index:number = pattern.indexOf(SYMBOL_DOT); // . の位置
+					if(dot_index == pattern.length - 1) continue; // .が末尾にある場合はスキップ
+					let symbol = pattern[dot_index+1];
+					if(symbol == ltoken) continue; // 左辺の記号と.の次にある記号が同じ場合はスキップ
+					if(!this.symbol_discriminator.isNonterminalSymbol(symbol)) continue; // symbolが非終端記号でなければスキップ
+					// .の次に非終端記号が存在する
+					// クロージャー展開を行う
+					let def:SyntaxDefinitionSection = findDef(symbol);
+					for(let ii=0; ii<def.pattern.length; ii++){
+						let newpattern = (<Array<Lexer.Token>>[SYMBOL_DOT]).concat(def.pattern[ii]);
+						node.clause.push({ltoken: symbol, pattern: newpattern});
+					}
+				}
+			};
+
+			console.log("ready to construct graph");
+			// 初期化
+			graph.push({ edge: [], clause: [{ ltoken: SYMBOL_SYNTAX, pattern: [SYMBOL_DOT, this.start_symbol, Lexer.SYMBOL_EOF]}] });
+			expandGraphNode(graph[0]); // 最初のノードを展開しておく
+
+			console.log("start to construct graph");
+
+			for(let i=0; i<graph.length; i++){
+				let node = graph[i];
+				for(let ii=0; ii<node.clause.length; ii++){
+					let ltoken = node.clause[ii].ltoken;
+					let pattern = node.clause[ii].pattern;
+					
+					let dot_index:number = pattern.indexOf(SYMBOL_DOT);
+					if(dot_index == pattern.length - 1) continue; // .が末尾にある場合はスキップ
+					let symbol = pattern[dot_index+1];
+					
+					// 新しい項を生成する
+					let new_pattern = pattern.slice();
+					// .を一つ後ろに移動
+					new_pattern[dot_index+1] = SYMBOL_DOT;
+					new_pattern[dot_index] = symbol;
+					let new_clause = { ltoken: ltoken, pattern: new_pattern };
+
+					// symbolに対して既に辺が張られているかどうかを調べる
+					let flg_edge_exist = false;
+					let target_node_index;
+					for(let i_edge=0; i_edge<node.edge.length; i_edge++){
+						let edge = node.edge[i_edge];
+						if(edge.label == symbol) {
+							flg_edge_exist = true;
+							target_node_index = edge.to;
+							break;
+						}
+					}
+
+					// 既に同じラベルを持つ辺が存在した場合
+					// 対象のノードに対して項を追加する
+					if(flg_edge_exist) {
+						graph[target_node_index].clause.push(new_clause);
+					}
+					// 存在しない場合
+					// 新しいノードを作成する
+					else{
+						let newnode = { edge: [], clause: [new_clause] };
+						
+						// 展開
+						expandGraphNode(newnode);
+
+						let flg_duplicated = false;
+						let duplicated_node: GraphNode;
+						let duplicated_node_index: number;
+						// 同一の項を持つノードが存在しないかどうか調べる
+						for(let j=0; j<graph.length; j++){
+							if(checkSameStateNode(newnode, graph[j])){
+								flg_duplicated = true;
+								duplicated_node = graph[j];
+								duplicated_node_index = j;
+								break;
+							}
+						}
+						if(flg_duplicated){
+							// 重複していた
+							// 新しいノードの追加は行わず、既存ノードに対して辺を張る
+							let flg_add_edge = true;
+							for(let j=0; j<node.edge.length; j++){
+								if(node.edge[j].to == duplicated_node_index){
+									flg_add_edge = false;
+									break;
+								}
+							}
+							// まだ辺が張られていないならば辺を追加する
+							if(flg_add_edge){
+								node.edge.push({to: duplicated_node_index, label: symbol});
+							}
+						}
+						else{
+							// 新しいノードを登録する
+							graph.push(newnode);
+							let newnode_index = graph.length-1;
+							node.edge.push({to: newnode_index, label: symbol}); // 新しいノードに対する辺を引く
+						}
+					}
+				}
+			}
+
+			// toString()かませて文字列として出す
+			for(let i=0; i<graph.length; i++){
+				for(let ii=0; ii<graph[i].edge.length; ii++){
+					graph[i].edge[ii].label = graph[i].edge[ii].label.toString();
+				}
+				for(let ii=0; ii<graph[i].clause.length; ii++){
+					graph[i].clause[ii].ltoken = graph[i].clause[ii].ltoken.toString();
+					for(let iii=0; iii<graph[i].clause[ii].pattern.length; iii++){
+						graph[i].clause[ii].pattern[iii] = graph[i].clause[ii].pattern[iii].toString();
+					}
+				}
+			}
+			console.log(JSON.stringify(graph));
+		}
+	*/
 	}
 }
 
