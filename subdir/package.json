@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "lexical analyzer",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "node dist/test.js",
     "start": "node dist/lexer.js",
