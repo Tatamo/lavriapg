@@ -2,7 +2,7 @@
   "name": "lexer",
   "version": "1.0.0",
   "description": "lexical analyzer",
-  "main": "lexer.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "node dist/test.js",
     "start": "node dist/lexer.js",
