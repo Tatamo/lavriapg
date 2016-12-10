@@ -1,9 +1,13 @@
-/// <reference path="../lexer/src/lexer.ts" />
-/// <reference path="../typings/index.d.ts" />
-/// <reference path="syntaxdef.ts" />
-/// <reference path="symboldiscriminator.ts" />
+import * as Lexer from "lexer";
+import {SymbolDiscriminator} from "./symboldiscriminator";
+import {SYMBOL_SYNTAX, SYMBOL_DOT, SyntaxDefinitionSection, SyntaxDefinitions} from "./syntaxdef";
 
-module ParserGenerator{
+import * as Immutable from "immutable";
+
+//import {*} from "../lexer/src/lexer";
+//import Immutable = require('immutable');
+
+export module ParserGenerator{
 	type Constraint = Array<{superset:Lexer.Token, subset:Lexer.Token}>;
 	export class ParserGenerator{
 		private nulls:Array<Lexer.Token>;

@@ -1,5 +1,8 @@
-/// <reference path="./parsergenerator.ts" />
 declare function require(x: string): any;
+
+import * as Lexer from "lexer"
+import {ParserGenerator} from "./parsergenerator";
+import {def} from "./syntaxdef";
 
 //var s = require("fs").readFileSync("/dev/stdin", "utf8");
 
@@ -9,4 +12,4 @@ declare function require(x: string): any;
 
 //console.log("symbol table:",terminal_symbol_discriminator.getAllSymbolsMap());
 
-new ParserGenerator.ParserGenerator("EXP", ParserGenerator.def, Lexer.def);
+new ParserGenerator.ParserGenerator("EXP", def, Lexer.def);

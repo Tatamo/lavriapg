@@ -2,5 +2,6 @@
   "name": "parsergenerator",
   "dependencies": {},
   "globalDependencies": {
+    "immutable": "registry:dt/immutable#3.8.1+20161028131303"
   }
 }
