@@ -10,9 +10,9 @@ import * as Immutable from "immutable";
 export module ParserGenerator{
 	type Constraint = Array<{superset:Lexer.Token, subset:Lexer.Token}>;
 	export class ParserGenerator{
-		private nulls:Array<Lexer.Token>;
-		private first_map: Map<Lexer.Token, Array<Lexer.Token>>;
-		private follow_map: Map<Lexer.Token, Array<Lexer.Token>>;
+		private nulls:Immutable.Set<Lexer.Token>;
+		private first_map: Immutable.Map<Lexer.Token, Immutable.Set<Lexer.Token>>;
+		private follow_map: Immutable.Map<Lexer.Token, Immutable.Set<Lexer.Token>>;
 		private symbol_discriminator: SymbolDiscriminator;
 		constructor(private start_symbol, private syntaxdef:SyntaxDefinitions, lexdef: Lexer.LexDefinitions){
 			// 字句規則にSymbol(EOF)を追加
@@ -28,24 +28,21 @@ export module ParserGenerator{
 			this.generateFirst();
 			//this.generateGOTOGraph();
 		}
-		private isInNulls(x:Lexer.Token){
-			for(let i=0; i<this.nulls.length; i++){
-				if(this.nulls[i] == x) return true;
-			}
-			return false;
+		private isNullable(x:Lexer.Token){
+			return this.nulls.includes(x);
 		}
 		// nulls初期化
 		private generateNulls(){
 			// 制約条件を導出するために、
 			// 空列になりうる記号の集合nullsを導出
-			this.nulls = [];
+			this.nulls = Immutable.Set<Lexer.Token>();
 			for(let i=0; i<this.syntaxdef.length; i++){
 				let ltoken = this.syntaxdef[i].ltoken;
 				let pattern = this.syntaxdef[i].pattern;
 				for(let ii=0; ii<pattern.length; ii++){
 					// 右辺の記号の数が0の規則を持つ記号は空列になりうる
 					if(pattern[ii] == []){
-						this.nulls.push(ltoken);
+						this.nulls.add(ltoken);
 						break;
 					}
 				}
@@ -58,51 +55,33 @@ export module ParserGenerator{
 					let ltoken = this.syntaxdef[i].ltoken;
 
 					// 既にnullsに含まれていればスキップ
-					if(this.isInNulls(ltoken)) continue;
+					if(this.isNullable(ltoken)) continue;
 
 					let pattern = this.syntaxdef[i].pattern;
 					for(let ii=0; ii<pattern.length; ii++){
 						let flg_nulls = true;
 						for(let iii=0; iii<pattern[ii].length; iii++){
-							if(!this.isInNulls(pattern[ii][iii])){
+							if(!this.isNullable(pattern[ii][iii])){
 								flg_nulls = false;
 								break;
 							}
 						}
 						if(flg_nulls){
-							this.nulls.push(ltoken);
+							this.nulls.add(ltoken);
 							flg_changed = true;
 						}
 					}
 				}
 			}
 		}
-		// 包含関係にあるかどうかの判定
-		// supersetおよびsubsetはsortされていることを前提とする
-		private isInclude(superset:Array<Lexer.Token>, subset:Array<Lexer.Token>): boolean{
-			let index =0;
-			let d = 0;
-			while(index<subset.length){
-				if(index+d >= superset.length){
-					return false;
-				}
-				else if(subset[index] == superset[index+d]){
-					index++;
-				}
-				else{
-					d++;
-				}
-			}
-			return true;
-		}
 		// 制約条件がすべて満たされたかどうかを判定する
 		// 与えられたtable内の配列がソートされていることを前提とする
-		private isConstraintFilled(constraint:Constraint, table:Map<Lexer.Token, Array<Lexer.Token>>): boolean{
+		private isConstraintFilled(constraint:Constraint, table:Immutable.Map<Lexer.Token, Immutable.Set<Lexer.Token>>): boolean{
 			for(let i=0; i<constraint.length; i++){
 				let superset = table.get(constraint[i].superset);
 				let subset = table.get(constraint[i].subset);
 				// tableのsubの要素がすべてsupに含まれていることを調べる
-				if(!this.isInclude(superset,subset)){
+				if(!superset.isSuperset(subset)){
 					// subの要素がすべてsupに含まれていなかった
 					return false;
 				}
@@ -111,17 +90,16 @@ export module ParserGenerator{
 		}
 		private generateFirst(){
 			//Firstを導出
-			//let first_result:{[key:string]: Array<string>} = {};
-			let first_result: Map<Lexer.Token, Array<Lexer.Token>> = new Map();
+			let first_result: Immutable.Map<Lexer.Token, Immutable.Set<Lexer.Token>> = Immutable.Map<Lexer.Token, Immutable.Set<Lexer.Token>>();
 			// 初期化
 			let terminal_symbols = this.symbol_discriminator.getTerminalSymbols();
-			for(let i=0; i<terminal_symbols.length; i++){
-				first_result.set(terminal_symbols[i], [terminal_symbols[i]]);
-			}
+			terminal_symbols.forEach((value)=>{
+				first_result = first_result.set(value, Immutable.Set<Lexer.Token>([value]));
+			});
 			let nonterminal_symbols = this.symbol_discriminator.getNonterminalSymbols();
-			for(let i=0; i<nonterminal_symbols.length; i++){
-				first_result.set(nonterminal_symbols[i], []);
-			}
+			nonterminal_symbols.forEach((value)=>{
+				first_result = first_result.set(value, Immutable.Set<Lexer.Token>());
+			});
 
 			// 包含についての制約を生成
 			let constraint:Constraint = [];
@@ -137,13 +115,13 @@ export module ParserGenerator{
 							constraint.push({superset: sup, subset: sub});
 						}
 						// 左側の記号がすべてnullsに含まれている限り制約を追加していく
-						if(!this.isInNulls(sub)){
+						if(!this.isNullable(sub)){
 							break;
 						}
 					}
 				}
 			}
-			console.log(constraint);
+			console.log("constraint",constraint);
 
 			// 制約解消
 			while(!this.isConstraintFilled(constraint, first_result)){
@@ -153,27 +131,10 @@ export module ParserGenerator{
 					let superset = first_result.get(sup);
 					let subset = first_result.get(sub);
 					// 包含関係にあるべき2つの集合が包含関係にない
-					if(!this.isInclude(superset, subset)){
-						// subset内の要素をsupersetに入れていく
-						let flg_changed = false;
-						for(let ii=0; ii<subset.length; ii++){
-							// 既に登録されている要素は登録しない
-							let flg_duplicated = false;
-							for(let iii=0; iii<superset.length; iii++){
-								if(subset[ii] == superset[ii]){
-									flg_duplicated = true;
-									break;
-								}
-							}
-							if(!flg_duplicated){
-								superset.push(subset[ii]);
-								flg_changed = true;
-							}
-						}
-						// 要素の追加が行われた場合、supersetをsortしておく
-						if(flg_changed){
-							superset.sort();
-						}
+					if(!superset.isSuperset(subset)){
+						// subset内の要素をsupersetに入れる
+						superset = superset.union(subset);
+						first_result = first_result.set(sup, superset);
 					}
 				}
 			}
@@ -217,7 +178,7 @@ export module ParserGenerator{
 								pushWithoutDuplicate(this.first_map.get(sub)[index], follow_result.get(sup));
 							}
 							// 記号がnullsに含まれている限り、右隣の記号のFirstもFollowに加える
-							if(!this.isInNulls(sub)){
+							if(!this.isNullable(sub)){
 								// 記号がnullsに含まれていない場合はその記号までで終了
 								break;
 							}
@@ -299,7 +260,7 @@ export module ParserGenerator{
 												 (x,y)=>{return x.superset == y.superset && x.subset == y.subset});
 						}
 						// 右側の記号がすべてnullsに含まれている限り制約を追加していく
-						if(!this.isInNulls(sub)){
+						if(!this.isNullable(sub)){
 							break;
 						}
 					}
@@ -343,29 +304,17 @@ export module ParserGenerator{
 		}*/
 		private getFirst(arg: Lexer.Token);
 		private getFirst(arg: Array<Lexer.Token>);
-		private getFirst(arg: Lexer.Token|Array<Lexer.Token>){
+		private getFirst(arg: Lexer.Token|Array<Lexer.Token>): Immutable.Set<Lexer.Token>{
 			if(!Array.isArray(arg)){
 				return this.first_map.get(arg);
 			}
 			let w: Array<Lexer.Token> = arg;
 
-			let result: Array<Lexer.Token> = [];
+			let result: Immutable.Set<Lexer.Token> = Immutable.Set<Lexer.Token>();
 			for(let i=0; i<w.length; i++){
-				// ちょっと処理効率が悪い
 				let add = this.first_map.get(w[i]); // i文字目のFirst集合を取得
-				for(let j=0; j<add.length; j++){
-					let flg_duplicated:boolean = false;
-					for(let k=0; k<result.length; k++){
-						if(add[j] == result[k]){
-							flg_duplicated = true;
-							break;
-						}
-					}
-					if(!flg_duplicated){
-						result.push(add[j]);
-					}
-				}
-				if(!this.isInNulls(w[i])){
+				result = result.union(add); // 追加
+				if(!this.isNullable(w[i])){
 					// w[i] ∉ Nulls ならばここでストップ
 					break;
 				}

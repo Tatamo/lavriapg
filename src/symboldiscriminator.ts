@@ -1,9 +1,10 @@
-import * as Lexer from "lexer"
+import * as Lexer from "lexer";
 import {SyntaxDefinitions} from "./syntaxdef";
+import * as Immutable from "immutable";
 
 export class SymbolDiscriminator{
-	private terminal_symbols: Array<Lexer.Token>;
-	private nonterminal_symbols: Array<Lexer.Token>;
+	private terminal_symbols: Immutable.OrderedSet<Lexer.Token>;
+	private nonterminal_symbols: Immutable.OrderedSet<Lexer.Token>;
 	constructor(lexdef:Lexer.LexDefinitions, syntaxdef:SyntaxDefinitions){
 		var symbol_table:Array<{symbol:Lexer.Token, is_terminal:boolean}> = [];
 		// 字句規則からの登録
@@ -41,26 +42,27 @@ export class SymbolDiscriminator{
 				symbol_table.push({symbol : syntaxdef[i].ltoken, is_terminal : false});
 			}
 		}
-		this.terminal_symbols = [];
-		this.nonterminal_symbols = [];
+		this.terminal_symbols = Immutable.OrderedSet<Lexer.Token>();
+		this.nonterminal_symbols = Immutable.OrderedSet<Lexer.Token>();
 		for(var i=0; i<symbol_table.length; i++){
 			if(symbol_table[i].is_terminal){
-				this.terminal_symbols.push(symbol_table[i].symbol);
+				this.terminal_symbols = this.terminal_symbols.add(symbol_table[i].symbol);
 			}
 			else{
-				this.nonterminal_symbols.push(symbol_table[i].symbol);
+				this.nonterminal_symbols =  this.nonterminal_symbols.add(symbol_table[i].symbol);
 			}
 		}
 	}
-	getTerminalSymbols():Array<Lexer.Token>{
-		return this.terminal_symbols.slice();
+	getTerminalSymbols():Immutable.OrderedSet<Lexer.Token>{
+		return this.terminal_symbols;
 	}
-	getNonterminalSymbols():Array<Lexer.Token>{
-		return this.nonterminal_symbols.slice();
+	getNonterminalSymbols():Immutable.OrderedSet<Lexer.Token>{
+		return this.nonterminal_symbols;
 	}
-	getAllSymbols():Array<Lexer.Token>{
-		return this.terminal_symbols.concat(this.nonterminal_symbols);
+	getAllSymbols():Immutable.OrderedSet<Lexer.Token>{
+		return this.terminal_symbols.union(this.nonterminal_symbols);
 	}
+	/*
 	// その都度生成するから呼び出し先で保持して
 	// true: terminal, false: nonterminal
 	getAllSymbolsMap():Map<Lexer.Token, boolean>{
@@ -72,17 +74,11 @@ export class SymbolDiscriminator{
 			result.set(this.nonterminal_symbols[i], false);
 		}
 		return result;
-	}
+	}*/
 	isTerminalSymbol(symbol:Lexer.Token):boolean{
-		for(var i=0; i<this.terminal_symbols.length; i++){
-			if(this.terminal_symbols[i] == symbol) return true;
-		}
-		return false;
+		return this.terminal_symbols.includes(symbol);
 	}
 	isNonterminalSymbol(symbol:Lexer.Token):boolean{
-		for(var i=0; i<this.nonterminal_symbols.length; i++){
-			if(this.nonterminal_symbols[i] == symbol) return true;
-		}
-		return false;
+		return this.nonterminal_symbols.includes(symbol);
 	}
 }

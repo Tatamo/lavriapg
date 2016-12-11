@@ -4,12 +4,21 @@ import * as Lexer from "lexer"
 import {ParserGenerator} from "./parsergenerator";
 import {def} from "./syntaxdef";
 
-//var s = require("fs").readFileSync("/dev/stdin", "utf8");
+import * as Immutable from "immutable";
 
-//var lexer = new Lexer.Lexer(Lexer.def);
+/*
+var map1 = Immutable.Map<string|symbol, number>({a:1, b:1, c:1});
+var map2 = Immutable.Map<string|symbol, number>({a:1, b:1, c:1});
 
-//var terminal_symbol_discriminator = new ParserGenerator.SymbolDiscriminator(Lexer.def , ParserGenerator.def);
+var s = Symbol("s");
+var m = Symbol("m");
+map1 = map1.set(s,1);
+map2 = map2.set(m,1);
 
-//console.log("symbol table:",terminal_symbol_discriminator.getAllSymbolsMap());
+console.log(map1 !== map2);
+console.log(Object.is(map1, map2) === false);
+console.log(Immutable.is(map1, map2) === true);
+console.log(map1,map2);
+*/
 
 new ParserGenerator.ParserGenerator("EXP", def, Lexer.def);
