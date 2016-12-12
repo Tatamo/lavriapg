@@ -38,4 +38,4 @@ console.log(lst.get(i+1));
 console.log(lst.slice(i));
 */
 
-new ParserGenerator.ParserGenerator("EXP", def, Lexer.def);
+new ParserGenerator.ParserGenerator("S", def, Lexer.def);

@@ -9,17 +9,17 @@ export interface SyntaxDefinitionSection{
 }
 // ltokenは重複しないことを前提とする
 export type SyntaxDefinitions = Array<SyntaxDefinitionSection>;
-/*export var def:SyntaxDefinitions = [
+export var def:SyntaxDefinitions = [
 	{
-		ltoken: "EXP",
-		pattern: [["TERM", "PLUS", "EXP"], ["TERM"]]
+		ltoken: "S",
+		pattern: [["E", "PLUS", "S"], ["E"]]
 	},
 	{
-		ltoken: "TERM",
+		ltoken: "E",
 		pattern: [["DIGITS"]]
 	}
-];*/
-export var def:SyntaxDefinitions = [
+];
+export var def_:SyntaxDefinitions = [
 	{
 		ltoken: "EXP",
 		pattern: [["EXP", "PLUS", "TERM"], ["TERM"]]
