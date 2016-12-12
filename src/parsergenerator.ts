@@ -433,13 +433,91 @@ export module ParserGenerator{
 			let first_closure = Immutable.OrderedSet([first_item]);
 			first_closure = this.expandClosure(first_closure);
 			let dfa = Immutable.List<ImmutableDFANode>();
-			dfa.push(this.convertDFANode2Immutable({closure: first_closure, edge: Immutable.Map<Lexer.Token, number>()}));
+			dfa = dfa.push(this.convertDFANode2Immutable({closure: first_closure, edge: Immutable.Map<Lexer.Token, number>()}));
 
+			let prev = null;
+			while(!Immutable.is(dfa, prev)){
+				prev = dfa;
+				dfa.forEach((current_node, index)=>{
+					let closure = <Immutable.OrderedSet<ImmutableClosureItem>>current_node.get("closure");
+					let edge = <DFAEdge>current_node.get("edge");
+					let new_items = Immutable.Map<Lexer.Token, Immutable.OrderedSet<ImmutableClosureItem>>();
+					// 規則から新しい規則を生成し、対応する記号ごとにまとめる
+					closure.forEach((item)=>{
+						let ltoken = <Lexer.Token>item.get("ltoken");
+						let pattern = <Immutable.Seq<number, Lexer.Token>>item.get("pattern");
+						let lookahead = <Lexer.Token>item.get("lookahead");
 
+						let dot_index:number = pattern.findKey((v)=>{return v == SYMBOL_DOT});
+						if(dot_index == pattern.size-1) return; // . が末尾にある場合はスキップ
+						// .を右の要素と交換する
+						let sort_flg = true;
+						let edge_label:Lexer.Token = null;
+						let newpattern = Immutable.Seq<number, Lexer.Token>(pattern.sort((front,behind)=>{
+							if(front == SYMBOL_DOT && sort_flg){
+								// .があった場合は次の要素と交換
+								sort_flg = false; // 一度しかずらさない
+								edge_label = behind; // 交換した記号を保持
+								return 1;
+							}
+							// 通常は何もしない
+							return 0;
+						}));
+						let newitem = Immutable.Map<string, Immutable.Seq<number, Lexer.Token>>({ltoken:ltoken, pattern:newpattern, lookahead:lookahead});
+						let itemset;
+						if(new_items.has(edge_label)){
+							// 既に同じ記号が登録されている
+							itemset = new_items.get(edge_label);
+						}
+						else{
+							// 同じ記号が登録されていない
+							itemset = Immutable.OrderedSet<ImmutableClosureItem>();
+						}
+						itemset = itemset.add(newitem);
+						new_items = new_items.set(edge_label, itemset);
+					});
+					// 新しいノードを生成する
+					new_items.forEach((itemset, edge_label)=>{
+						let newnode:DFANode = {closure: Immutable.OrderedSet<ClosureItem>(), edge:Immutable.Map<Lexer.Token, number>()};
+						// それぞれの規則を追加する
+						itemset.forEach((item)=>{
+							newnode.closure = newnode.closure.add(this.convertImmutableClosureItem2Object(item));
+						});
+						// クロージャー展開する
+						newnode.closure = this.expandClosure(newnode.closure);
+						let newnode_immutable = this.convertDFANode2Immutable(newnode);
+						// 同一のclosureを持つ状態がないかどうか調べる
+						let i = dfa.map((n)=>{return n.get("closure");}).keyOf(newnode_immutable.get("closure"));
+						let index_to;
+						if(i === undefined){
+							// 既存の状態と重複しない
+							// 新しい状態としてDFAに追加し、現在のノードから辺を張る
+							dfa = dfa.push(newnode_immutable);
+							index_to = dfa.size-1;
+						}
+						else{
+							// 既存の状態と規則が重複する
+							// 新しい状態の追加は行わず、重複する既存ノードに対して辺を張る
+							index_to = i;
+						}
+						// 辺を追加
+						edge = edge.set(edge_label, index_to);
+						// DFAを更新
+						dfa = dfa.set(index, Immutable.Map({closure: closure, edge: edge}));
+						if(index_to == 5){
+							console.log("to 5:");
+							console.log(closure);
+							console.log(edge);
+						}
+					});
+				});
+			}
+			console.log(dfa);
+			/*
 			console.log(first_closure);
 			first_closure.forEach((v)=>{
 				console.log(v);
-			});
+			});*/
 		}
 		/*
 		// バグがあるしそもそも設計自体正しくなかったので書き直す
