@@ -4,11 +4,10 @@ import {SYMBOL_SYNTAX, SYMBOL_DOT, SyntaxDefinitionSection, SyntaxDefinitions} f
 
 import * as Immutable from "immutable";
 
-//import {*} from "../lexer/src/lexer";
-//import Immutable = require('immutable');
-
 export module ParserGenerator{
 	type Constraint = Array<{superset:Lexer.Token, subset:Lexer.Token}>;
+	type ClosureItem = {ltoken: Lexer.Token, pattern: Array<Lexer.Token>, lookahead: Lexer.Token};
+	type MergedClosureItem = {ltoken: Lexer.Token, pattern: Array<Lexer.Token>, lookahead_set: Immutable.Set<Lexer.Token>};
 	export class ParserGenerator{
 		private nulls:Immutable.Set<Lexer.Token>;
 		private first_map: Immutable.Map<Lexer.Token, Immutable.Set<Lexer.Token>>;
@@ -27,6 +26,7 @@ export module ParserGenerator{
 			this.generateNulls();
 			this.generateFirst();
 			//this.generateGOTOGraph();
+			this.generateDFA();
 		}
 		private isNullable(x:Lexer.Token){
 			return this.nulls.includes(x);
@@ -309,6 +309,7 @@ export module ParserGenerator{
 				return this.first_map.get(arg);
 			}
 			let w: Array<Lexer.Token> = arg;
+			console.log("w:",w);
 
 			let result: Immutable.Set<Lexer.Token> = Immutable.Set<Lexer.Token>();
 			for(let i=0; i<w.length; i++){
@@ -320,6 +321,100 @@ export module ParserGenerator{
 				}
 			}
 			return result;
+		}
+		// クロージャー展開を行う
+		private expandClosure(start: Immutable.OrderedSet<ClosureItem>): Immutable.OrderedSet<ClosureItem>{
+			// 非終端記号xに対し、それが左辺として対応する定義を返す
+			let findDef = (x:Lexer.Token):SyntaxDefinitionSection =>{
+				for(let i=0; i<this.syntaxdef.length; i++){
+					if(this.syntaxdef[i].ltoken == x){
+						return this.syntaxdef[i];
+					}
+				}
+				return null;
+			};
+			//type ListedClosureItem = {ltoken: Lexer.Token, pattern: Immutable.Seq<number,Lexer.Token>, lookahead: Lexer.Token};
+			type ListedClosureItem = Immutable.Map<string,Lexer.Token | Immutable.Seq<number, Lexer.Token>>;
+			let tmp:Immutable.OrderedSet<ListedClosureItem> = Immutable.OrderedSet<ListedClosureItem>();
+			start.forEach((v)=>{
+				tmp = tmp.add(Immutable.Map({ltoken: v.ltoken, pattern: Immutable.Seq<Lexer.Token>(v.pattern), lookahead: v.lookahead}));
+			});
+			let prev = null;
+			// 変更がなくなるまで繰り返す
+			while(!Immutable.is(tmp, prev)){
+				prev = tmp;
+				tmp.forEach((v)=>{
+					let ltoken = <Lexer.Token>v.get("ltoken");
+					let pattern = <Immutable.Seq<number, Lexer.Token>>v.get("pattern");
+					let lookahead = <Lexer.Token>v.get("lookahead");
+					let dot_index:number = pattern.findKey((v)=>{return v == SYMBOL_DOT});
+					if(dot_index == pattern.size-1) return; // . が末尾にある場合はスキップ
+					let symbol = pattern.get(dot_index+1);
+					//if(symbol == ltoken) return; // 左辺の記号と.の次にある記号が同じ場合はスキップ
+					if(!this.symbol_discriminator.isNonterminalSymbol(symbol)) return; // symbolが非終端記号でなければスキップ
+					// クロージャー展開を行う
+					// 先読み記号を導出
+					console.log("expand closure");
+					console.log("dot_index:", dot_index);
+					let lookahead_set:Immutable.Set<Lexer.Token> = this.getFirst(pattern.slice(dot_index+1+1).toArray().concat(lookahead));
+					let def:SyntaxDefinitionSection = findDef(symbol);
+					console.log("add",lookahead_set.size);
+					for(let ii=0; ii<def.pattern.length; ii++){
+						let newpattern = Immutable.Seq((<Array<Lexer.Token>>[SYMBOL_DOT]).concat(def.pattern[ii]));
+						lookahead_set.forEach((la)=>{
+							tmp = tmp.add(Immutable.Map({ltoken: symbol, pattern: newpattern, lookahead: la}));
+						});
+					}
+				});
+			}
+			let result: Immutable.OrderedSet<ClosureItem> = Immutable.OrderedSet<ClosureItem>();
+			tmp.forEach((v)=>{
+				result = result.add({ltoken: <Lexer.Token>v.get("ltoken"), pattern: (<Immutable.Seq<number, Lexer.Token>>v.get("pattern")).toArray(), lookahead: <Lexer.Token>v.get("lookahead")});
+			});
+			return result;
+
+		   /*
+			// Arrayで展開するほうが楽
+			let result:Array<ClosureItem> = start.toArray();
+			for(let i=0; i<result.length; i++){
+				let ltoken = result[i].ltoken;
+				let pattern = result[i].pattern;
+				console.log("pattern:",pattern);
+
+				let dot_index:number = pattern.indexOf(SYMBOL_DOT); // . の位置
+				if(dot_index == pattern.length - 1) continue; // .が末尾にある場合はスキップ
+				let symbol = pattern[dot_index+1];
+				// if(symbol == ltoken) continue; // 左辺の記号と.の次にある記号が同じ場合はスキップ
+				if(!this.symbol_discriminator.isNonterminalSymbol(symbol)) continue; // symbolが非終端記号でなければスキップ
+				// .の次に非終端記号が存在する
+				// クロージャー展開を行う
+				// 先読み記号を導出
+				console.log("expand closure");
+				console.log("dot_index:", dot_index);
+				let lookahead_set:Immutable.Set<Lexer.Token> = this.getFirst(pattern.slice(dot_index+1+1).concat(result[i].lookahead));
+				let def:SyntaxDefinitionSection = findDef(symbol);
+				for(let ii=0; ii<def.pattern.length; ii++){
+					let newpattern = (<Array<Lexer.Token>>[SYMBOL_DOT]).concat(def.pattern[ii]);
+					lookahead_set.forEach((la)=>{
+						result.push({ltoken: symbol, pattern: newpattern, lookahead: la});
+					});
+				}
+			}
+			let a:Immutable.Seq<number,number> = Immutable.Seq([1,2,3]);
+			a = Immutable.Seq(a.slice());
+			//a:Immutable.Seq<number, 
+			return Immutable.OrderedSet<ClosureItem>(result);
+			*/
+		}
+		private generateDFA(){
+			let first_item:ClosureItem = {ltoken: SYMBOL_SYNTAX, pattern:[SYMBOL_DOT, this.start_symbol], lookahead: Lexer.SYMBOL_EOF};
+			let first_closure = Immutable.OrderedSet([first_item]);
+			first_closure = this.expandClosure(first_closure);
+			console.log("first", this.getFirst(["PLUS", "TERM", Lexer.SYMBOL_EOF]));
+			console.log(first_closure);
+			first_closure.forEach((v)=>{
+				console.log(v);
+			});
 		}
 		/*
 		// バグがあるしそもそも設計自体正しくなかったので書き直す

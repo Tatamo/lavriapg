@@ -17,11 +17,11 @@
   "author": "Tatamo",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "immutable": "^3.8.1",
     "typescript": "^2.1.1",
     "typings": "^2.0.0"
   },
   "dependencies": {
+    "immutable": "^3.8.1",
     "lexer": "file:lexer"
   }
 }

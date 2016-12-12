@@ -20,5 +20,22 @@ console.log(Object.is(map1, map2) === false);
 console.log(Immutable.is(map1, map2) === true);
 console.log(map1,map2);
 */
+/*
+var set1 = Immutable.OrderedSet<number>([1, 2]);
+var set2 = Immutable.OrderedSet<number>([1, 2]);
+set1 = set1.add(2);
+console.log(Immutable.is(set1, set2));
+*/
+/*
+var lst = Immutable.List<number>([1,2,3,4,5]);
+lst.forEach((v)=>{
+	if(v == 3) return;
+	console.log(v);
+});
+let i = lst.findKey((v)=>{return v == 3});
+console.log(i);
+console.log(lst.get(i+1));
+console.log(lst.slice(i));
+*/
 
 new ParserGenerator.ParserGenerator("EXP", def, Lexer.def);
