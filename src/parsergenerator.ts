@@ -22,7 +22,7 @@ export module ParserGenerator{
 			// 字句規則にSymbol(EOF)を追加
 			lexdef.push({token:Lexer.SYMBOL_EOF, pattern: ""});
 			// 構文規則に S' -> S $ を追加
-			this.syntaxdef.unshift( { ltoken: SYMBOL_SYNTAX, pattern: [[this.start_symbol, Lexer.SYMBOL_EOF]] } )
+			this.syntaxdef.unshift( { ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, Lexer.SYMBOL_EOF] } )
 			this.symbol_discriminator = new SymbolDiscriminator(lexdef, syntaxdef);
 
 			this.init();
@@ -44,12 +44,19 @@ export module ParserGenerator{
 			for(let i=0; i<this.syntaxdef.length; i++){
 				let ltoken = this.syntaxdef[i].ltoken;
 				let pattern = this.syntaxdef[i].pattern;
+				/*
 				for(let ii=0; ii<pattern.length; ii++){
 					// 右辺の記号の数が0の規則を持つ記号は空列になりうる
 					if(pattern[ii] == []){
 						this.nulls.add(ltoken);
 						break;
 					}
+				}
+				*/
+
+				// 右辺の記号の数が0の規則を持つ記号は空列になりうる
+				if(pattern == []){
+					this.nulls = this.nulls.add(ltoken);
 				}
 			}
 			let flg_changed:boolean = true;
@@ -63,6 +70,7 @@ export module ParserGenerator{
 					if(this.isNullable(ltoken)) continue;
 
 					let pattern = this.syntaxdef[i].pattern;
+					/*
 					for(let ii=0; ii<pattern.length; ii++){
 						let flg_nulls = true;
 						for(let iii=0; iii<pattern[ii].length; iii++){
@@ -75,6 +83,20 @@ export module ParserGenerator{
 							this.nulls.add(ltoken);
 							flg_changed = true;
 						}
+					}
+					*/
+
+					let flg_nulls = true;
+					// 右辺に含まれる記号がすべてnullableの場合はその左辺はnullable
+					for(let ii=0; ii<pattern.length; ii++){
+						if(!this.isNullable(pattern[ii])){
+							flg_nulls = false;
+							break;
+						}
+					}
+					if(flg_nulls){
+						if(this.nulls.includes(ltoken)) flg_changed = true;
+						this.nulls = this.nulls.add(ltoken);
 					}
 				}
 			}
@@ -113,6 +135,7 @@ export module ParserGenerator{
 				let sup = def.ltoken;
 				let pattern = def.pattern;
 				for(let ii=0; ii<pattern.length; ii++){
+					/*
 					for(let iii=0; iii<pattern[ii].length; iii++){
 						let sub = pattern[ii][iii];
 						// supersetとsubsetが同じ場合は制約を追加しない
@@ -123,6 +146,15 @@ export module ParserGenerator{
 						if(!this.isNullable(sub)){
 							break;
 						}
+					}
+					*/
+
+					let sub = pattern[ii];
+					if(sup != sub){
+						constraint.push({superset: sup, subset: sub});
+					}
+					if(!this.isNullable(sub)){
+						break;
 					}
 				}
 			}
@@ -342,13 +374,14 @@ export module ParserGenerator{
 		// クロージャー展開を行う
 		private expandClosure(start: Immutable.OrderedSet<ClosureItem>): Immutable.OrderedSet<ClosureItem>{
 			// 非終端記号xに対し、それが左辺として対応する定義を返す
-			let findDef = (x:Lexer.Token):SyntaxDefinitionSection =>{
+			let findDef = (x:Lexer.Token):Array<SyntaxDefinitionSection> =>{
+				let result:Array<SyntaxDefinitionSection> = new Array();
 				for(let i=0; i<this.syntaxdef.length; i++){
 					if(this.syntaxdef[i].ltoken == x){
-						return this.syntaxdef[i];
+						result.push(this.syntaxdef[i]);
 					}
 				}
-				return null;
+				return result;
 			};
 			let tmp:Immutable.OrderedSet<ImmutableClosureItem> = Immutable.OrderedSet<ImmutableClosureItem>();
 			start.forEach((v)=>{
@@ -370,6 +403,7 @@ export module ParserGenerator{
 					// クロージャー展開を行う
 					// 先読み記号を導出
 					let lookahead_set:Immutable.Set<Lexer.Token> = this.getFirst(pattern.slice(dot_index+1+1).toArray().concat(lookahead));
+					/*
 					let def:SyntaxDefinitionSection = findDef(symbol);
 					// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
 					for(let ii=0; ii<def.pattern.length; ii++){
@@ -380,6 +414,18 @@ export module ParserGenerator{
 							tmp = tmp.add(Immutable.Map({ltoken: symbol, pattern: newpattern, lookahead: la}));
 						});
 					}
+					*/
+
+					let def:Array<SyntaxDefinitionSection> = findDef(symbol);
+					// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
+					def.forEach((syntax)=>{
+						// 構文規則の右辺の一番左に.をつける
+						let new_pattern = Immutable.Seq((<Array<Lexer.Token>>[SYMBOL_DOT]).concat(syntax.pattern));
+						// すべての先読み記号について追加
+						lookahead_set.forEach((la)=>{
+							tmp = tmp.add(Immutable.Map({ltoken: symbol, pattern: new_pattern, lookahead: la}));
+						});
+					});
 				});
 			}
 			let result: Immutable.OrderedSet<ClosureItem> = Immutable.OrderedSet<ClosureItem>();

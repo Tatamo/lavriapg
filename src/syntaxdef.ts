@@ -5,7 +5,7 @@ export const SYMBOL_SYNTAX = Symbol("S'");
 export const SYMBOL_DOT = Symbol(".");
 export interface SyntaxDefinitionSection{
 	ltoken: Lexer.Token;
-	pattern: Array<Array<Lexer.Token>>;
+	pattern: Array<Lexer.Token>;
 }
 // ltokenは重複しないことを前提とする
 export type SyntaxDefinitions = Array<SyntaxDefinitionSection>;
@@ -13,39 +13,67 @@ export type SyntaxDefinitions = Array<SyntaxDefinitionSection>;
 export var def:SyntaxDefinitions = [
 	{
 		ltoken: "S",
-		pattern: [["E", "PLUS", "S"], ["E"]]
+		pattern: ["E", "PLUS", "S"]
+	},
+	{
+		ltoken: "S",
+		pattern: ["E"]
 	},
 	{
 		ltoken: "E",
-		pattern: [["DIGITS"]]
+		pattern: ["DIGITS"]
 	}
 ];
 export var def_:SyntaxDefinitions = [
 	{
 		ltoken: "EXP",
-		pattern: [["EXP", "PLUS", "TERM"], ["TERM"]]
+		pattern: ["EXP", "PLUS", "TERM"]
+	},
+	{
+		ltoken: "EXP",
+		pattern: ["TERM"]
 	},
 	{
 		ltoken: "TERM",
-		pattern: [["TERM", "ASTERISK", "ATOM"], ["ATOM"]]
+		pattern: ["TERM", "ASTERISK", "ATOM"]
+	},
+	{
+		ltoken: "TERM",
+		pattern: ["ATOM"]
 	},
 	{
 		ltoken: "ATOM",
-		pattern:[["DIGITS"], ["LPAREN", "EXP", "RPAREN"]]
+		pattern:["DIGITS"]
+	},
+	{
+		ltoken: "ATOM",
+		pattern:["LPAREN", "EXP", "RPAREN"]
 	}
 ];
-
 export var def__:SyntaxDefinitions = [
 	{
 		ltoken: "S",
-		pattern: [["E", "LPAREN", "E"], ["RPAREN"]]
+		pattern: ["E", "LPAREN", "E"]
+	},
+	{
+		ltoken: "S",
+		pattern: ["RPAREN"]
 	},
 	{
 		ltoken: "E",
-		pattern: [["E", "PLUS", "T"], ["T"]]
+		pattern: ["E", "PLUS", "T"]
+	},
+	{
+		ltoken: "E",
+		pattern: ["T"]
 	},
 	{
 		ltoken: "T",
-		pattern: [["DIGITS"], ["RPAREN"]]
+		pattern: ["DIGITS"]
+	},
+	{
+		ltoken: "T",
+		pattern: ["RPAREN"]
 	}
 ];
+
