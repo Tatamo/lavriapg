@@ -388,38 +388,6 @@ export module ParserGenerator{
 			});
 			return result;
 
-		   /*
-			// Arrayで展開するほうが楽
-			let result:Array<ClosureItem> = start.toArray();
-			for(let i=0; i<result.length; i++){
-				let ltoken = result[i].ltoken;
-				let pattern = result[i].pattern;
-				console.log("pattern:",pattern);
-
-				let dot_index:number = pattern.indexOf(SYMBOL_DOT); // . の位置
-				if(dot_index == pattern.length - 1) continue; // .が末尾にある場合はスキップ
-				let symbol = pattern[dot_index+1];
-				// if(symbol == ltoken) continue; // 左辺の記号と.の次にある記号が同じ場合はスキップ
-				if(!this.symbol_discriminator.isNonterminalSymbol(symbol)) continue; // symbolが非終端記号でなければスキップ
-				// .の次に非終端記号が存在する
-				// クロージャー展開を行う
-				// 先読み記号を導出
-				console.log("expand closure");
-				console.log("dot_index:", dot_index);
-				let lookahead_set:Immutable.Set<Lexer.Token> = this.getFirst(pattern.slice(dot_index+1+1).concat(result[i].lookahead));
-				let def:SyntaxDefinitionSection = findDef(symbol);
-				for(let ii=0; ii<def.pattern.length; ii++){
-					let newpattern = (<Array<Lexer.Token>>[SYMBOL_DOT]).concat(def.pattern[ii]);
-					lookahead_set.forEach((la)=>{
-						result.push({ltoken: symbol, pattern: newpattern, lookahead: la});
-					});
-				}
-			}
-			let a:Immutable.Seq<number,number> = Immutable.Seq([1,2,3]);
-			a = Immutable.Seq(a.slice());
-			//a:Immutable.Seq<number, 
-			return Immutable.OrderedSet<ClosureItem>(result);
-			*/
 		}
 		// DFAのノードをImmutableデータ構造を使った形式に変換
 		private convertDFANode2Immutable(node: DFANode):ImmutableDFANode{
@@ -519,7 +487,9 @@ export module ParserGenerator{
 				});
 			}
 			console.log(dfa);
-			console.log(this.mergeLA(dfa));
+			let lalr_dfa = this.mergeLA(dfa);
+			console.log(lalr_dfa);
+			this.generateParsingTable(lalr_dfa);
 			/*
 			console.log(first_closure);
 			first_closure.forEach((v)=>{
@@ -591,6 +561,14 @@ export module ParserGenerator{
 			});
 			
 			return result;
+		}
+		private generateParsingTable(dfa){
+			type ShiftOperation = {"type": "shift", "to": number};
+			type ReduceOperation = {"type": "reduce", "syntax": number};
+			type AcceptOperation = {"type": "accept"};
+			type GotoOperation = {"type" : "goto", "to": number};
+			type ParseOperation = ShiftOperation|ReduceOperation|AcceptOperation|GotoOperation;;
+			let parsing_table = new Array<Immutable.Map<Lexer.Token, ParseOperation>>();
 		}
 	}
 }

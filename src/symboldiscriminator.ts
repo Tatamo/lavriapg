@@ -5,6 +5,7 @@ import * as Immutable from "immutable";
 export class SymbolDiscriminator{
 	private terminal_symbols: Immutable.OrderedSet<Lexer.Token>;
 	private nonterminal_symbols: Immutable.OrderedSet<Lexer.Token>;
+	// TODO: 全部構文規則から生成するようにする
 	constructor(lexdef:Lexer.LexDefinitions, syntaxdef:SyntaxDefinitions){
 		var symbol_table:Array<{symbol:Lexer.Token, is_terminal:boolean}> = [];
 		// 字句規則からの登録
