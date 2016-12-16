@@ -8,11 +8,11 @@ export module ParserGenerator{
 	type Constraint = Array<{superset:Lexer.Token, subset:Lexer.Token}>;
 	type ClosureItem = {ltoken: Lexer.Token, pattern: Array<Lexer.Token>, lookahead: Lexer.Token};
 	type ImmutableClosureItem = Immutable.Map<string,Lexer.Token | Immutable.Seq<number, Lexer.Token>>;
+	type ClosureSet = Immutable.OrderedSet<ClosureItem>;
+	type ImmutableClosureSet = Immutable.OrderedSet<ImmutableClosureItem>;
 	type DFAEdge = Immutable.Map<Lexer.Token, number>;
-	type DFANode = {closure: Immutable.OrderedSet<ClosureItem>, edge: DFAEdge};
-	type ImmutableDFANode = Immutable.Map<string, Immutable.OrderedSet<ImmutableClosureItem>|DFAEdge>;
-	// LALR 
-	type MergedClosureItem = {ltoken: Lexer.Token, pattern: Array<Lexer.Token>, lookahead_set: Immutable.Set<Lexer.Token>};
+	type DFANode = {closure: ClosureSet, edge: DFAEdge};
+	type ImmutableDFANode = Immutable.Map<string, ImmutableClosureSet|DFAEdge>;
 	export class ParserGenerator{
 		private nulls:Immutable.Set<Lexer.Token>;
 		private first_map: Immutable.Map<Lexer.Token, Immutable.Set<Lexer.Token>>;
@@ -330,8 +330,14 @@ export module ParserGenerator{
 		private convertClosureItem2Immutable(item: ClosureItem):ImmutableClosureItem{
 			return Immutable.Map({ltoken: item.ltoken, pattern: Immutable.Seq<Lexer.Token>(item.pattern), lookahead: item.lookahead});
 		}
-		private convertImmutableClosureItem2Object(item: ImmutableClosureItem):ClosureItem{
-			return {ltoken: <Lexer.Token>item.get("ltoken"), pattern: (<Immutable.Seq<number, Lexer.Token>>item.get("pattern")).toArray(), lookahead: <Lexer.Token>item.get("lookahead")};
+		private convertImmutableClosureItem2Object(item_im: ImmutableClosureItem):ClosureItem{
+			return {ltoken: <Lexer.Token>item_im.get("ltoken"), pattern: (<Immutable.Seq<number, Lexer.Token>>item_im.get("pattern")).toArray(), lookahead: <Lexer.Token>item_im.get("lookahead")};
+		}
+		private convertClosureSet2Immutable(closure: ClosureSet):ImmutableClosureSet{
+			return closure.map((item)=>{return this.convertClosureItem2Immutable(item);}).toOrderedSet();
+		}
+		private convertImmutableClosureSet2Object(closure_im: ImmutableClosureSet):ClosureSet{
+			return closure_im.map((item_im)=>{return this.convertImmutableClosureItem2Object(item_im);}).toOrderedSet();
 		}
 		// クロージャー展開を行う
 		private expandClosure(start: Immutable.OrderedSet<ClosureItem>): Immutable.OrderedSet<ClosureItem>{
@@ -417,16 +423,16 @@ export module ParserGenerator{
 		}
 		// DFAのノードをImmutableデータ構造を使った形式に変換
 		private convertDFANode2Immutable(node: DFANode):ImmutableDFANode{
-			let closure:Immutable.OrderedSet<ImmutableClosureItem> = Immutable.OrderedSet<ImmutableClosureItem>(node.closure.map((item)=>{return this.convertClosureItem2Immutable(item)}));
+			let closure:Immutable.OrderedSet<ImmutableClosureItem> = node.closure.map((item)=>{return this.convertClosureItem2Immutable(item)}).toOrderedSet();
 			let tmp = {closure:closure, edge:node.edge};
 			
 			return Immutable.Map<string, Immutable.OrderedSet<ImmutableClosureItem>|DFAEdge>(tmp);
 		}
 		// Immutableのデータ構造によって構築されたDFAのノードをオブジェクトに変換
-		private convertImmutableDFANode2Object(node: ImmutableDFANode):DFANode{
-			let immutable_closure = <Immutable.OrderedSet<ImmutableClosureItem>>node.get("closure");
-			let closure = Immutable.OrderedSet<ClosureItem>(immutable_closure.map((item)=>{return this.convertImmutableClosureItem2Object(item)}));
-			return {closure: closure, edge: <DFAEdge>node.get("edge")};
+		private convertImmutableDFANode2Object(node_im: ImmutableDFANode):DFANode{
+			let immutable_closure = <Immutable.OrderedSet<ImmutableClosureItem>>node_im.get("closure");
+			let closure = immutable_closure.map((item)=>{return this.convertImmutableClosureItem2Object(item)}).toOrderedSet();
+			return {closure: closure, edge: <DFAEdge>node_im.get("edge")};
 		}
 		private generateDFA(){
 			let first_item:ClosureItem = {ltoken: SYMBOL_SYNTAX, pattern:[SYMBOL_DOT, this.start_symbol], lookahead: Lexer.SYMBOL_EOF};
@@ -513,179 +519,79 @@ export module ParserGenerator{
 				});
 			}
 			console.log(dfa);
+			console.log(this.mergeLA(dfa));
 			/*
 			console.log(first_closure);
 			first_closure.forEach((v)=>{
 				console.log(v);
 			});*/
 		}
-		/*
-		// バグがあるしそもそも設計自体正しくなかったので書き直す
-		private generateGOTOGraph(){
-			type Clause = { ltoken: Lexer.Token, pattern: Array<Lexer.Token> };
-			type GraphEdge = { to: number, label: Lexer.Token };
-			type GraphNode = { edge: Array<GraphEdge>, clause: Array<Clause> };
-			let graph: Array<GraphNode> = [];
+		// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
+		private mergeLA(dfa:Immutable.List<ImmutableDFANode>): Immutable.List<ImmutableDFANode>{
+			let array: Array<DFANode> = dfa.toArray().map((node)=>{return this.convertImmutableDFANode2Object(node);});
+			// DFAからLR(0)テーブル部分のみを抽出した配列を生成
+			let lr0_itemsets:Array<Immutable.OrderedSet<Immutable.Map<string, Lexer.Token|Immutable.Seq<number, Lexer.Token>>>> = dfa.map((node)=>{
+				// クロージャー部分を取得
+				let closure = <ImmutableClosureSet>node.get("closure");
+				// 先読み部分を消したものを取得
+				return closure.map((item)=>{
+					return item.delete("lookahead");
+				}).toOrderedSet();
+			}).toArray();
+			let merge_to = Immutable.Map<number, number>();;
+			for(let i=0; i<array.length; i++){
+				if(array[i] == null) continue;
+				for(let ii=i+1; ii<array.length; ii++){
+					if(array[ii] == null) continue;
+					// LR(0)アイテムセット部分が重複
+					if(Immutable.is(lr0_itemsets[i], lr0_itemsets[ii])){
+						// ii番目の先読み部分をi番目にマージする
+						// インデックス番号の大きい方が削除される
+						// つまり項全体をマージ
+						// 辺情報は、対象となる辺もいずれマージされて消えるため操作しなくてよい
+						let merged_closure_to_im = this.convertClosureSet2Immutable(array[i].closure); // マージ先のクロージャー(Immutable)
+						let merged_closure_from_im = this.convertClosureSet2Immutable(array[ii].closure); // 削除される方のクロージャー(Immutable)
 
-			// こんなところで関数定義しまくるな
-
-			// 非終端記号xに対し、それが左辺として対応する定義を返す
-			let findDef = (x:Lexer.Token):SyntaxDefinitionSection =>{
-				for(let i=0; i<this.syntaxdef.length; i++){
-					if(this.syntaxdef[i].ltoken == x){
-						return this.syntaxdef[i];
-					}
-				}
-				return null;
-			};
-			// 2つの配列の要素が同じであるか、等号演算子を用いた浅い比較を行う
-			let checkSameArray = <T>(p1: Array<T>, p2: Array<T>): boolean =>{
-				if(p1.length != p2.length) return false;
-				let len = p1.length;
-				for(let i=0; i<len; i++){
-					if(p1[i] != p2[i]) return false;
-				}
-				return true;
-			};
-			// 2つのノードが辺を除いて同一であるか調べる
-			// TODO: このコードが正しく動く証明
-			let checkSameStateNode = (node1: GraphNode, node2:GraphNode): boolean =>{
-				let c1 = node1.clause;
-				let c2 = node2.clause;
-				if(c1.length != c2.length) return false;
-				let len = c1.length;
-				for(let i = 0; i<len; i++){
-					if(c1[i].ltoken != c2[i].ltoken) return false;
-					let p1 = c1[i].pattern;
-					let p2 = c2[i].pattern;
-					if(!checkSameArray(p1, p2)) return false;
-				}
-				return true;
-			};
-			// ノードに対するクロージャー展開
-			let expandGraphNode = (node: GraphNode): void =>{
-				// ノードが持つ項をすべて調べる
-				// 項の数はループ中に増加しうる
-				for(let i=0; i<node.clause.length; i++){
-					let ltoken = node.clause[i].ltoken;
-					let pattern = node.clause[i].pattern;
-
-					let dot_index:number = pattern.indexOf(SYMBOL_DOT); // . の位置
-					if(dot_index == pattern.length - 1) continue; // .が末尾にある場合はスキップ
-					let symbol = pattern[dot_index+1];
-					if(symbol == ltoken) continue; // 左辺の記号と.の次にある記号が同じ場合はスキップ
-					if(!this.symbol_discriminator.isNonterminalSymbol(symbol)) continue; // symbolが非終端記号でなければスキップ
-					// .の次に非終端記号が存在する
-					// クロージャー展開を行う
-					let def:SyntaxDefinitionSection = findDef(symbol);
-					for(let ii=0; ii<def.pattern.length; ii++){
-						let newpattern = (<Array<Lexer.Token>>[SYMBOL_DOT]).concat(def.pattern[ii]);
-						node.clause.push({ltoken: symbol, pattern: newpattern});
-					}
-				}
-			};
-
-			console.log("ready to construct graph");
-			// 初期化
-			graph.push({ edge: [], clause: [{ ltoken: SYMBOL_SYNTAX, pattern: [SYMBOL_DOT, this.start_symbol, Lexer.SYMBOL_EOF]}] });
-			expandGraphNode(graph[0]); // 最初のノードを展開しておく
-
-			console.log("start to construct graph");
-
-			for(let i=0; i<graph.length; i++){
-				let node = graph[i];
-				for(let ii=0; ii<node.clause.length; ii++){
-					let ltoken = node.clause[ii].ltoken;
-					let pattern = node.clause[ii].pattern;
-					
-					let dot_index:number = pattern.indexOf(SYMBOL_DOT);
-					if(dot_index == pattern.length - 1) continue; // .が末尾にある場合はスキップ
-					let symbol = pattern[dot_index+1];
-					
-					// 新しい項を生成する
-					let new_pattern = pattern.slice();
-					// .を一つ後ろに移動
-					new_pattern[dot_index+1] = SYMBOL_DOT;
-					new_pattern[dot_index] = symbol;
-					let new_clause = { ltoken: ltoken, pattern: new_pattern };
-
-					// symbolに対して既に辺が張られているかどうかを調べる
-					let flg_edge_exist = false;
-					let target_node_index;
-					for(let i_edge=0; i_edge<node.edge.length; i_edge++){
-						let edge = node.edge[i_edge];
-						if(edge.label == symbol) {
-							flg_edge_exist = true;
-							target_node_index = edge.to;
-							break;
-						}
-					}
-
-					// 既に同じラベルを持つ辺が存在した場合
-					// 対象のノードに対して項を追加する
-					if(flg_edge_exist) {
-						graph[target_node_index].clause.push(new_clause);
-					}
-					// 存在しない場合
-					// 新しいノードを作成する
-					else{
-						let newnode = { edge: [], clause: [new_clause] };
-						
-						// 展開
-						expandGraphNode(newnode);
-
-						let flg_duplicated = false;
-						let duplicated_node: GraphNode;
-						let duplicated_node_index: number;
-						// 同一の項を持つノードが存在しないかどうか調べる
-						for(let j=0; j<graph.length; j++){
-							if(checkSameStateNode(newnode, graph[j])){
-								flg_duplicated = true;
-								duplicated_node = graph[j];
-								duplicated_node_index = j;
-								break;
-							}
-						}
-						if(flg_duplicated){
-							// 重複していた
-							// 新しいノードの追加は行わず、既存ノードに対して辺を張る
-							let flg_add_edge = true;
-							for(let j=0; j<node.edge.length; j++){
-								if(node.edge[j].to == duplicated_node_index){
-									flg_add_edge = false;
-									break;
-								}
-							}
-							// まだ辺が張られていないならば辺を追加する
-							if(flg_add_edge){
-								node.edge.push({to: duplicated_node_index, label: symbol});
-							}
-						}
-						else{
-							// 新しいノードを登録する
-							graph.push(newnode);
-							let newnode_index = graph.length-1;
-							node.edge.push({to: newnode_index, label: symbol}); // 新しいノードに対する辺を引く
-						}
+						let merged_closure = merged_closure_to_im.merge(merged_closure_from_im);
+						array[i].closure = this.convertImmutableClosureSet2Object(merged_closure); // 更新
+						merge_to = merge_to.set(ii, i);
+						// ii番目を削除
+						array[ii] = null;
 					}
 				}
 			}
-
-			// toString()かませて文字列として出す
-			for(let i=0; i<graph.length; i++){
-				for(let ii=0; ii<graph[i].edge.length; ii++){
-					graph[i].edge[ii].label = graph[i].edge[ii].label.toString();
-				}
-				for(let ii=0; ii<graph[i].clause.length; ii++){
-					graph[i].clause[ii].ltoken = graph[i].clause[ii].ltoken.toString();
-					for(let iii=0; iii<graph[i].clause[ii].pattern.length; iii++){
-						graph[i].clause[ii].pattern[iii] = graph[i].clause[ii].pattern[iii].toString();
-					}
-				}
+			// 削除した部分を配列から抜き取る
+			let prev_length = array.length; // ノードをマージする前のノード総数
+			let fix = new Array(prev_length); // (元のindex->現在のindex)の対応表を作る
+			let d = 0; // ずれ
+			// nullで埋めた部分を消すことによるindexの変化
+			for(let i=0; i<prev_length; i++){
+				if(array[i] === null) d += 1; // ノードが削除されていた場合、以降のインデックスを1つずらす
+				else fix[i] = i - d;
 			}
-			console.log(JSON.stringify(graph));
+			// 配列からnull埋めした部分を削除
+			for(let i=array.length-1; i>=0; i--){
+				if(array[i] === null) array.splice(i, 1); // 配列から抜き取る
+			}
+			// fixのノードが削除された部分を埋める
+			merge_to.forEach((to, from)=>{
+				let index = to;
+				while(merge_to.has(index)) index = merge_to.get(index);
+				fix[from] = fix[index]; // toを繰り返し辿っているので未定義部分へのアクセスは発生しない
+				console.log("from:",from,",to:",index,"(",to,")");
+			});
+
+			let result:Immutable.List<ImmutableDFANode> = Immutable.List<ImmutableDFANode>();
+			// インデックスの対応表をもとに辺情報を書き換える
+			array.forEach((node)=>{
+				node.edge = node.edge.map((node_index)=>{
+					return fix[node_index];
+				}).toMap();
+				result = result.push(this.convertDFANode2Immutable(node));
+			});
+			
+			return result;
 		}
-	*/
 	}
 }
 

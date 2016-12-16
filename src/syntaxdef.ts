@@ -9,6 +9,7 @@ export interface SyntaxDefinitionSection{
 }
 // ltokenは重複しないことを前提とする
 export type SyntaxDefinitions = Array<SyntaxDefinitionSection>;
+
 export var def:SyntaxDefinitions = [
 	{
 		ltoken: "S",
@@ -31,5 +32,20 @@ export var def_:SyntaxDefinitions = [
 	{
 		ltoken: "ATOM",
 		pattern:[["DIGITS"], ["LPAREN", "EXP", "RPAREN"]]
+	}
+];
+
+export var def__:SyntaxDefinitions = [
+	{
+		ltoken: "S",
+		pattern: [["E", "LPAREN", "E"], ["RPAREN"]]
+	},
+	{
+		ltoken: "E",
+		pattern: [["E", "PLUS", "T"], ["T"]]
+	},
+	{
+		ltoken: "T",
+		pattern: [["DIGITS"], ["RPAREN"]]
 	}
 ];
