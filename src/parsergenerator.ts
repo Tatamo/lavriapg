@@ -6,8 +6,8 @@ import * as Immutable from "immutable";
 
 export module ParserGenerator{
 	type Constraint = Array<{superset:Lexer.Token, subset:Lexer.Token}>;
-	type ClosureItem = {ltoken: Lexer.Token, pattern: Array<Lexer.Token>, lookahead: Lexer.Token};
-	type ImmutableClosureItem = Immutable.Map<string,Lexer.Token | Immutable.Seq<number, Lexer.Token>>;
+	type ClosureItem = {syntax_id: number, ltoken: Lexer.Token, pattern: Array<Lexer.Token>, lookahead: Lexer.Token};
+	type ImmutableClosureItem = Immutable.Map<string,number | Lexer.Token | Immutable.Seq<number, Lexer.Token>>;
 	type ClosureSet = Immutable.OrderedSet<ClosureItem>;
 	type ImmutableClosureSet = Immutable.OrderedSet<ImmutableClosureItem>;
 	type DFAEdge = Immutable.Map<Lexer.Token, number>;
@@ -360,10 +360,10 @@ export module ParserGenerator{
 			return result;
 		}
 		private convertClosureItem2Immutable(item: ClosureItem):ImmutableClosureItem{
-			return Immutable.Map({ltoken: item.ltoken, pattern: Immutable.Seq<Lexer.Token>(item.pattern), lookahead: item.lookahead});
+			return Immutable.Map({syntax_id: item.syntax_id, ltoken: item.ltoken, pattern: Immutable.Seq<Lexer.Token>(item.pattern), lookahead: item.lookahead});
 		}
 		private convertImmutableClosureItem2Object(item_im: ImmutableClosureItem):ClosureItem{
-			return {ltoken: <Lexer.Token>item_im.get("ltoken"), pattern: (<Immutable.Seq<number, Lexer.Token>>item_im.get("pattern")).toArray(), lookahead: <Lexer.Token>item_im.get("lookahead")};
+			return {syntax_id: <number>item_im.get("syntax_id"), ltoken: <Lexer.Token>item_im.get("ltoken"), pattern: (<Immutable.Seq<number, Lexer.Token>>item_im.get("pattern")).toArray(), lookahead: <Lexer.Token>item_im.get("lookahead")};
 		}
 		private convertClosureSet2Immutable(closure: ClosureSet):ImmutableClosureSet{
 			return closure.map((item)=>{return this.convertClosureItem2Immutable(item);}).toOrderedSet();
@@ -374,11 +374,11 @@ export module ParserGenerator{
 		// クロージャー展開を行う
 		private expandClosure(start: Immutable.OrderedSet<ClosureItem>): Immutable.OrderedSet<ClosureItem>{
 			// 非終端記号xに対し、それが左辺として対応する定義を返す
-			let findDef = (x:Lexer.Token):Array<SyntaxDefinitionSection> =>{
-				let result:Array<SyntaxDefinitionSection> = new Array();
+			let findDef = (x:Lexer.Token):Array<{id: number, def: SyntaxDefinitionSection}> =>{
+				let result:Array<{id:number, def: SyntaxDefinitionSection}> = new Array();
 				for(let i=0; i<this.syntaxdef.length; i++){
 					if(this.syntaxdef[i].ltoken == x){
-						result.push(this.syntaxdef[i]);
+						result.push({id: i, def: this.syntaxdef[i]});
 					}
 				}
 				return result;
@@ -416,14 +416,14 @@ export module ParserGenerator{
 					}
 					*/
 
-					let def:Array<SyntaxDefinitionSection> = findDef(symbol);
+					let def:Array<{id:number, def:SyntaxDefinitionSection}> = findDef(symbol);
 					// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
 					def.forEach((syntax)=>{
 						// 構文規則の右辺の一番左に.をつける
-						let new_pattern = Immutable.Seq((<Array<Lexer.Token>>[SYMBOL_DOT]).concat(syntax.pattern));
+						let new_pattern = Immutable.Seq((<Array<Lexer.Token>>[SYMBOL_DOT]).concat(syntax.def.pattern));
 						// すべての先読み記号について追加
 						lookahead_set.forEach((la)=>{
-							tmp = tmp.add(Immutable.Map({ltoken: symbol, pattern: new_pattern, lookahead: la}));
+							tmp = tmp.add(Immutable.Map({syntax_id: syntax.id, ltoken: symbol, pattern: new_pattern, lookahead: la}));
 						});
 					});
 				});
@@ -449,7 +449,7 @@ export module ParserGenerator{
 			return {closure: closure, edge: <DFAEdge>node_im.get("edge")};
 		}
 		private generateDFA(){
-			let first_item:ClosureItem = {ltoken: SYMBOL_SYNTAX, pattern:[SYMBOL_DOT, this.start_symbol], lookahead: Lexer.SYMBOL_EOF};
+			let first_item:ClosureItem = {syntax_id: 0, ltoken: SYMBOL_SYNTAX, pattern:[SYMBOL_DOT, this.start_symbol], lookahead: Lexer.SYMBOL_EOF};
 			let first_closure = Immutable.OrderedSet([first_item]);
 			first_closure = this.expandClosure(first_closure);
 			let dfa = Immutable.List<ImmutableDFANode>();
@@ -464,6 +464,7 @@ export module ParserGenerator{
 					let new_items = Immutable.Map<Lexer.Token, Immutable.OrderedSet<ImmutableClosureItem>>();
 					// 規則から新しい規則を生成し、対応する記号ごとにまとめる
 					closure.forEach((item)=>{
+						let syntax_id = <number>item.get("syntax_id");
 						let ltoken = <Lexer.Token>item.get("ltoken");
 						let pattern = <Immutable.Seq<number, Lexer.Token>>item.get("pattern");
 						let lookahead = <Lexer.Token>item.get("lookahead");
@@ -483,7 +484,7 @@ export module ParserGenerator{
 							// 通常は何もしない
 							return 0;
 						}));
-						let newitem = Immutable.Map<string, Immutable.Seq<number, Lexer.Token>>({ltoken:ltoken, pattern:newpattern, lookahead:lookahead});
+						let newitem = Immutable.Map<string, Immutable.Seq<number, Lexer.Token>>({syntax_id: syntax_id, ltoken:ltoken, pattern:newpattern, lookahead:lookahead});
 						let itemset;
 						if(new_items.has(edge_label)){
 							// 既に同じ記号が登録されている
@@ -546,7 +547,7 @@ export module ParserGenerator{
 		private mergeLA(dfa:Immutable.List<ImmutableDFANode>): Immutable.List<ImmutableDFANode>{
 			let array: Array<DFANode> = dfa.toArray().map((node)=>{return this.convertImmutableDFANode2Object(node);});
 			// DFAからLR(0)テーブル部分のみを抽出した配列を生成
-			let lr0_itemsets:Array<Immutable.OrderedSet<Immutable.Map<string, Lexer.Token|Immutable.Seq<number, Lexer.Token>>>> = dfa.map((node)=>{
+			let lr0_itemsets:Array<Immutable.OrderedSet<Immutable.Map<string, number|Lexer.Token|Immutable.Seq<number, Lexer.Token>>>> = dfa.map((node)=>{
 				// クロージャー部分を取得
 				let closure = <ImmutableClosureSet>node.get("closure");
 				// 先読み部分を消したものを取得
