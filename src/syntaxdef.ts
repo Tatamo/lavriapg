@@ -7,7 +7,7 @@ export interface SyntaxDefinitionSection{
 	ltoken: Lexer.Token;
 	pattern: Array<Lexer.Token>;
 }
-// ltokenは重複しないことを前提とする
+
 export type SyntaxDefinitions = Array<SyntaxDefinitionSection>;
 
 export var def:SyntaxDefinitions = [

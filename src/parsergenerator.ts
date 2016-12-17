@@ -536,7 +536,13 @@ export module ParserGenerator{
 			console.log(dfa);
 			let lalr_dfa = this.mergeLA(dfa);
 			console.log(lalr_dfa);
-			this.generateParsingTable(lalr_dfa);
+			console.log();
+			this.generateParsingTable(lalr_dfa).table.forEach((row)=>{
+				row.forEach((v, k)=>{
+					console.log(k,":",v);
+				});
+				console.log(",");
+			});
 			/*
 			console.log(first_closure);
 			first_closure.forEach((v)=>{
@@ -610,12 +616,87 @@ export module ParserGenerator{
 			return result;
 		}
 		private generateParsingTable(dfa){
-			type ShiftOperation = {"type": "shift", "to": number};
-			type ReduceOperation = {"type": "reduce", "syntax": number};
-			type AcceptOperation = {"type": "accept"};
-			type GotoOperation = {"type" : "goto", "to": number};
-			type ParseOperation = ShiftOperation|ReduceOperation|AcceptOperation|GotoOperation;;
+			type ShiftOperation = {type: "shift", to: number};
+			type ReduceOperation = {type: "reduce", syntax: number};
+			type ConflictedOperation = {type: "conflict", shift_to:Array<number>, reduce_syntax:Array<number>};
+			type AcceptOperation = {type: "accept"};
+			type GotoOperation = {type : "goto", to: number};
+			type ParseOperation = ShiftOperation|ReduceOperation|ConflictedOperation|AcceptOperation|GotoOperation;;
 			let parsing_table = new Array<Immutable.Map<Lexer.Token, ParseOperation>>();
+			let flg_conflicted = false;
+			// 構文解析表を構築
+			dfa.forEach((node)=>{
+				let table_row = Immutable.Map<Lexer.Token, ParseOperation>();
+				// 辺をもとにshiftとgotoオペレーションを追加
+				node.get("edge").forEach((to, label)=>{
+					if(this.symbol_discriminator.isTerminalSymbol(label)){
+						// ラベルが終端記号の場合
+						// shiftオペレーションを追加
+						let operation:ShiftOperation = {type: "shift", to: to};
+						table_row = table_row.set(label, operation);
+					}
+					else if(this.symbol_discriminator.isNonterminalSymbol(label)){
+						// ラベルが非終端記号の場合
+						// gotoオペレーションを追加
+						let operation:GotoOperation = {type: "goto", to: to};
+						table_row = table_row.set(label, operation);
+					}
+				});
+
+				// acceptとreduceオペレーションを追加していく
+				node.get("closure").forEach((item)=>{
+					// 規則末尾が.でないならスキップ
+					if((<Immutable.Seq<number, Lexer.Token>>item.get("pattern")).last() != SYMBOL_DOT) return;
+					else{
+						// acceptオペレーションの条件を満たすかどうか確認
+						// S' -> S . [$] の規則が存在するか調べる
+						let flg_accept = true;
+						if(<number>item.get("syntax_id") != 0) flg_accept = false;
+						else if(<Lexer.Token>item.get("ltoken") != SYMBOL_SYNTAX) flg_accept = false;
+						else if(<Lexer.Token>item.get("lookahead") != Lexer.SYMBOL_EOF) flg_accept = false;
+						if(flg_accept){
+							// この規則を読み終わると解析終了
+							// $をラベルにacceptオペレーションを追加
+							let operation:AcceptOperation = {type: "accept"};
+							table_row = table_row.set(Lexer.SYMBOL_EOF, operation);
+						}
+						else{
+							let label = <Lexer.Token>item.get("lookahead");
+							let operation:ReduceOperation = {type:"reduce", syntax: <number>item.get("syntax_id")};
+							// 既に同じ記号でオペレーションが登録されていないか確認
+							if(table_row.has(label)){
+								// コンフリクトが発生
+								flg_conflicted = true; // 構文解析に失敗
+								let existing_operation = table_row.get(label);
+								let conflicted_operation:ConflictedOperation = {type:"conflict", shift_to: null, reduce_syntax: null};
+								if(existing_operation.type == "shift"){
+									// shift/reduce コンフリクト
+									conflicted_operation.shift_to = [existing_operation.to];
+									conflicted_operation.reduce_syntax = [operation.syntax];
+								}
+								else if(existing_operation.type == "reduce"){
+									// reduce/reduce コンフリクト
+									conflicted_operation.shift_to = [];
+									conflicted_operation.reduce_syntax = [existing_operation.syntax, operation.syntax];
+								}
+								else if(existing_operation.type == "conflict"){
+									// もっとやばい衝突
+									conflicted_operation.shift_to = existing_operation.shift_to;
+									conflicted_operation.reduce_syntax = existing_operation.reduce_syntax.concat([operation.syntax]);
+								}
+								// とりあえず衝突したオペレーションを登録しておく
+								table_row = table_row.set(label, conflicted_operation);
+							}
+							else{
+								// 衝突しないのでreduceオペレーションを追加
+								table_row = table_row.set(label, operation);
+							}
+						}
+					}
+				});
+				parsing_table.push(table_row);
+			});
+			return {table: parsing_table, success: !flg_conflicted};
 		}
 	}
 }
