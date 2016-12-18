@@ -16,11 +16,11 @@ export var def:LexDefinitions = [
 	{token:"INVALID", pattern:/./}
 ];
 export var lexerlexdef:LexDefinitions = [
-	{token:"LABEL", pattern:/^[A-Z][A-Z0-9_]/},
-	{token:"REGEXP", pattern:/\/.*\/[gimuy]/},
+	{token:"LABEL", pattern:/^[A-Z][A-Z0-9_]*/m},
+	{token:"REGEXP", pattern:/\/.*\/[gimuy]*/},
 	{token:"STRING", pattern:/"([^"]|\")*"/},
-	{token:"WHITESPACE", pattern:/\s+/},
 	{token:"ENDLINE", pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]*(\r\n|\r|\n)+/},
+	{token:"WHITESPACE", pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
 	{token:"INVALID", pattern:/./}
 ];
 export type TokenList = Array<{token:Token, value:string}>;
@@ -74,12 +74,10 @@ export class Lexer{
 					let m = token_pattern.exec(str);
 					if(m === null) continue; // マッチ失敗
 					match = m[0];
-					console.log("matched", match);
 					lastindex = token_pattern.lastIndex; // lastindexを進める
 				}
 				// tokenがnullなら処理を飛ばします
 				if(token != null) {
-					console.log(token," : "+match);
 					result.push({token:token, value:match});
 				}
 				break;
