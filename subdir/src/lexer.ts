@@ -17,8 +17,8 @@ export var def:LexDefinitions = [
 ];
 export var lexerlexdef:LexDefinitions = [
 	{token:"LABEL", pattern:/^[A-Z][A-Z0-9_]*/m},
-	{token:"REGEXP", pattern:/\/.*\/[gimuy]*/},
-	{token:"STRING", pattern:/"([^"]|\")*"/},
+	{token:"REGEXP", pattern:/\/(\\\/|[^/])*?\/[gimuy]*/},
+	{token:"STRING", pattern:/"(\\"|[^"])*?"/},
 	{token:"ENDLINE", pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]*(\r\n|\r|\n)+/},
 	{token:"WHITESPACE", pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
 	{token:"INVALID", pattern:/./}
@@ -64,7 +64,9 @@ export class Lexer{
 				var token_pattern = this.def[i].pattern;
 				var match:string;
 				if(typeof token_pattern == "string"){
-					if(str.substring(lastindex,lastindex+token_pattern.length) != token_pattern) continue;
+					let last_tmp = lastindex+token_pattern.length;
+					if(str.substring(lastindex,last_tmp) != token_pattern) continue;
+					if(last_tmp < str.length && /\w/.test(token_pattern.slice(-1)) && /\w/.test(str[last_tmp])) continue; // ヒットした文字の末尾が\wで、そのすぐ後ろが\wの場合はスキップ
 					match = token_pattern;
 					lastindex += token_pattern.length;
 				}
