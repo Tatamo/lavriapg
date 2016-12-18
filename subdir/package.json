@@ -1,0 +1,22 @@
+{
+  "name": "lexer",
+  "version": "1.0.0",
+  "description": "lexical analyzer",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "node dist/test.js",
+    "start": "node dist/lexer.js",
+    "tsc": "tsc --watch",
+    "tsc_make": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tatamo/lexer"
+  },
+  "author": "Tatamo",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "typescript": "^2.1.1"
+  }
+}
