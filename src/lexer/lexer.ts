@@ -15,14 +15,7 @@ export var def:LexDefinitions = [
 	{token:"DIGITS", pattern:/[1-9][0-9]*/},
 	{token:"INVALID", pattern:/./}
 ];
-export var lexerlexdef:LexDefinitions = [
-	{token:"LABEL", pattern:/^[A-Z][A-Z0-9_]*/m},
-	{token:"REGEXP", pattern:/\/(\\\/|[^/])*?\/[gimuy]*/},
-	{token:"STRING", pattern:/"(\\"|[^"])*?"/},
-	{token:"ENDLINE", pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]*(\r\n|\r|\n)+/},
-	{token:"WHITESPACE", pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
-	{token:"INVALID", pattern:/./}
-];
+
 export type TokenList = Array<{token:Token, value:string}>;
 export class Lexer{
 	constructor(public def: LexDefinitions){

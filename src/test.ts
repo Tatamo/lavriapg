@@ -6,6 +6,12 @@ import {def} from "./syntaxdef";
 
 import * as Immutable from "immutable";
 
+/*
+declare function require(x: string): any;
+
+var s = require("fs").readFileSync("/dev/stdin", "utf8");
+*/
+
 let input = "2 + 3 + 5";
 
 let lexer = new Lexer.Lexer(Lexer.def);

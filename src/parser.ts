@@ -1,5 +1,4 @@
 import * as Lexer from "./lexer";
-import * as Immuable from "immutable";
 
 import {SYMBOL_SYNTAX, SYMBOL_DOT, SyntaxDefinitionSection, SyntaxDefinitions} from "./syntaxdef";
 import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";
@@ -73,6 +72,13 @@ export class Parser{
 			}
 			else if(action.type == "accept"){
 				// 構文解析完了
+				break;
+			}
+			else if(action.type == "conflict"){
+				console.log("conflict found:");
+				console.log("shift:", action.shift_to, ",reduce:", action.reduce_syntax);
+				console.log("parser cannot parse conflicted syntax");
+				flg_error = true;
 				break;
 			}
 		}
