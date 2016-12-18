@@ -7,15 +7,23 @@ export interface LexDefinitionSection{
 export type LexDefinitions = Array<LexDefinitionSection>;
 export var def:LexDefinitions = [
 	{token:null, pattern:" "},
-	{token:null, pattern:/\t|\r|\n/},
+	{token:null, pattern:/\t|\r|\n/y},
 	{token:"LPAREN", pattern:"("},
 	{token:"RPAREN", pattern:")"},
 	{token:"PLUS", pattern:"+"},
 	{token:"ASTERISK", pattern:"*"},
-	{token:"DIGITS", pattern:/[1-9][0-9]*/},
-{token:"INVALID", pattern:/./}
+	{token:"DIGITS", pattern:/[1-9][0-9]*/y},
+	{token:"INVALID", pattern:/./y}
 ];
-export type TokenList = Array<{token_type:Token, value:string}>;
+export var lexerlexdef:LexDefinitions = [
+	{token:"LABEL", pattern:/^[A-Z][A-Z0-9_]/y},
+	{token:"REGEXP", pattern:/\/.*\/[gimuy]/y},
+	{token:"STRING", pattern:/"([^"]|\")*"/y},
+	{token:"WHITESPACE", pattern:/\s+/y},
+	{token:"ENDLINE", pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]*(\r\n|\r|\n)+/y},
+	{token:"INVALID", pattern:/./y}
+];
+export type TokenList = Array<{token:Token, value:string}>;
 export class Lexer{
 	constructor(public def: LexDefinitions){
 		// 正しいトークン定義が与えられているかチェック
@@ -32,32 +40,36 @@ export class Lexer{
 	}
 	exec(str: string):TokenList{
 		var result:TokenList = [];
-		while(true){
-			if(str.length == 0) break;
+		let lastindex = 0;
+		while(lastindex < str.length){
 			for(var i=0; i<this.def.length; i++){
-				var token_type:Token|null = this.def[i].token;
+				var token:Token|null = this.def[i].token;
 				var token_pattern = this.def[i].pattern;
 				var match:string;
 				if(typeof token_pattern == "string"){
-					if(str.substring(0,token_pattern.length) != token_pattern) continue;
+					if(str.substring(lastindex,lastindex+token_pattern.length) != token_pattern) continue;
 					match = token_pattern;
+					lastindex += token_pattern.length;
 				}
 				else{
 					// token_pattern: RegExp
-					if(str.search(token_pattern) != 0) continue;
-					match = token_pattern.exec(str)![0]; // str.searchの結果が0なのでexecは必ずnull以外が返る
+					token_pattern.lastIndex = lastindex;
+					let m = token_pattern.exec(str);
+					if(m === null) continue; // マッチ失敗
+					match = m[0];
+					console.log("matched", match);
+					lastindex = token_pattern.lastIndex; // lastindexを進める
 				}
-				// token_typeがnullなら処理を飛ばします
-				if(token_type != null) {
-					console.log(token_type," : "+match);
-					result.push({token_type:token_type, value:match});
+				// tokenがnullなら処理を飛ばします
+				if(token != null) {
+					console.log(token," : "+match);
+					result.push({token:token, value:match});
 				}
-				str = str.substring(match.length);
 				break;
 			}
 		}
 		// 最後にEOFトークンを付与
-		result.push({token_type:SYMBOL_EOF, value:""});
+		result.push({token:SYMBOL_EOF, value:""});
 		return result;
 	}
 }
