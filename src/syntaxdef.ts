@@ -77,3 +77,29 @@ export var def__:SyntaxDefinitions = [
 	}
 ];
 
+export var lexrule: SyntaxDefinitions = [
+	{
+		ltoken: "LEXRULE",
+		pattern: ["SECTION", "LEXRULE"]
+	},
+	{
+		ltoken: "LEXRULE",
+		pattern: ["SECTION"]
+	},
+	{
+		ltoken: "LEXRULE",
+		pattern: ["SECTION"]
+	},
+	{
+		ltoken: "SECTION",
+		pattern: ["LABEL", "WHITESPACE", "DEFINITION", "ENDLINE"]
+	},
+	{
+		ltoken: "DEFINITION",
+		pattern: ["STRING"]
+	},
+	{
+		ltoken: "DEFINITION",
+		pattern: ["REGEXP"]
+	}
+];

@@ -51,10 +51,12 @@ export class Parser{
 				let new_node:ASTNode = {
 					type: syntax_item.ltoken,
 					value: null,
-					children: result_stack.slice(rnum*-1)
+					children: rnum==0?[]:result_stack.slice(rnum*-1)
 				};
-				// 右辺の記号の数だけスタックからポップする
-				result_stack = result_stack.slice(0, rnum*-1);
+				// rnumが0でないなら、右辺の記号の数だけスタックからポップする
+				if(rnum != 0) {
+					result_stack = result_stack.slice(0, rnum*-1);
+				}
 				result_stack.push(new_node);
 
 				// このままgotoオペレーションを行う
