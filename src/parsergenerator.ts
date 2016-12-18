@@ -1,5 +1,5 @@
 import * as Immutable from "immutable";
-import * as Lexer from "lexer";
+import * as Lexer from "./lexer";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 import {SYMBOL_SYNTAX, SYMBOL_DOT, SyntaxDefinitionSection, SyntaxDefinitions} from "./syntaxdef";
 import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";

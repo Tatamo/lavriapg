@@ -1,4 +1,4 @@
-import * as Lexer from "lexer";
+import * as Lexer from "./lexer";
 
 export interface ASTNode{
 	type: Lexer.Token;

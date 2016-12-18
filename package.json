@@ -21,7 +21,6 @@
     "typings": "^2.0.0"
   },
   "dependencies": {
-    "immutable": "^3.8.1",
-    "lexer": "file:lexer"
+    "immutable": "^3.8.1"
   }
 }

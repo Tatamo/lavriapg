@@ -1,4 +1,4 @@
-import * as Lexer from "lexer"
+import * as Lexer from "./lexer"
 
 // 構文規則の定義など
 export const SYMBOL_SYNTAX = Symbol("S'");

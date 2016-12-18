@@ -1,6 +1,6 @@
 declare function require(x: string): any;
 
-import * as Lexer from "lexer"
+import * as Lexer from "./lexer"
 import {ParserGenerator} from "./parsergenerator";
 import {def} from "./syntaxdef";
 

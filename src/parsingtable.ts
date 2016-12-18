@@ -1,4 +1,4 @@
-import * as Lexer from "lexer";
+import * as Lexer from "./lexer";
 import * as Immutable from "immutable";
 
 export type ShiftOperation = {type: "shift", to: number};

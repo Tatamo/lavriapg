@@ -1,4 +1,4 @@
-import * as Lexer from "lexer";
+import * as Lexer from "./lexer";
 import * as Immuable from "immutable";
 
 import {SYMBOL_SYNTAX, SYMBOL_DOT, SyntaxDefinitionSection, SyntaxDefinitions} from "./syntaxdef";
