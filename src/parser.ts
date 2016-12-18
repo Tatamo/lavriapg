@@ -19,7 +19,7 @@ export class Parser{
 		let flg_error: boolean = false;
 		// 構文解析する
 		while(read_index < inputs_length){
-			let token: Lexer.Token = inputs[read_index].token_type;
+			let token: Lexer.Token = inputs[read_index].token;
 			let state: number = state_stack[state_stack.length-1];
 			if(!this.parsingtable[state].has(token)){
 				// 未定義
