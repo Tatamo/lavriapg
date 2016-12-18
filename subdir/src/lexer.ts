@@ -7,21 +7,21 @@ export interface LexDefinitionSection{
 export type LexDefinitions = Array<LexDefinitionSection>;
 export var def:LexDefinitions = [
 	{token:null, pattern:" "},
-	{token:null, pattern:/\t|\r|\n/y},
+	{token:null, pattern:/\t|\r|\n/},
 	{token:"LPAREN", pattern:"("},
 	{token:"RPAREN", pattern:")"},
 	{token:"PLUS", pattern:"+"},
 	{token:"ASTERISK", pattern:"*"},
-	{token:"DIGITS", pattern:/[1-9][0-9]*/y},
-	{token:"INVALID", pattern:/./y}
+	{token:"DIGITS", pattern:/[1-9][0-9]*/},
+	{token:"INVALID", pattern:/./}
 ];
 export var lexerlexdef:LexDefinitions = [
-	{token:"LABEL", pattern:/^[A-Z][A-Z0-9_]/y},
-	{token:"REGEXP", pattern:/\/.*\/[gimuy]/y},
-	{token:"STRING", pattern:/"([^"]|\")*"/y},
-	{token:"WHITESPACE", pattern:/\s+/y},
-	{token:"ENDLINE", pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]*(\r\n|\r|\n)+/y},
-	{token:"INVALID", pattern:/./y}
+	{token:"LABEL", pattern:/^[A-Z][A-Z0-9_]/},
+	{token:"REGEXP", pattern:/\/.*\/[gimuy]/},
+	{token:"STRING", pattern:/"([^"]|\")*"/},
+	{token:"WHITESPACE", pattern:/\s+/},
+	{token:"ENDLINE", pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]*(\r\n|\r|\n)+/},
+	{token:"INVALID", pattern:/./}
 ];
 export type TokenList = Array<{token:Token, value:string}>;
 export class Lexer{
@@ -33,6 +33,23 @@ export class Lexer{
 				continue;
 			}
 			else if(token_pattern instanceof RegExp){
+				// フラグを整形する
+				let flags:string = "";
+				// gフラグは邪魔なので取り除く
+				// i,m,uフラグがあれば維持する
+				if(token_pattern.ignoreCase){
+					flags += "i";
+				}
+				if(token_pattern.multiline){
+					flags += "m";
+				}
+				if(token_pattern.unicode){
+					flags += "u";
+				}
+				// yフラグは必ずつける
+				flags += "y";
+				// フラグをつけなおして新しい正規表現オブジェクトにする
+				this.def[i].pattern = new RegExp(token_pattern, flags);
 				continue;
 			}
 			throw new Error("invalid token definition: neither string nor RegExp object");
