@@ -508,7 +508,12 @@ export class ParserGenerator{
 			this.parsing_table = lalr_result.table;
 		}
 		else{
-			this.parsing_table = this.generateParsingTable(dfa).table;
+			console.log("LALR parsing conflict found. return LR(1) table.");
+			let lr_result = this.generateParsingTable(dfa);
+			this.parsing_table = lr_result.table;
+			if(!lr_result.success){
+				console.log("LR(1) parsing conflict found. return LR(1) conflicted table.");
+			}
 		}
 	}
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る

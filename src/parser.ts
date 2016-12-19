@@ -76,7 +76,14 @@ export class Parser{
 			}
 			else if(action.type == "conflict"){
 				console.log("conflict found:");
+				console.log("current state "+state+":", JSON.stringify(this.parsingtable[state]));
 				console.log("shift:", action.shift_to, ",reduce:", action.reduce_syntax);
+				action.shift_to.forEach((to)=>{
+					console.log("shift to "+to.toString()+":", JSON.stringify(this.parsingtable[to]));
+				});
+				action.reduce_syntax.forEach((syntax)=>{
+					console.log("reduce syntax "+syntax.toString()+":", JSON.stringify(this.parsingtable[syntax]));
+				});
 				console.log("parser cannot parse conflicted syntax");
 				flg_error = true;
 				break;
