@@ -10,11 +10,13 @@ export class Parser{
 	// parsingtableはconflictを含む以外は正しさが保証されているものと仮定する
 	// inputsは正しくないトークンが与えられる可能性を含む
 	// TODO: 詳細な例外処理、エラー検知
-	public parse(inputs:Lexer.TokenList){
+	public parse(inputs:Lexer.TokenList):ASTNode;
+	public parse(inputs:Lexer.TokenList, callback?:(token:string, value:string, children:Array<any>)=>any):any;
+	public parse(inputs:Lexer.TokenList, callback?:(token:string, value:string, children:Array<any>)=>any):any{
 		let read_index: number = 0; // 次に読むべき入力記号のインデックス
 		let inputs_length: number = inputs.length;
 		let state_stack: Array<number> = [0]; // 現在読んでいる構文解析表の状態番号を置くスタック
-		let result_stack: Array<ASTNode> = []; // 解析中のASTノードを置くスタック
+		let result_stack: Array<any> = []; // 解析中のASTノードを置くスタック
 		let flg_error: boolean = false;
 		// 構文解析する
 		while(read_index < inputs_length){
@@ -31,13 +33,18 @@ export class Parser{
 				// shiftオペレーション
 				// 次の状態をスタックに追加
 				state_stack.push(action.to);
-				// ASTのノードを作成
-				let new_node:ASTNode = {
-					type: token,
-					value: inputs[read_index].value,
-					children: []
-				};
-				result_stack.push(new_node);
+				if(callback === undefined){
+					// ASTのノードを作成
+					let new_node:ASTNode = {
+						type: token,
+						value: inputs[read_index].value,
+						children: []
+					};
+					result_stack.push(new_node);
+				}
+				else{
+					result_stack.push(callback(<string>token, inputs[read_index].value, []));
+				}
 				// 入力を一つ消費
 				read_index += 1;
 			}
@@ -47,16 +54,24 @@ export class Parser{
 				let rnum = syntax_item.pattern.length;
 				// 対応する規則の右辺の記号の数だけスタックからポップする
 				for(let i=0; i<rnum; i++) state_stack.pop();
-				let new_node:ASTNode = {
-					type: syntax_item.ltoken,
-					value: null,
-					children: rnum==0?[]:result_stack.slice(rnum*-1)
-				};
+
+				// rnumの数だけスタックからポップする
+				let children = rnum==0?[]:result_stack.slice(rnum*-1);
 				// rnumが0でないなら、右辺の記号の数だけスタックからポップする
 				if(rnum != 0) {
 					result_stack = result_stack.slice(0, rnum*-1);
 				}
-				result_stack.push(new_node);
+				if(callback === undefined){
+					let new_node:ASTNode = {
+						type: syntax_item.ltoken,
+						value: null,
+						children: children
+					};
+					result_stack.push(new_node);
+				}
+				else{
+					result_stack.push(callback(<string>syntax_item.ltoken, null, children));
+				}
 
 				// このままgotoオペレーションを行う
 				state = state_stack[state_stack.length-1];
