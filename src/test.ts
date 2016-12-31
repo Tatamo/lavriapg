@@ -29,7 +29,7 @@ console.log(JSON.stringify(AST2SyntaxDef(parse_result)));
 let lexer = new Lexer.Lexer(def);
 let tokenlist = lexer.exec(input);
 
-let pg = new ParserGenerator("GRAMMAR", syntax, def);
+let pg = new ParserGenerator("GRAMMAR", syntax);
 let parser = pg.getParser();
 
 let parse_result = parser.parse(tokenlist);

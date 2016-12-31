@@ -154,7 +154,7 @@ export var bnfsyntax: SyntaxDefinitions = [
 ];
 
 export var bnf_lexer = new Lexer(bnflexdef);
-export var bnf_parser = new ParserGenerator("SYNTAX", bnfsyntax, bnflexdef).getParser();
+export var bnf_parser = new ParserGenerator("SYNTAX", bnfsyntax).getParser();
 
 
 export var AST2LexDef = (ast: ASTNode)=>{

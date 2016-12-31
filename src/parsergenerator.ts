@@ -21,12 +21,10 @@ export class ParserGenerator{
 	private symbol_discriminator: SymbolDiscriminator;
 	private parsing_table: ParsingTable;
 	private parser:Parser;
-	constructor(private start_symbol, private syntaxdef:SyntaxDefinitions, lexdef: LexDefinitions){
-		// 字句規則にSymbol(EOF)を追加
-		lexdef.push({token:SYMBOL_EOF, pattern: ""});
+	constructor(private start_symbol, private syntaxdef:SyntaxDefinitions){
 		// 構文規則に S' -> S $ を追加
 		this.syntaxdef.unshift( { ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF] } )
-		this.symbol_discriminator = new SymbolDiscriminator(lexdef, syntaxdef);
+		this.symbol_discriminator = new SymbolDiscriminator(syntaxdef);
 
 		this.init();
 	}
