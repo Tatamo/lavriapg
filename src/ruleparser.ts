@@ -1,8 +1,85 @@
-import {Token, SYMBOL_EOF, LexDefinitionSection, LexDefinitions, TokenList, Lexer} from "./lexer";
-import {SyntaxDefinitions, SyntaxDefinitionSection} from "./syntaxdef";
+import {Token, SYMBOL_EOF, LexDefinitionSection, LexDefinitions, TokenList, SyntaxDefinitions, SyntaxDefinitionSection} from "./definition";
+import {Lexer} from "./lexer";
 import {ParserGenerator} from "./parsergenerator";
 import {Parser} from "./parser";
 import {ASTNode} from "./ast";
+
+export var def:LexDefinitions = [
+	{token:"EXCLAMATION", pattern:"!"},
+	{token:"VBAR", pattern:"|"},
+	{token:"COLON", pattern:":"},
+	{token:"SEMICOLON", pattern:";"},
+	{token:"LABEL", pattern:/[a-zA-Z_][a-zA-Z0-9_]*/},
+	{token:"REGEXP", pattern:/\/.*\/[gimuy]*/},
+	{token:"STRING", pattern:/".*"/},
+	{token:"STRING", pattern:/'.*'/},
+	{token:null, pattern:/(\r\n|\r|\n)+/},
+	{token:null, pattern:/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
+	{token:"INVALID", pattern:/./},
+];
+
+export var syntax: SyntaxDefinitions = [
+	{
+		ltoken: "GRAMMAR",
+		pattern: ["LEX", "SYNTAX"]
+	},
+	{
+		ltoken: "LEX",
+		pattern: ["LEX",  "LEXSECT"]
+	},
+	{
+		ltoken: "LEX",
+		pattern: ["LEXSECT"]
+	},
+	{
+		ltoken: "LEXSECT",
+		pattern: ["LABEL", "LEXDEF"]
+	},
+	{
+		ltoken: "LEXSECT",
+		pattern: ["EXCLAMATION", "LEXDEF"]
+	},
+	{
+		ltoken: "LEXSECT",
+		pattern: ["EXCLAMATION", "LABEL", "LEXDEF"]
+	},
+	{
+		ltoken: "LEXDEF",
+		pattern: ["STRING"]
+	},
+	{
+		ltoken: "LEXDEF",
+		pattern: ["REGEXP"]
+	},
+	{
+		ltoken: "SYNTAX",
+		pattern: ["SYNTAX", "SECT"]
+	},
+	{
+		ltoken: "SYNTAX",
+		pattern: ["SECT"]
+	},
+	{
+		ltoken: "SECT",
+		pattern: ["LABEL", "COLON", "DEF", "SEMICOLON"]
+	},
+	{
+		ltoken: "DEF",
+		pattern: ["PATTERN", "VBAR", "DEF"]
+	},
+	{
+		ltoken: "DEF",
+		pattern: ["PATTERN"]
+	},
+	{
+		ltoken: "PATTERN",
+		pattern: ["LABEL", "PATTERN"]
+	},
+	{
+		ltoken: "PATTERN",
+		pattern: ["LABEL"]
+	},
+];
 
 export var bnflexdef:LexDefinitions = [
         {token:"RULENAME", pattern:/[a-zA-Z][a-zA-Z0-9_]*/},
@@ -78,6 +155,50 @@ export var bnfsyntax: SyntaxDefinitions = [
 
 export var bnf_lexer = new Lexer(bnflexdef);
 export var bnf_parser = new ParserGenerator("SYNTAX", bnfsyntax, bnflexdef).getParser();
+
+
+export var AST2LexDef = (ast: ASTNode)=>{
+	let result:LexDefinitions = [];
+	let read_lexrule = (node:ASTNode) =>{
+		if(node.type != "LEXRULE" || !(node.children.length == 1 || node.children.length == 2)){
+			return -1;
+		}
+		let new_item:LexDefinitionSection = {token:null, pattern:null};
+
+		let sec = node.children[0];
+		if(sec.type != "SECTION" || sec.children.length != 4) return -1;
+		let label = sec.children[0];
+		if(label.type != "LABEL" || label.value == null) return -1;
+
+		new_item.token = label.value;
+
+		let def_wrapper = sec.children[2];
+		if(def_wrapper.type != "DEFINITION" || def_wrapper.children.length != 1) return -1;
+		let def = def_wrapper.children[0];
+		if(def.type == "STRING" && def.value != null){
+			new_item.pattern = def.value.slice(1,-1);
+		}
+		else if(def.type == "REGEXP" && def.value != null){
+			let tmp = def.value.split("/");
+			let flags = tmp[tmp.length-1];
+			let p = def.value.slice(1, -1-flags.length);
+			new_item.pattern = new RegExp(p, flags);
+		}
+		else return -1;
+		result.push(new_item);
+		if(node.children.length == 1){
+			return 1;
+		}
+		else{
+			return read_lexrule(node.children[1]);
+		}
+	};
+	if(read_lexrule(ast) == -1){
+		console.log("convert error occured");
+	}
+	return result;
+};
+
 
 export var AST2SyntaxDef = (ast: ASTNode)=>{
 	let isValidNode = (node: ASTNode, type:string, length:Array<number>):boolean =>{

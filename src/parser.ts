@@ -1,6 +1,4 @@
-import * as Lexer from "./lexer";
-
-import {SYMBOL_SYNTAX, SYMBOL_DOT, SyntaxDefinitionSection, SyntaxDefinitions} from "./syntaxdef";
+import {Token, TokenList, SYMBOL_SYNTAX, SYMBOL_DOT, SyntaxDefinitionSection, SyntaxDefinitions} from "./definition";
 import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";
 import {ASTNode} from "./ast";
 
@@ -10,9 +8,9 @@ export class Parser{
 	// parsingtableはconflictを含む以外は正しさが保証されているものと仮定する
 	// inputsは正しくないトークンが与えられる可能性を含む
 	// TODO: 詳細な例外処理、エラー検知
-	public parse(inputs:Lexer.TokenList):ASTNode;
-	public parse(inputs:Lexer.TokenList, callback?:(token:string, value:string, children:Array<any>)=>any):any;
-	public parse(inputs:Lexer.TokenList, callback?:(token:string, value:string, children:Array<any>)=>any):any{
+	public parse(inputs:TokenList):ASTNode;
+	public parse(inputs:TokenList, callback?:(token:string, value:string, children:Array<any>)=>any):any;
+	public parse(inputs:TokenList, callback?:(token:string, value:string, children:Array<any>)=>any):any{
 		let read_index: number = 0; // 次に読むべき入力記号のインデックス
 		let inputs_length: number = inputs.length;
 		let state_stack: Array<number> = [0]; // 現在読んでいる構文解析表の状態番号を置くスタック
@@ -20,11 +18,11 @@ export class Parser{
 		let flg_error: boolean = false;
 		// 構文解析する
 		while(read_index < inputs_length){
-			let token: Lexer.Token = inputs[read_index].token;
+			let token: Token = inputs[read_index].token;
 			let state: number = state_stack[state_stack.length-1];
 			if(!this.parsingtable[state].has(token)){
 				// 未定義
-				console.log("parse failed: undefined action");
+				console.log("parse failed: undefined action" , token);
 				flg_error = true;
 				break;
 			}

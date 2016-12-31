@@ -1,13 +1,12 @@
-import * as Lexer from "./lexer";
-import {SyntaxDefinitions} from "./syntaxdef";
+import {Token, LexDefinitions, SyntaxDefinitions} from "./definition";
 import * as Immutable from "immutable";
 
 export class SymbolDiscriminator{
-	private terminal_symbols: Immutable.OrderedSet<Lexer.Token>;
-	private nonterminal_symbols: Immutable.OrderedSet<Lexer.Token>;
+	private terminal_symbols: Immutable.OrderedSet<Token>;
+	private nonterminal_symbols: Immutable.OrderedSet<Token>;
 	// TODO: 全部構文規則から生成するようにする
-	constructor(lexdef:Lexer.LexDefinitions, syntaxdef:SyntaxDefinitions){
-		var symbol_table:Array<{symbol:Lexer.Token, is_terminal:boolean}> = [];
+	constructor(lexdef:LexDefinitions, syntaxdef:SyntaxDefinitions){
+		var symbol_table:Array<{symbol:Token, is_terminal:boolean}> = [];
 		// 字句規則からの登録
 		for(var i=0; i<lexdef.length; i++){
 			if(lexdef[i].token == null){
@@ -43,8 +42,8 @@ export class SymbolDiscriminator{
 				symbol_table.push({symbol : syntaxdef[i].ltoken, is_terminal : false});
 			}
 		}
-		this.terminal_symbols = Immutable.OrderedSet<Lexer.Token>();
-		this.nonterminal_symbols = Immutable.OrderedSet<Lexer.Token>();
+		this.terminal_symbols = Immutable.OrderedSet<Token>();
+		this.nonterminal_symbols = Immutable.OrderedSet<Token>();
 		for(var i=0; i<symbol_table.length; i++){
 			if(symbol_table[i].is_terminal){
 				this.terminal_symbols = this.terminal_symbols.add(symbol_table[i].symbol);
@@ -54,19 +53,19 @@ export class SymbolDiscriminator{
 			}
 		}
 	}
-	getTerminalSymbols():Immutable.OrderedSet<Lexer.Token>{
+	getTerminalSymbols():Immutable.OrderedSet<Token>{
 		return this.terminal_symbols;
 	}
-	getNonterminalSymbols():Immutable.OrderedSet<Lexer.Token>{
+	getNonterminalSymbols():Immutable.OrderedSet<Token>{
 		return this.nonterminal_symbols;
 	}
-	getAllSymbols():Immutable.OrderedSet<Lexer.Token>{
+	getAllSymbols():Immutable.OrderedSet<Token>{
 		return this.terminal_symbols.union(this.nonterminal_symbols);
 	}
 	/*
 	// その都度生成するから呼び出し先で保持して
 	// true: terminal, false: nonterminal
-	getAllSymbolsMap():Map<Lexer.Token, boolean>{
+	getAllSymbolsMap():Map<Token, boolean>{
 		var result = new Map();
 		for(var i=0; i<this.terminal_symbols.length; i++){
 			result.set(this.terminal_symbols[i], true);
@@ -76,10 +75,10 @@ export class SymbolDiscriminator{
 		}
 		return result;
 	}*/
-	isTerminalSymbol(symbol:Lexer.Token):boolean{
+	isTerminalSymbol(symbol:Token):boolean{
 		return this.terminal_symbols.includes(symbol);
 	}
-	isNonterminalSymbol(symbol:Lexer.Token):boolean{
+	isNonterminalSymbol(symbol:Token):boolean{
 		return this.nonterminal_symbols.includes(symbol);
 	}
 }

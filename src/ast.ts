@@ -1,8 +1,8 @@
-import * as Lexer from "./lexer";
+import {Token} from "./definition";
 
+// AST
 export interface ASTNode{
-	type: Lexer.Token;
+	type: Token;
 	value: string;
 	children: Array<ASTNode>;
 }
-

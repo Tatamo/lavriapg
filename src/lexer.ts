@@ -1,22 +1,5 @@
-export type Token = string|symbol;
-export const SYMBOL_EOF = Symbol("EOF");
-export interface LexDefinitionSection{
-	token: Token|null;
-	pattern: string|RegExp;
-}
-export type LexDefinitions = Array<LexDefinitionSection>;
-export var def:LexDefinitions = [
-	{token:null, pattern:" "},
-	{token:null, pattern:/\t|\r|\n/},
-	{token:"LPAREN", pattern:"("},
-	{token:"RPAREN", pattern:")"},
-	{token:"PLUS", pattern:"+"},
-	{token:"ASTERISK", pattern:"*"},
-	{token:"DIGITS", pattern:/[1-9][0-9]*/},
-	{token:"INVALID", pattern:/./}
-];
+import {Token, SYMBOL_EOF, LexDefinitionSection, LexDefinitions, TokenList} from "./definition";
 
-export type TokenList = Array<{token:Token, value:string}>;
 export class Lexer{
 	constructor(public def: LexDefinitions){
 		// 正しいトークン定義が与えられているかチェック
