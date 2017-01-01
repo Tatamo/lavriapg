@@ -1,7 +1,7 @@
 import * as Immutable from "immutable";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 import {Token, SYMBOL_EOF, SYMBOL_SYNTAX, SYMBOL_DOT} from "./token";
-import {SyntaxDefinitionSection, SyntaxDefinitions, GrammarDefinition} from "./grammar";
+import {SyntaxDefinitionSection, GrammarDefinition} from "./grammar";
 import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";
 import {Lexer} from "./lexer";
 import {ParserCallback, Parser} from "./parser";
@@ -20,6 +20,8 @@ export class ParserGenerator{
 	private nulls:Immutable.Set<Token>;
 	private first_map: Immutable.Map<Token, Immutable.Set<Token>>;
 	private follow_map: Immutable.Map<Token, Immutable.Set<Token>>;
+	private lr_dfa: Immutable.List<ImmutableDFANode>;
+	private lalr_dfa: Immutable.List<ImmutableDFANode>;
 	private symbol_discriminator: SymbolDiscriminator;
 	private parsing_table: ParsingTable;
 	constructor(private start_symbol, private grammar: GrammarDefinition){
@@ -32,7 +34,19 @@ export class ParserGenerator{
 	init(){
 		this.generateNulls();
 		this.generateFirst();
-		this.generateDFA(); // TODO: DFA作ったら同時にParsingTableが完成している構造をどうにかする
+		this.generateDFA();
+		let lalr_result = this.generateParsingTable(this.lalr_dfa);
+		if(lalr_result.success){
+			this.parsing_table = lalr_result.table;
+		}
+		else{
+			console.log("LALR parsing conflict found. return LR(1) table.");
+			let lr_result = this.generateParsingTable(this.lr_dfa);
+			this.parsing_table = lr_result.table;
+			if(!lr_result.success){
+				console.log("LR(1) parsing conflict found. return LR(1) conflicted table.");
+			}
+		}
 	}
 	public getParser(default_callback?: ParserCallback):Parser{
 		let lexer = new Lexer(this.grammar.lex);
@@ -115,20 +129,6 @@ export class ParserGenerator{
 			let sup = def.ltoken;
 			let pattern = def.pattern;
 			for(let ii=0; ii<pattern.length; ii++){
-				/*
-				for(let iii=0; iii<pattern[ii].length; iii++){
-					let sub = pattern[ii][iii];
-					// supersetとsubsetが同じ場合は制約を追加しない
-					if(sup != sub){
-						constraint.push({superset: sup, subset: sub});
-					}
-					// 左側の記号がすべてnullsに含まれている限り制約を追加していく
-					if(!this.isNullable(sub)){
-						break;
-					}
-				}
-				*/
-
 				let sub = pattern[ii];
 				if(sup != sub){
 					constraint.push({superset: sup, subset: sub});
@@ -495,22 +495,8 @@ export class ParserGenerator{
 				});
 			});
 		}
-		console.log(dfa);
-		let lalr_dfa = this.mergeLA(dfa);
-		console.log(lalr_dfa);
-		console.log();
-		let lalr_result = this.generateParsingTable(lalr_dfa);
-		if(lalr_result.success){
-			this.parsing_table = lalr_result.table;
-		}
-		else{
-			console.log("LALR parsing conflict found. return LR(1) table.");
-			let lr_result = this.generateParsingTable(dfa);
-			this.parsing_table = lr_result.table;
-			if(!lr_result.success){
-				console.log("LR(1) parsing conflict found. return LR(1) conflicted table.");
-			}
-		}
+		this.lr_dfa = dfa;
+		this.lalr_dfa = this.mergeLA(dfa);
 	}
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
 	private mergeLA(dfa:Immutable.List<ImmutableDFANode>): Immutable.List<ImmutableDFANode>{
@@ -564,7 +550,6 @@ export class ParserGenerator{
 			let index = to;
 			while(merge_to.has(index)) index = merge_to.get(index);
 			fix[from] = fix[index]; // toを繰り返し辿っているので未定義部分へのアクセスは発生しない
-			console.log("from:",from,",to:",index,"(",to,")");
 		});
 
 		let result:Immutable.List<ImmutableDFANode> = Immutable.List<ImmutableDFANode>();

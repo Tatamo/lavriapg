@@ -1,6 +1,6 @@
-import {Token, SYMBOL_SYNTAX, SYMBOL_DOT, TokenList} from "./token";
-import {SyntaxDefinitionSection, SyntaxDefinitions} from "./grammar";
-import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";
+import {Token, TokenList} from "./token";
+import {SyntaxDefinitions} from "./grammar";
+import {ParsingTable} from "./parsingtable";
 import {ASTNode} from "./ast";
 import {ILexer} from "./lexer";
 

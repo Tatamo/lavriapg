@@ -1,5 +1,5 @@
 import {Token} from "./token";
-import {LexDefinitions, SyntaxDefinitions} from "./grammar";
+import {SyntaxDefinitions} from "./grammar";
 import * as Immutable from "immutable";
 
 export class SymbolDiscriminator{

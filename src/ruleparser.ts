@@ -1,9 +1,6 @@
-import {Token, SYMBOL_EOF, TokenList} from "./token";
-import {LexDefinitionSection, LexDefinitions, SyntaxDefinitions, SyntaxDefinitionSection, GrammarDefinition} from "./grammar";
-import {Lexer} from "./lexer";
+import {LexDefinitions, SyntaxDefinitions, GrammarDefinition} from "./grammar";
 import {ParserGenerator} from "./parsergenerator";
 import {Parser, ParserCallbackArg} from "./parser";
-import {ASTNode} from "./ast";
 
 var lex:LexDefinitions = [
 	{token:"EXCLAMATION", pattern:"!"},
