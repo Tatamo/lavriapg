@@ -20,7 +20,7 @@ export interface GrammarDefinition{
 }
 
 // not implement GrammarDefinition
-export class Grammar implements GrammarDefinition{
+export class Grammar{
 	public symbols: SymbolDiscriminator
 	constructor(public lex:LexDefinitions, public syntax:SyntaxDefinitions, public start_symbol:Token){
 		// 構文規則を変更するため、コピーをとっておく

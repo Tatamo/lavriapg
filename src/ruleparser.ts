@@ -125,7 +125,7 @@ export var constructGrammar = (()=>{
 						// 開始記号の指定がない場合、最初の規則に設定
 						start_symbol = children[1][0].ltoken;
 					}
-					return new Grammar(children[0], children[1], start_symbol);
+					return {lex: children[0], syntax: children[1], start_symbol: start_symbol};
 				case "LEXDEF":
 					return children[0];
 				case "LEXSECT":
