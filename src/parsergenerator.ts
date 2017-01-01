@@ -3,9 +3,8 @@ import {SymbolDiscriminator} from "./symboldiscriminator";
 import {Token, SYMBOL_EOF, SYMBOL_SYNTAX, SYMBOL_DOT} from "./token";
 import {SyntaxDefinitionSection, GrammarDefinition} from "./grammar";
 import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";
-import {Lexer} from "./lexer";
 import {ParserCallback, Parser} from "./parser";
-
+import {ParserFactory} from "./factory";
 
 type Constraint = Array<{superset:Token, subset:Token}>;
 type ClosureItem = {syntax_id: number, ltoken: Token, pattern: Array<Token>, lookahead: Token};
@@ -49,8 +48,7 @@ export class ParserGenerator{
 		}
 	}
 	public getParser(default_callback?: ParserCallback):Parser{
-		let lexer = new Lexer(this.grammar.lex);
-		return new Parser(lexer, this.grammar.syntax, this.parsing_table, default_callback);
+		return ParserFactory.create(this.grammar, this.parsing_table, default_callback);
 	}
 	private isNullable(x:Token){
 		return this.nulls.includes(x);
