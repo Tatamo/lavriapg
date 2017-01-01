@@ -1,4 +1,4 @@
-import {Token} from "./definition";
+import {Token} from "./token";
 import * as Immutable from "immutable";
 
 export type ShiftOperation = {type: "shift", to: number};

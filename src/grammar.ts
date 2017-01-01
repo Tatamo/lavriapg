@@ -1,17 +1,11 @@
-// 字句規則で使用する定義
-export type Token = string|symbol;
-export const SYMBOL_EOF = Symbol("EOF");
+import {Token} from "./token";
 
 export interface LexDefinitionSection{
 	token: Token|null;
 	pattern: string|RegExp;
 }
 export type LexDefinitions = Array<LexDefinitionSection>;
-export type TokenList = Array<{token:Token, value:string}>;
 
-// 構文規則の定義など
-export const SYMBOL_SYNTAX = Symbol("S'");
-export const SYMBOL_DOT = Symbol(".");
 export interface SyntaxDefinitionSection{
 	ltoken: Token;
 	pattern: Array<Token>;

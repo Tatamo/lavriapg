@@ -1,4 +1,5 @@
-import {Token, SYMBOL_EOF, LexDefinitionSection, LexDefinitions, TokenList} from "./definition";
+import {Token, SYMBOL_EOF, TokenList} from "./token";
+import {LexDefinitionSection, LexDefinitions} from "./grammar";
 
 export class Lexer{
 	constructor(public def: LexDefinitions){
