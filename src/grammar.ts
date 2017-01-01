@@ -1,4 +1,4 @@
-import {Token} from "./token";
+import {Token, SYMBOL_SYNTAX, SYMBOL_EOF} from "./token";
 
 export interface LexDefinitionSection{
 	token: Token|null;
@@ -17,4 +17,8 @@ export interface GrammarDefinition{
 	syntax: SyntaxDefinitions;
 }
 
-
+export class Grammar implements GrammarDefinition{
+	constructor(public lex:LexDefinitions, public syntax:SyntaxDefinitions, public start_symbol:Token){
+		this.syntax.unshift( { ltoken: SYMBOL_SYNTAX, pattern: [start_symbol, SYMBOL_EOF] } );
+	}
+}

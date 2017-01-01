@@ -31,16 +31,12 @@ export class Parser{
 			this.default_callback = default_callback;
 		}
 	}
-	public parse(input:string):ASTNode;
-	public parse(input:string, cb?:ParserCallback):any;
 	public parse(input:string, cb?:ParserCallback):any{
 		return this._parse(this.lexer.exec(input), cb);
 	}
 	// parsingtableはconflictを含む以外は正しさが保証されているものと仮定する
 	// inputsは正しくないトークンが与えられる可能性を含む
 	// TODO: 詳細な例外処理、エラー検知
-	private _parse(inputs:TokenList):ASTNode;
-	private _parse(inputs:TokenList, cb?:ParserCallback):any;
 	private _parse(inputs:TokenList, cb?:ParserCallback):any{
 		let read_index: number = 0; // 次に読むべき入力記号のインデックス
 		let inputs_length: number = inputs.length;

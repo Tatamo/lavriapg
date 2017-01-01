@@ -1,6 +1,9 @@
 import {LexDefinitions, SyntaxDefinitions, GrammarDefinition} from "./grammar";
+import {Token, SYMBOL_EOF} from "./token";
+import {ParsingOperation, ParsingTable} from "./parsingtable";
 import {ParserGenerator} from "./parsergenerator";
 import {Parser, ParserCallbackArg} from "./parser";
+import {ParserFactory} from "./factory";
 
 var lex:LexDefinitions = [
 	{token:"EXCLAMATION", pattern:"!"},
@@ -135,4 +138,98 @@ export var constructGrammar = (arg:ParserCallbackArg)=>{
 	}
 };
 
+console.time("prepare");
+
+export var grammar_parsing_table:ParsingTable = [
+new Map<Token,ParsingOperation>( [
+	['GRAMMAR' , { type: 'goto', to: 1 }],
+	['LEX' , { type: 'goto', to: 2 }],
+	['LEXSECT' , { type: 'goto', to: 3 }],
+	['LABEL' , { type: 'shift', to: 4 }],
+	['EXCLAMATION' , { type: 'shift', to: 5 } ]]),
+new Map<Token,ParsingOperation>([[ SYMBOL_EOF , { type: 'accept' } ]]),
+new Map<Token,ParsingOperation>([
+	['SYNTAX' , { type: 'goto', to: 6 }],
+	['LEXSECT' , { type: 'goto', to: 7 }],
+	['SECT' , { type: 'goto', to: 8 }],
+	['LABEL' , { type: 'shift', to: 9 }],
+	['EXCLAMATION' , { type: 'shift', to: 5 } ]]),
+new Map<Token,ParsingOperation>([
+	['LABEL' , { type: 'reduce', syntax: 3 }],
+	['EXCLAMATION' , { type: 'reduce', syntax: 3 } ]]),
+new Map<Token,ParsingOperation>([
+	['LEXDEF' , {type: 'goto', to: 10 }],
+	['STRING' , { type: 'shift', to: 11 }],
+	['REGEXP' , { type: 'shift', to: 12 } ]]),
+new Map<Token,ParsingOperation>([
+	['LEXDEF' , { type: 'goto', to: 13 }],
+	['LABEL' , { type: 'shift', to: 14 }],
+	['STRING' , { type: 'shift', to: 11 }],
+	['REGEXP' , { type: 'shift', to: 12 } ]]),
+new Map<Token,ParsingOperation>([
+	['SECT' , { type: 'goto', to: 15 }],
+	['LABEL' , { type: 'shift', to: 16 }],
+	[SYMBOL_EOF , { type: 'reduce', syntax: 1 } ]]),
+new Map<Token,ParsingOperation>([
+	['LABEL' , { type: 'reduce', syntax: 2 }],
+	['EXCLAMATION' , { type: 'reduce', syntax: 2 } ]]),
+new Map<Token,ParsingOperation>([
+ 	[SYMBOL_EOF , { type: 'reduce', syntax: 10 }],
+	['LABEL' , { type: 'reduce', syntax: 10 } ]]),
+new Map<Token,ParsingOperation>([
+	['LEXDEF' , { type: 'goto', to: 10 }],
+	['COLON' , { type: 'shift', to: 17 }],
+	['STRING' , { type: 'shift', to: 11 }],
+	['REGEXP' , { type: 'shift', to: 12 } ]]),
+new Map<Token,ParsingOperation>([
+	['LABEL' , { type: 'reduce', syntax: 4 }],
+	['EXCLAMATION' , { type: 'reduce', syntax: 4 } ]]),
+new Map<Token,ParsingOperation>([
+	['LABEL' , { type: 'reduce', syntax: 7 }],
+	['EXCLAMATION' , { type: 'reduce', syntax: 7 } ]]),
+new Map<Token,ParsingOperation>([
+	['LABEL' , { type: 'reduce', syntax: 8 }],
+	['EXCLAMATION' , { type: 'reduce', syntax: 8 } ]]),
+new Map<Token,ParsingOperation>([
+	['LABEL' , { type: 'reduce', syntax: 5 }],
+	['EXCLAMATION' , { type: 'reduce', syntax: 5 } ]]),
+new Map<Token,ParsingOperation>([
+	['LEXDEF' , { type: 'goto', to: 18 }],
+	['STRING' , { type: 'shift', to: 11 }],
+	['REGEXP' , { type: 'shift', to: 12 } ]]),
+new Map<Token,ParsingOperation>([
+	[SYMBOL_EOF , { type: 'reduce', syntax: 9 }],
+	['LABEL' , { type: 'reduce', syntax: 9 } ]]),
+new Map<Token,ParsingOperation>([[ 'COLON' , { type: 'shift', to: 17 } ]]),
+new Map<Token,ParsingOperation>([
+	['DEF' , { type: 'goto', to: 19 }],
+	['PATTERN' , { type: 'goto', to: 20 }],
+	['LABEL' , { type: 'shift', to: 21 } ]]),
+new Map<Token,ParsingOperation>([
+	['LABEL' , { type: 'reduce', syntax: 6 }],
+	['EXCLAMATION' , { type: 'reduce', syntax: 6 } ]]),
+new Map<Token,ParsingOperation>([[ 'SEMICOLON' , { type: 'shift', to: 22 } ]]),
+new Map<Token,ParsingOperation>([
+	['VBAR' , { type: 'shift', to: 23 }],
+	['SEMICOLON' , { type: 'reduce', syntax: 13 } ]]),
+new Map<Token,ParsingOperation>([
+	['PATTERN' , { type: 'goto', to: 24 }],
+	['LABEL' , { type: 'shift', to: 21 }],
+	['VBAR' , { type: 'reduce', syntax: 15 }],
+	['SEMICOLON' , { type: 'reduce', syntax: 15 } ]]),
+new Map<Token,ParsingOperation>([
+	[SYMBOL_EOF , { type: 'reduce', syntax: 11 }],
+	['LABEL' , { type: 'reduce', syntax: 11 } ]]),
+new Map<Token,ParsingOperation>([
+	['DEF' , { type: 'goto', to: 25 }],
+	['PATTERN' , { type: 'goto', to: 20 }],
+	['LABEL' , { type: 'shift', to: 21 } ]]),
+new Map<Token,ParsingOperation>([
+	['VBAR' , { type: 'reduce', syntax: 14 }],
+	['SEMICOLON' , { type: 'reduce', syntax: 14 } ]]),
+new Map<Token,ParsingOperation>([[ 'SEMICOLON' , { type: 'reduce', syntax: 12 } ]])
+];
+
 export var grammar_parser:Parser = new ParserGenerator("GRAMMAR", grammar).getParser(constructGrammar);
+// 予めParsingTableを用意しておくことで高速化
+//export var grammar_parser:Parser = ParserFactory.create(grammar, grammar_parsing_table, constructGrammar);

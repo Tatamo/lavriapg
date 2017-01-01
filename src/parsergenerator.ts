@@ -50,6 +50,9 @@ export class ParserGenerator{
 	public getParser(default_callback?: ParserCallback):Parser{
 		return ParserFactory.create(this.grammar, this.parsing_table, default_callback);
 	}
+	public getParsingTable():ParsingTable{
+		return this.parsing_table;
+	}
 	private isNullable(x:Token){
 		return this.nulls.includes(x);
 	}
@@ -562,24 +565,24 @@ export class ParserGenerator{
 		return result;
 	}
 	private generateParsingTable(dfa){
-		let parsing_table:ParsingTable = new Array<Immutable.Map<Token, ParsingOperation>>();
+		let parsing_table:ParsingTable = new Array<Map<Token, ParsingOperation>>();
 		let flg_conflicted = false;
 		// 構文解析表を構築
 		dfa.forEach((node)=>{
-			let table_row = Immutable.Map<Token, ParsingOperation>();
+			let table_row = new Map<Token, ParsingOperation>();
 			// 辺をもとにshiftとgotoオペレーションを追加
 			node.get("edge").forEach((to, label)=>{
 				if(this.symbol_discriminator.isTerminalSymbol(label)){
 					// ラベルが終端記号の場合
 					// shiftオペレーションを追加
 					let operation:ShiftOperation = {type: "shift", to: to};
-					table_row = table_row.set(label, operation);
+					table_row.set(label, operation);
 				}
 				else if(this.symbol_discriminator.isNonterminalSymbol(label)){
 					// ラベルが非終端記号の場合
 					// gotoオペレーションを追加
 					let operation:GotoOperation = {type: "goto", to: to};
-					table_row = table_row.set(label, operation);
+					table_row.set(label, operation);
 				}
 			});
 
@@ -598,7 +601,7 @@ export class ParserGenerator{
 						// この規則を読み終わると解析終了
 						// $をラベルにacceptオペレーションを追加
 						let operation:AcceptOperation = {type: "accept"};
-						table_row = table_row.set(SYMBOL_EOF, operation);
+						table_row.set(SYMBOL_EOF, operation);
 					}
 					else{
 						let label = <Token>item.get("lookahead");
@@ -625,11 +628,11 @@ export class ParserGenerator{
 								conflicted_operation.reduce_syntax = existing_operation.reduce_syntax.concat([operation.syntax]);
 							}
 							// とりあえず衝突したオペレーションを登録しておく
-							table_row = table_row.set(label, conflicted_operation);
+							table_row.set(label, conflicted_operation);
 						}
 						else{
 							// 衝突しないのでreduceオペレーションを追加
-							table_row = table_row.set(label, operation);
+							table_row.set(label, operation);
 						}
 					}
 				}
