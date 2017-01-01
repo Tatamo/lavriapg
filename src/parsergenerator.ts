@@ -1,9 +1,10 @@
 import * as Immutable from "immutable";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 import {Token, SYMBOL_EOF, SYMBOL_SYNTAX, SYMBOL_DOT} from "./token";
-import {LexDefinitions, SyntaxDefinitionSection, SyntaxDefinitions} from "./grammar";
+import {SyntaxDefinitionSection, SyntaxDefinitions, GrammarDefinition} from "./grammar";
 import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";
-import {Parser} from "./parser";
+import {Lexer} from "./lexer";
+import {ParserCallback, Parser} from "./parser";
 
 
 type Constraint = Array<{superset:Token, subset:Token}>;
@@ -21,23 +22,21 @@ export class ParserGenerator{
 	private follow_map: Immutable.Map<Token, Immutable.Set<Token>>;
 	private symbol_discriminator: SymbolDiscriminator;
 	private parsing_table: ParsingTable;
-	private parser:Parser;
-	constructor(private start_symbol, private syntaxdef:SyntaxDefinitions){
+	constructor(private start_symbol, private grammar: GrammarDefinition){
 		// 構文規則に S' -> S $ を追加
-		this.syntaxdef.unshift( { ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF] } )
-		this.symbol_discriminator = new SymbolDiscriminator(syntaxdef);
+		this.grammar.syntax.unshift( { ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF] } )
+		this.symbol_discriminator = new SymbolDiscriminator(grammar.syntax);
 
 		this.init();
 	}
 	init(){
 		this.generateNulls();
 		this.generateFirst();
-		//this.generateGOTOGraph();
 		this.generateDFA(); // TODO: DFA作ったら同時にParsingTableが完成している構造をどうにかする
-		this.parser = new Parser(this.syntaxdef, this.parsing_table);
 	}
-	public getParser():Parser{
-		return this.parser;
+	public getParser(default_callback?: ParserCallback):Parser{
+		let lexer = new Lexer(this.grammar.lex);
+		return new Parser(lexer, this.grammar.syntax, this.parsing_table, default_callback);
 	}
 	private isNullable(x:Token){
 		return this.nulls.includes(x);
@@ -47,9 +46,9 @@ export class ParserGenerator{
 		// 制約条件を導出するために、
 		// 空列になりうる記号の集合nullsを導出
 		this.nulls = Immutable.Set<Token>();
-		for(let i=0; i<this.syntaxdef.length; i++){
-			let ltoken = this.syntaxdef[i].ltoken;
-			let pattern = this.syntaxdef[i].pattern;
+		for(let i=0; i<this.grammar.syntax.length; i++){
+			let ltoken = this.grammar.syntax[i].ltoken;
+			let pattern = this.grammar.syntax[i].pattern;
 
 			// 右辺の記号の数が0の規則を持つ記号は空列になりうる
 			if(pattern == []){
@@ -60,13 +59,13 @@ export class ParserGenerator{
 		// 変更が起きなくなるまでループする
 		while(flg_changed){
 			flg_changed = false;
-			for(let i=0; i<this.syntaxdef.length; i++){
-				let ltoken = this.syntaxdef[i].ltoken;
+			for(let i=0; i<this.grammar.syntax.length; i++){
+				let ltoken = this.grammar.syntax[i].ltoken;
 
 				// 既にnullsに含まれていればスキップ
 				if(this.isNullable(ltoken)) continue;
 
-				let pattern = this.syntaxdef[i].pattern;
+				let pattern = this.grammar.syntax[i].pattern;
 				let flg_nulls = true;
 				// 右辺に含まれる記号がすべてnullableの場合はその左辺はnullable
 				for(let ii=0; ii<pattern.length; ii++){
@@ -111,8 +110,8 @@ export class ParserGenerator{
 
 		// 包含についての制約を生成
 		let constraint:Constraint = [];
-		for(let i=0; i<this.syntaxdef.length; i++){
-			let def = this.syntaxdef[i];
+		for(let i=0; i<this.grammar.syntax.length; i++){
+			let def = this.grammar.syntax[i];
 			let sup = def.ltoken;
 			let pattern = def.pattern;
 			for(let ii=0; ii<pattern.length; ii++){
@@ -139,7 +138,6 @@ export class ParserGenerator{
 				}
 			}
 		}
-		console.log("constraint",constraint);
 
 		// 制約解消
 		while(!this.isConstraintFilled(constraint, first_result)){
@@ -156,10 +154,10 @@ export class ParserGenerator{
 				}
 			}
 		}
-		console.log("First:",first_result);
 		this.first_map = first_result;
 	}
 	/*
+	// SLR法で使うやつ
 	private generateFollow(){
 		let pushWithoutDuplicate = (value:any, array:Array<any>, cmp:(x:any,y:any)=>boolean =(x,y)=>{return x == y;}):boolean=>{
 			for(let i=0; i<array.length; i++){
@@ -178,9 +176,9 @@ export class ParserGenerator{
 			follow_result.set(nonterminal_symbols[i], []);
 		}
 
-		for(let i=0; i<this.syntaxdef.length; i++){
-			let ltoken = this.syntaxdef[i].ltoken;
-			let pattern = this.syntaxdef[i].pattern;
+		for(let i=0; i<this.grammar.syntax.length; i++){
+			let ltoken = this.grammar.syntax[i].ltoken;
+			let pattern = this.grammar.syntax[i].pattern;
 			for(let ii=0; ii<pattern.length; ii++){
 				// 一番右を除いてループ(べつにその必要はないが)
 				for(let iii=0; iii<pattern[ii].length-1; iii++){
@@ -260,8 +258,8 @@ export class ParserGenerator{
 		follow_result.forEach((value,key,map)=>{value.sort(sort_with_symbol);});
 		// 包含についての制約を生成
 		let constraint:Constraint = [];
-		for(let i=0; i<this.syntaxdef.length; i++){
-			let def = this.syntaxdef[i];
+		for(let i=0; i<this.grammar.syntax.length; i++){
+			let def = this.grammar.syntax[i];
 			let sub = def.ltoken; // 左辺の記号はsubsetになる
 			let pattern = def.pattern;
 			for(let ii=0; ii<pattern.length; ii++){
@@ -357,9 +355,9 @@ export class ParserGenerator{
 		// 非終端記号xに対し、それが左辺として対応する定義を返す
 		let findDef = (x:Token):Array<{id: number, def: SyntaxDefinitionSection}> =>{
 			let result:Array<{id:number, def: SyntaxDefinitionSection}> = new Array();
-			for(let i=0; i<this.syntaxdef.length; i++){
-				if(this.syntaxdef[i].ltoken == x){
-					result.push({id: i, def: this.syntaxdef[i]});
+			for(let i=0; i<this.grammar.syntax.length; i++){
+				if(this.grammar.syntax[i].ltoken == x){
+					result.push({id: i, def: this.grammar.syntax[i]});
 				}
 			}
 			return result;

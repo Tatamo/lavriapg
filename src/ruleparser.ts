@@ -5,7 +5,7 @@ import {ParserGenerator} from "./parsergenerator";
 import {Parser, ParserCallbackArg} from "./parser";
 import {ASTNode} from "./ast";
 
-export var def:LexDefinitions = [
+var lex:LexDefinitions = [
 	{token:"EXCLAMATION", pattern:"!"},
 	{token:"VBAR", pattern:"|"},
 	{token:"COLON", pattern:":"},
@@ -19,7 +19,7 @@ export var def:LexDefinitions = [
 	{token:"INVALID", pattern:/./},
 ];
 
-export var syntax: SyntaxDefinitions = [
+var syntax: SyntaxDefinitions = [
 	{
 		ltoken: "GRAMMAR",
 		pattern: ["LEX", "SYNTAX"]
@@ -82,6 +82,9 @@ export var syntax: SyntaxDefinitions = [
 	},
 ];
 
+export var grammar:GrammarDefinition = {lex: lex, syntax:syntax};
+
+// ASTからGrramaDefinitionを構築
 export var constructGrammar = (arg:ParserCallbackArg)=>{
 	let token = arg.token;
 	if(arg.terminal == true){
@@ -135,3 +138,4 @@ export var constructGrammar = (arg:ParserCallbackArg)=>{
 	}
 };
 
+export var grammar_parser:Parser = new ParserGenerator("GRAMMAR", grammar).getParser(constructGrammar);

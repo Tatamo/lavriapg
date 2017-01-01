@@ -2,6 +2,7 @@ import {Token, SYMBOL_SYNTAX, SYMBOL_DOT, TokenList} from "./token";
 import {SyntaxDefinitionSection, SyntaxDefinitions} from "./grammar";
 import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";
 import {ASTNode} from "./ast";
+import {ILexer} from "./lexer";
 
 export interface TerminalCallbackArg{
 	token: string;
@@ -16,10 +17,10 @@ export interface NonterminalCallbackArg{
 }
 export type ParserCallbackArg = TerminalCallbackArg | NonterminalCallbackArg;
 
-type ParserCallback = (arg: ParserCallbackArg)=>any;
+export type ParserCallback = (arg: ParserCallbackArg)=>any;
 export class Parser{
 	private default_callback:ParserCallback;
-	constructor(private syntax:SyntaxDefinitions, private parsingtable:ParsingTable, default_callback?: ParserCallback){
+	constructor(private lexer:ILexer, private syntax:SyntaxDefinitions, private parsingtable:ParsingTable, default_callback?: ParserCallback){
 		this.setDefaultCallback(default_callback);
 	}
 	public setDefaultCallback(default_callback?:ParserCallback){
@@ -30,12 +31,17 @@ export class Parser{
 			this.default_callback = default_callback;
 		}
 	}
+	public parse(input:string):ASTNode;
+	public parse(input:string, cb?:ParserCallback):any;
+	public parse(input:string, cb?:ParserCallback):any{
+		return this._parse(this.lexer.exec(input), cb);
+	}
 	// parsingtableはconflictを含む以外は正しさが保証されているものと仮定する
 	// inputsは正しくないトークンが与えられる可能性を含む
 	// TODO: 詳細な例外処理、エラー検知
-	public parse(inputs:TokenList):ASTNode;
-	public parse(inputs:TokenList, cb?:ParserCallback):any;
-	public parse(inputs:TokenList, cb?:ParserCallback):any{
+	private _parse(inputs:TokenList):ASTNode;
+	private _parse(inputs:TokenList, cb?:ParserCallback):any;
+	private _parse(inputs:TokenList, cb?:ParserCallback):any{
 		let read_index: number = 0; // 次に読むべき入力記号のインデックス
 		let inputs_length: number = inputs.length;
 		let state_stack: Array<number> = [0]; // 現在読んでいる構文解析表の状態番号を置くスタック

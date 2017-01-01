@@ -1,7 +1,11 @@
 import {Token, SYMBOL_EOF, TokenList} from "./token";
 import {LexDefinitionSection, LexDefinitions} from "./grammar";
 
-export class Lexer{
+export interface ILexer{
+	exec(string):TokenList;
+}
+
+export class Lexer implements ILexer{
 	constructor(public def: LexDefinitions){
 		// 正しいトークン定義が与えられているかチェック
 		for(var i=0; i<this.def.length; i++){
