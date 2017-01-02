@@ -22,9 +22,11 @@ export class ParserGenerator{
 	private lr_dfa: Immutable.List<ImmutableDFANode>;
 	private lalr_dfa: Immutable.List<ImmutableDFANode>;
 	private parsing_table: ParsingTable;
+	private symbols: SymbolDiscriminator;
 	private grammar:Grammar;
 	constructor(grammar: GrammarDefinition){
 		this.grammar = new Grammar(grammar.lex, grammar.syntax, grammar.start_symbol);
+		this.symbols = new SymbolDiscriminator(this.grammar.syntax);
 
 		this.init();
 	}
@@ -112,11 +114,11 @@ export class ParserGenerator{
 		//Firstを導出
 		let first_result: Immutable.Map<Token, Immutable.Set<Token>> = Immutable.Map<Token, Immutable.Set<Token>>();
 		// 初期化
-		let terminal_symbols = this.grammar.symbols.getTerminalSymbols();
+		let terminal_symbols = this.symbols.getTerminalSymbols();
 		terminal_symbols.forEach((value)=>{
 			first_result = first_result.set(value, Immutable.Set<Token>([value]));
 		});
-		let nonterminal_symbols = this.grammar.symbols.getNonterminalSymbols();
+		let nonterminal_symbols = this.symbols.getNonterminalSymbols();
 		nonterminal_symbols.forEach((value)=>{
 			first_result = first_result.set(value, Immutable.Set<Token>());
 		});
@@ -170,7 +172,7 @@ export class ParserGenerator{
 		// Followを導出
 		// 初期化
 		let follow_result:Map<Token, Array<Token>> = new Map();
-		let nonterminal_symbols = this.grammar.symbols.getNonterminalSymbols();
+		let nonterminal_symbols = this.symbols.getNonterminalSymbols();
 		for(let i=0; i<nonterminal_symbols.length; i++){
 			follow_result.set(nonterminal_symbols[i], []);
 		}
@@ -182,7 +184,7 @@ export class ParserGenerator{
 				// 一番右を除いてループ(べつにその必要はないが)
 				for(let iii=0; iii<pattern[ii].length-1; iii++){
 					let sup = pattern[ii][iii];
-					if(this.grammar.symbols.isTerminalSymbol(sup)){
+					if(this.symbols.isTerminalSymbol(sup)){
 						// 終端記号はFollow(X)のXにはならない
 						break;
 					}
@@ -266,7 +268,7 @@ export class ParserGenerator{
 				for(let iii=pattern[ii].length-1; iii>=0; iii--){
 					let sup = pattern[ii][iii];
 					// supが終端記号ならスキップ(nullsに含まれていないことは自明なのでここでbreakする)
-					if(this.grammar.symbols.isTerminalSymbol(sup)){
+					if(this.symbols.isTerminalSymbol(sup)){
 						break;
 					}
 					// supersetとsubsetが同じ場合は制約を追加しない
@@ -377,7 +379,7 @@ export class ParserGenerator{
 				if(dot_index == pattern.size-1) return; // . が末尾にある場合はスキップ
 				let symbol = pattern.get(dot_index+1);
 				//if(symbol == ltoken) return; // 左辺の記号と.の次にある記号が同じ場合はスキップ
-				if(!this.grammar.symbols.isNonterminalSymbol(symbol)) return; // symbolが非終端記号でなければスキップ
+				if(!this.symbols.isNonterminalSymbol(symbol)) return; // symbolが非終端記号でなければスキップ
 				// クロージャー展開を行う
 				// 先読み記号を導出
 				let lookahead_set:Immutable.Set<Token> = this.getFirst(pattern.slice(dot_index+1+1).toArray().concat(lookahead));
@@ -570,13 +572,13 @@ export class ParserGenerator{
 			let table_row = new Map<Token, ParsingOperation>();
 			// 辺をもとにshiftとgotoオペレーションを追加
 			node.get("edge").forEach((to, label)=>{
-				if(this.grammar.symbols.isTerminalSymbol(label)){
+				if(this.symbols.isTerminalSymbol(label)){
 					// ラベルが終端記号の場合
 					// shiftオペレーションを追加
 					let operation:ShiftOperation = {type: "shift", to: to};
 					table_row.set(label, operation);
 				}
-				else if(this.grammar.symbols.isNonterminalSymbol(label)){
+				else if(this.symbols.isNonterminalSymbol(label)){
 					// ラベルが非終端記号の場合
 					// gotoオペレーションを追加
 					let operation:GotoOperation = {type: "goto", to: to};
