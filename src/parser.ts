@@ -74,7 +74,7 @@ export class Parser{
 			let state: number = state_stack[state_stack.length-1];
 			if(!this.parsingtable[state].has(token)){
 				// 未定義
-				console.log("parse failed: unexpected action:" , token);
+				console.log("parse failed: unexpected token:" , token);
 				flg_error = true;
 				break;
 			}
@@ -111,7 +111,7 @@ export class Parser{
 				action = this.parsingtable[state].get(token);
 				if(!this.parsingtable[state].has(token) || action.type != "goto"){
 					// 未定義
-					console.log("parse failed: undefined action");
+					console.log("parse failed: unexpected token:" , token);
 					flg_error = true;
 					break;
 				}
