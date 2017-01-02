@@ -19,12 +19,3 @@ export interface GrammarDefinition{
 	start_symbol: Token;
 }
 
-// S' -> S $ が先頭に追加される
-export class Grammar{
-	constructor(public lex:LexDefinitions, public syntax:SyntaxDefinitions, public start_symbol:Token){
-		// 構文規則を変更するため、コピーをとっておく
-		this.syntax = syntax.slice();
-		// 構文規則に S' -> S $ を追加
-		this.syntax =  [{ ltoken: SYMBOL_SYNTAX, pattern: [start_symbol, SYMBOL_EOF] }].concat(this.syntax);
-	}
-}

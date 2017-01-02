@@ -1,7 +1,7 @@
 import * as Immutable from "immutable";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 import {Token, SYMBOL_EOF, SYMBOL_SYNTAX, SYMBOL_DOT} from "./token";
-import {SyntaxDefinitionSection, Grammar, GrammarDefinition} from "./grammar";
+import {SyntaxDefinitionSection, GrammarDefinition} from "./grammar";
 import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";
 import {ParserCallback, Parser} from "./parser";
 import {ParserFactory} from "./factory";
@@ -23,9 +23,7 @@ export class ParserGenerator{
 	private lalr_dfa: Immutable.List<ImmutableDFANode>;
 	private parsing_table: ParsingTable;
 	private symbols: SymbolDiscriminator;
-	private grammar:Grammar;
-	constructor(grammar: GrammarDefinition){
-		this.grammar = new Grammar(grammar.lex, grammar.syntax, grammar.start_symbol);
+	constructor(private grammar: GrammarDefinition){
 		this.symbols = new SymbolDiscriminator(this.grammar.syntax);
 
 		this.init();
@@ -114,6 +112,8 @@ export class ParserGenerator{
 		//Firstを導出
 		let first_result: Immutable.Map<Token, Immutable.Set<Token>> = Immutable.Map<Token, Immutable.Set<Token>>();
 		// 初期化
+		// FIRST($) = {$} だけ手動で追加
+		first_result = first_result.set(SYMBOL_EOF, Immutable.Set<Token>([SYMBOL_EOF]));
 		let terminal_symbols = this.symbols.getTerminalSymbols();
 		terminal_symbols.forEach((value)=>{
 			first_result = first_result.set(value, Immutable.Set<Token>([value]));
