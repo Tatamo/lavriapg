@@ -5,7 +5,7 @@ import {ParserGenerator} from "./parsergenerator";
 import {grammar_grammar, grammar_parser} from "./ruleparser";
 
 export class PreCompiler{
-	constructor(){
+	constructor(private import_path:string = "./"){
 	}
 	// 構文ファイルを受け取り、それを処理できるパーサを構築するためのソースコードを返す
 	public exec(input: string):string{
@@ -13,11 +13,15 @@ export class PreCompiler{
 		let parsing_table = new ParserGenerator(grammar).getParsingTable();
 		let result = "";
 
+		/*
 		result += 'import {Token, SYMBOL_EOF} from "./token";\n'
 		result += 'import {GrammarDefinition} from "./grammar";\n';
 		result += 'import {ParsingOperation, ParsingTable} from "./parsingtable";\n';
 		result += 'import {Parser} from "./parser";\n';
 		result += 'import {ParserFactory} from "./factory";\n\n';
+		*/
+		result += 'import {Token, SYMBOL_EOF, GrammarDefinition, ParsingOperation, ParsingTable, Parser, ParserFactory} from "' + this.import_path +'";\n\n';
+
 		result += "export const grammar: GrammarDefinition = {\n";
 		result += "\t" + "lex: [\n";
 		for(let i=0; i<grammar.lex.length; i++){
