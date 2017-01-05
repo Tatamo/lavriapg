@@ -1,5 +1,4 @@
 import {Token, SYMBOL_SYNTAX, SYMBOL_EOF} from "./token";
-import {SymbolDiscriminator} from "./symboldiscriminator";
 
 export interface LexDefinitionSection{
 	token: Token|null;

@@ -1,11 +1,11 @@
 {
   "name": "parsergenerator",
   "version": "1.0.0",
-  "description": "parsergenerator",
-  "main": "lexer.js",
+  "description": "simple lr(1) parser generator",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "node dist/test.js",
-    "start": "node dist/parsergenerator.js",
     "tsc": "tsc --watch",
     "tsc_make": "tsc",
     "typings_install": "typings install"

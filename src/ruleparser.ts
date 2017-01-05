@@ -1,7 +1,7 @@
 import {Token, SYMBOL_EOF} from "./token";
 import {LexDefinitions, SyntaxDefinitions, GrammarDefinition} from "./grammar";
 import {ParsingOperation, ParsingTable} from "./parsingtable";
-import {ParserGenerator} from "./parsergenerator";
+//import {ParserGenerator} from "./parsergenerator";
 import {Parser, ParserCallbackArg} from "./parser";
 import {ParserFactory} from "./factory";
 
