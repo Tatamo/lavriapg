@@ -115,11 +115,11 @@ export class ParserGenerator{
 		// FIRST($) = {$} だけ手動で追加
 		first_result = first_result.set(SYMBOL_EOF, Immutable.Set<Token>([SYMBOL_EOF]));
 		let terminal_symbols = this.symbols.getTerminalSymbols();
-		terminal_symbols.forEach((value)=>{
+		terminal_symbols.forEach((value:Token)=>{
 			first_result = first_result.set(value, Immutable.Set<Token>([value]));
 		});
 		let nonterminal_symbols = this.symbols.getNonterminalSymbols();
-		nonterminal_symbols.forEach((value)=>{
+		nonterminal_symbols.forEach((value:Token)=>{
 			first_result = first_result.set(value, Immutable.Set<Token>());
 		});
 
@@ -346,10 +346,10 @@ export class ParserGenerator{
 		return {syntax_id: <number>item_im.get("syntax_id"), ltoken: <Token>item_im.get("ltoken"), pattern: (<Immutable.Seq<number, Token>>item_im.get("pattern")).toArray(), lookahead: <Token>item_im.get("lookahead")};
 	}
 	private convertClosureSet2Immutable(closure: ClosureSet):ImmutableClosureSet{
-		return closure.map((item)=>{return this.convertClosureItem2Immutable(item);}).toOrderedSet();
+		return closure.map((item:ClosureItem)=>{return this.convertClosureItem2Immutable(item);}).toOrderedSet();
 	}
 	private convertImmutableClosureSet2Object(closure_im: ImmutableClosureSet):ClosureSet{
-		return closure_im.map((item_im)=>{return this.convertImmutableClosureItem2Object(item_im);}).toOrderedSet();
+		return closure_im.map((item_im:ImmutableClosureItem)=>{return this.convertImmutableClosureItem2Object(item_im);}).toOrderedSet();
 	}
 	// クロージャー展開を行う
 	private expandClosure(start: Immutable.OrderedSet<ClosureItem>): Immutable.OrderedSet<ClosureItem>{
@@ -364,14 +364,14 @@ export class ParserGenerator{
 			return result;
 		};
 		let tmp:Immutable.OrderedSet<ImmutableClosureItem> = Immutable.OrderedSet<ImmutableClosureItem>();
-		start.forEach((v)=>{
+		start.forEach((v:ClosureItem)=>{
 			tmp = tmp.add(this.convertClosureItem2Immutable(v));
 		});
 		let prev = null;
 		// 変更がなくなるまで繰り返す
 		while(!Immutable.is(tmp, prev)){
 			prev = tmp;
-			tmp.forEach((v)=>{
+			tmp.forEach((v:ImmutableClosureItem)=>{
 				let ltoken = <Token>v.get("ltoken");
 				let pattern = <Immutable.Seq<number, Token>>v.get("pattern");
 				let lookahead = <Token>v.get("lookahead");
@@ -386,18 +386,18 @@ export class ParserGenerator{
 
 				let def:Array<{id:number, def:SyntaxDefinitionSection}> = findDef(symbol);
 				// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
-				def.forEach((syntax)=>{
+				def.forEach((syntax:{id:number, def:SyntaxDefinitionSection})=>{
 					// 構文規則の右辺の一番左に.をつける
 					let new_pattern = Immutable.Seq((<Array<Token>>[SYMBOL_DOT]).concat(syntax.def.pattern));
 					// すべての先読み記号について追加
-					lookahead_set.forEach((la)=>{
+					lookahead_set.forEach((la:Token)=>{
 						tmp = tmp.add(Immutable.Map({syntax_id: syntax.id, ltoken: symbol, pattern: new_pattern, lookahead: la}));
 					});
 				});
 			});
 		}
 		let result: Immutable.OrderedSet<ClosureItem> = Immutable.OrderedSet<ClosureItem>();
-		tmp.forEach((v)=>{
+		tmp.forEach((v:ImmutableClosureItem)=>{
 			result = result.add(this.convertImmutableClosureItem2Object(v));
 		});
 		return result;
@@ -405,7 +405,7 @@ export class ParserGenerator{
 	}
 	// DFAのノードをImmutableデータ構造を使った形式に変換
 	private convertDFANode2Immutable(node: DFANode):ImmutableDFANode{
-		let closure:Immutable.OrderedSet<ImmutableClosureItem> = node.closure.map((item)=>{return this.convertClosureItem2Immutable(item)}).toOrderedSet();
+		let closure:Immutable.OrderedSet<ImmutableClosureItem> = node.closure.map((item:ClosureItem)=>{return this.convertClosureItem2Immutable(item)}).toOrderedSet();
 		let tmp = {closure:closure, edge:node.edge};
 		
 		return Immutable.Map<string, Immutable.OrderedSet<ImmutableClosureItem>|DFAEdge>(tmp);
@@ -413,7 +413,7 @@ export class ParserGenerator{
 	// Immutableのデータ構造によって構築されたDFAのノードをオブジェクトに変換
 	private convertImmutableDFANode2Object(node_im: ImmutableDFANode):DFANode{
 		let immutable_closure = <Immutable.OrderedSet<ImmutableClosureItem>>node_im.get("closure");
-		let closure = immutable_closure.map((item)=>{return this.convertImmutableClosureItem2Object(item)}).toOrderedSet();
+		let closure = immutable_closure.map((item:ImmutableClosureItem)=>{return this.convertImmutableClosureItem2Object(item)}).toOrderedSet();
 		return {closure: closure, edge: <DFAEdge>node_im.get("edge")};
 	}
 	private generateDFA(){
@@ -426,12 +426,12 @@ export class ParserGenerator{
 		let prev = null;
 		while(!Immutable.is(dfa, prev)){
 			prev = dfa;
-			dfa.forEach((current_node, index)=>{
+			dfa.forEach((current_node:ImmutableDFANode, index:number)=>{
 				let closure = <Immutable.OrderedSet<ImmutableClosureItem>>current_node.get("closure");
 				let edge = <DFAEdge>current_node.get("edge");
 				let new_items = Immutable.Map<Token, Immutable.OrderedSet<ImmutableClosureItem>>();
 				// 規則から新しい規則を生成し、対応する記号ごとにまとめる
-				closure.forEach((item)=>{
+				closure.forEach((item:ImmutableClosureItem)=>{
 					let syntax_id = <number>item.get("syntax_id");
 					let ltoken = <Token>item.get("ltoken");
 					let pattern = <Immutable.Seq<number, Token>>item.get("pattern");
@@ -441,7 +441,7 @@ export class ParserGenerator{
 					if(dot_index == pattern.size-1) return; // . が末尾にある場合はスキップ
 					// .を右の要素と交換する
 					let sort_flg = true;
-					let edge_label:Token = null;
+					let edge_label:Token = pattern.get(pattern.keyOf(SYMBOL_DOT)+1);
 					let newpattern = Immutable.Seq<number, Token>(pattern.sort((front,behind)=>{
 						if(front == SYMBOL_DOT && sort_flg){
 							// .があった場合は次の要素と交換
@@ -466,17 +466,17 @@ export class ParserGenerator{
 					new_items = new_items.set(edge_label, itemset);
 				});
 				// 新しいノードを生成する
-				new_items.forEach((itemset, edge_label)=>{
+				new_items.forEach((itemset:Immutable.OrderedSet<ImmutableClosureItem>, edge_label:Token)=>{
 					let newnode:DFANode = {closure: Immutable.OrderedSet<ClosureItem>(), edge:Immutable.Map<Token, number>()};
 					// それぞれの規則を追加する
-					itemset.forEach((item)=>{
+					itemset.forEach((item:ImmutableClosureItem)=>{
 						newnode.closure = newnode.closure.add(this.convertImmutableClosureItem2Object(item));
 					});
 					// クロージャー展開する
 					newnode.closure = this.expandClosure(newnode.closure);
 					let newnode_immutable = this.convertDFANode2Immutable(newnode);
 					// 同一のclosureを持つ状態がないかどうか調べる
-					let i = dfa.map((n)=>{return n.get("closure");}).keyOf(newnode_immutable.get("closure"));
+					let i = dfa.map((n:ImmutableDFANode)=>{return n.get("closure");}).keyOf(newnode_immutable.get("closure"));
 					let index_to;
 					if(i === undefined){
 						// 既存の状態と重複しない
@@ -501,13 +501,13 @@ export class ParserGenerator{
 	}
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
 	private mergeLA(dfa:Immutable.List<ImmutableDFANode>): Immutable.List<ImmutableDFANode>{
-		let array: Array<DFANode> = dfa.toArray().map((node)=>{return this.convertImmutableDFANode2Object(node);});
+		let array: Array<DFANode|null> = dfa.toArray().map((node)=>{return this.convertImmutableDFANode2Object(node);});
 		// DFAからLR(0)テーブル部分のみを抽出した配列を生成
-		let lr0_itemsets:Array<Immutable.OrderedSet<Immutable.Map<string, number|Token|Immutable.Seq<number, Token>>>> = dfa.map((node)=>{
+		let lr0_itemsets:Array<Immutable.OrderedSet<Immutable.Map<string, number|Token|Immutable.Seq<number, Token>>>> = dfa.map((node:ImmutableDFANode)=>{
 			// クロージャー部分を取得
-			let closure = <ImmutableClosureSet>node.get("closure");
+			let closure:ImmutableClosureSet = <ImmutableClosureSet>node.get("closure");
 			// 先読み部分を消したものを取得
-			return closure.map((item)=>{
+			return closure.map((item:ImmutableClosureItem)=>{
 				return item.delete("lookahead");
 			}).toOrderedSet();
 		}).toArray();
@@ -522,11 +522,11 @@ export class ParserGenerator{
 					// インデックス番号の大きい方が削除される
 					// つまり項全体をマージ
 					// 辺情報は、対象となる辺もいずれマージされて消えるため操作しなくてよい
-					let merged_closure_to_im = this.convertClosureSet2Immutable(array[i].closure); // マージ先のクロージャー(Immutable)
-					let merged_closure_from_im = this.convertClosureSet2Immutable(array[ii].closure); // 削除される方のクロージャー(Immutable)
+					let merged_closure_to_im = this.convertClosureSet2Immutable(array[i]!.closure); // マージ先のクロージャー(Immutable)
+					let merged_closure_from_im = this.convertClosureSet2Immutable(array[ii]!.closure); // 削除される方のクロージャー(Immutable)
 
 					let merged_closure = merged_closure_to_im.merge(merged_closure_from_im);
-					array[i].closure = this.convertImmutableClosureSet2Object(merged_closure); // 更新
+					array[i]!.closure = this.convertImmutableClosureSet2Object(merged_closure); // 更新
 					merge_to = merge_to.set(ii, i);
 					// ii番目を削除
 					array[ii] = null;
@@ -542,12 +542,13 @@ export class ParserGenerator{
 			if(array[i] === null) d += 1; // ノードが削除されていた場合、以降のインデックスを1つずらす
 			else fix[i] = i - d;
 		}
-		// 配列からnull埋めした部分を削除
-		for(let i=array.length-1; i>=0; i--){
-			if(array[i] === null) array.splice(i, 1); // 配列から抜き取る
-		}
+		// 配列からnull埋めした部分を削除したものを作る
+		let shortened:Array<DFANode> = [];
+		array.forEach((node:DFANode|null)=>{
+			if(node !== null) shortened.push(node);
+		});
 		// fixのノードが削除された部分を埋める
-		merge_to.forEach((to, from)=>{
+		merge_to.forEach((to:number, from:number)=>{
 			let index = to;
 			while(merge_to.has(index)) index = merge_to.get(index);
 			fix[from] = fix[index]; // toを繰り返し辿っているので未定義部分へのアクセスは発生しない
@@ -555,8 +556,8 @@ export class ParserGenerator{
 
 		let result:Immutable.List<ImmutableDFANode> = Immutable.List<ImmutableDFANode>();
 		// インデックスの対応表をもとに辺情報を書き換える
-		array.forEach((node)=>{
-			node.edge = node.edge.map((node_index)=>{
+		shortened.forEach((node:DFANode)=>{
+			node.edge = node.edge.map((node_index:number)=>{
 				return fix[node_index];
 			}).toMap();
 			result = result.push(this.convertDFANode2Immutable(node));
@@ -610,8 +611,8 @@ export class ParserGenerator{
 						if(table_row.has(label)){
 							// コンフリクトが発生
 							flg_conflicted = true; // 構文解析に失敗
-							let existing_operation = table_row.get(label);
-							let conflicted_operation:ConflictedOperation = {type:"conflict", shift_to: null, reduce_syntax: null};
+							let existing_operation = table_row.get(label)!; // 上で.has(label)のチェックを行っているためnon-nullable
+							let conflicted_operation:ConflictedOperation = {type:"conflict", shift_to: [], reduce_syntax: []};
 							if(existing_operation.type == "shift"){
 								// shift/reduce コンフリクト
 								conflicted_operation.shift_to = [existing_operation.to];

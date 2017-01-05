@@ -19,11 +19,11 @@ export type ParserCallbackArg = TerminalCallbackArg | NonterminalCallbackArg;
 
 export type ParserCallback = (arg: ParserCallbackArg)=>any;
 export class Parser{
-	private default_callback:ParserCallback;
-	constructor(private lexer:ILexer, private syntax:SyntaxDefinitions, private parsingtable:ParsingTable, default_callback?: ParserCallback){
+	private default_callback:ParserCallback|null;
+	constructor(private lexer:ILexer, private syntax:SyntaxDefinitions, private parsingtable:ParsingTable, default_callback?: ParserCallback|null){
 		this.setDefaultCallback(default_callback);
 	}
-	public setDefaultCallback(default_callback?:ParserCallback){
+	public setDefaultCallback(default_callback?:ParserCallback|null){
 		if(default_callback === null || default_callback === undefined){
 			this.default_callback = null;
 		}
@@ -78,7 +78,7 @@ export class Parser{
 				flg_error = true;
 				break;
 			}
-			let action = this.parsingtable[state].get(token);
+			let action = this.parsingtable[state].get(token)!;
 			if(action.type == "shift"){
 				// shiftオペレーション
 				// 次の状態をスタックに追加
@@ -108,10 +108,16 @@ export class Parser{
 				// このままgotoオペレーションを行う
 				state = state_stack[state_stack.length-1];
 				token = syntax_item.ltoken;
-				action = this.parsingtable[state].get(token);
-				if(!this.parsingtable[state].has(token) || action.type != "goto"){
+				if(!this.parsingtable[state].has(token)){
 					// 未定義
 					console.log("parse failed: unexpected token:" , token);
+					flg_error = true;
+					break;
+				}
+				action = this.parsingtable[state].get(token)!;
+				if(action.type != "goto"){
+					// gotoアクションでなければおかしい
+					console.log("parse failed: goto operation expected after reduce operation");
 					flg_error = true;
 					break;
 				}
@@ -125,10 +131,10 @@ export class Parser{
 				console.log("conflict found:");
 				console.log("current state "+state+":", JSON.stringify(this.parsingtable[state]));
 				console.log("shift:", action.shift_to, ",reduce:", action.reduce_syntax);
-				action.shift_to.forEach((to)=>{
+				action.shift_to.forEach((to:number)=>{
 					console.log("shift to "+to.toString()+":", JSON.stringify(this.parsingtable[to]));
 				});
-				action.reduce_syntax.forEach((syntax)=>{
+				action.reduce_syntax.forEach((syntax:number)=>{
 					console.log("reduce syntax "+syntax.toString()+":", JSON.stringify(this.parsingtable[syntax]));
 				});
 				console.log("parser cannot parse conflicted syntax");
