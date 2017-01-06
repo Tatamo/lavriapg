@@ -99,7 +99,7 @@ export const grammar_grammar:GrammarDefinition = {lex: lex, syntax: syntax, star
 
 // ASTからGrramaDefinitionを構築
 export var constructGrammar = (()=>{
-	let start_symbol = null;
+	let start_symbol:Token|null = null;
 	return (arg:ParserCallbackArg)=>{
 		let token = arg.token;
 		if(arg.terminal == true){
@@ -150,14 +150,14 @@ export var constructGrammar = (()=>{
 					if(start_symbol === null) {
 						start_symbol = children[1];
 					}
-					let result_s = [];
-					children[3].forEach((pattern)=>{
+					let result_s:SyntaxDefinitions = [];
+					children[3].forEach((pattern:Array<Token>)=>{
 						result_s.push({ltoken: children[1], pattern: pattern});
 					});
 					return result_s;
 				case "NORMALSECT":
-					let result_n = [];
-					children[2].forEach((pattern)=>{
+					let result_n:SyntaxDefinitions = [];
+					children[2].forEach((pattern:Array<Token>)=>{
 						result_n.push({ltoken: children[0], pattern: pattern});
 					});
 					return result_n;

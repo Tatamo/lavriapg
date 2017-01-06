@@ -2,7 +2,7 @@ import {Token, SYMBOL_EOF, TokenList} from "./token";
 import {LexDefinitions} from "./grammar";
 
 export interface ILexer{
-	exec(string):TokenList;
+	exec(str: string):TokenList;
 }
 
 export class Lexer implements ILexer{

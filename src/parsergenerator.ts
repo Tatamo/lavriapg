@@ -320,8 +320,8 @@ export class ParserGenerator{
 		this.follow_map = follow_result;
 	}*/
 	// 記号または記号列を与えて、その記号から最初に導かれうる非終端記号の集合を返す
-	private getFirst(arg: Token);
-	private getFirst(arg: Array<Token>);
+	private getFirst(arg: Token):Immutable.Set<Token>;
+	private getFirst(arg: Array<Token>):Immutable.Set<Token>;
 	private getFirst(arg: Token|Array<Token>): Immutable.Set<Token>{
 		if(!Array.isArray(arg)){
 			return this.first_map.get(arg);
@@ -565,14 +565,14 @@ export class ParserGenerator{
 		
 		return result;
 	}
-	private generateParsingTable(dfa){
+	private generateParsingTable(dfa:Immutable.List<ImmutableDFANode>){
 		let parsing_table:ParsingTable = new Array<Map<Token, ParsingOperation>>();
 		let flg_conflicted = false;
 		// 構文解析表を構築
-		dfa.forEach((node)=>{
+		dfa.forEach((node:ImmutableDFANode)=>{
 			let table_row = new Map<Token, ParsingOperation>();
 			// 辺をもとにshiftとgotoオペレーションを追加
-			node.get("edge").forEach((to, label)=>{
+			(<DFAEdge>node.get("edge")).forEach((to:number, label:Token)=>{
 				if(this.symbols.isTerminalSymbol(label)){
 					// ラベルが終端記号の場合
 					// shiftオペレーションを追加
@@ -588,7 +588,7 @@ export class ParserGenerator{
 			});
 
 			// acceptとreduceオペレーションを追加していく
-			node.get("closure").forEach((item)=>{
+			(<ImmutableClosureSet>node.get("closure")).forEach((item:ImmutableClosureItem)=>{
 				// 規則末尾が.でないならスキップ
 				if((<Immutable.Seq<number, Token>>item.get("pattern")).last() != SYMBOL_DOT) return;
 				else{
