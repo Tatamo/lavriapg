@@ -13,14 +13,13 @@ type ClosureSet = Immutable.OrderedSet<ClosureItem>;
 type ImmutableClosureSet = Immutable.OrderedSet<ImmutableClosureItem>;
 type DFAEdge = Immutable.Map<Token, number>;
 type DFANode = {closure: ClosureSet, edge: DFAEdge};
-type ImmutableDFANode = Immutable.Map<string, ImmutableClosureSet|DFAEdge>;
 
 export class ParserGenerator{
 	private nulls:Immutable.Set<Token>;
 	private first_map: Immutable.Map<Token, Immutable.Set<Token>>;
 	private follow_map: Immutable.Map<Token, Immutable.Set<Token>>;
-	private lr_dfa: Immutable.List<ImmutableDFANode>;
-	private lalr_dfa: Immutable.List<ImmutableDFANode>;
+	private lr_dfa: Immutable.List<DFANode>;
+	private lalr_dfa: Immutable.List<DFANode>;
 	private parsing_table: ParsingTable;
 	private symbols: SymbolDiscriminator;
 	constructor(private grammar: GrammarDefinition){
@@ -403,86 +402,75 @@ export class ParserGenerator{
 		return result;
 
 	}
-	// DFAのノードをImmutableデータ構造を使った形式に変換
-	private convertDFANode2Immutable(node: DFANode):ImmutableDFANode{
-		let closure:Immutable.OrderedSet<ImmutableClosureItem> = node.closure.map((item:ClosureItem)=>{return this.convertClosureItem2Immutable(item)}).toOrderedSet();
-		let tmp = {closure:closure, edge:node.edge};
-		
-		return Immutable.Map<string, Immutable.OrderedSet<ImmutableClosureItem>|DFAEdge>(tmp);
-	}
-	// Immutableのデータ構造によって構築されたDFAのノードをオブジェクトに変換
-	private convertImmutableDFANode2Object(node_im: ImmutableDFANode):DFANode{
-		let immutable_closure = <Immutable.OrderedSet<ImmutableClosureItem>>node_im.get("closure");
-		let closure = immutable_closure.map((item:ImmutableClosureItem)=>{return this.convertImmutableClosureItem2Object(item)}).toOrderedSet();
-		return {closure: closure, edge: <DFAEdge>node_im.get("edge")};
-	}
+
 	private generateDFA(){
 		let first_item:ClosureItem = {syntax_id: 0, ltoken: SYMBOL_SYNTAX, pattern:[SYMBOL_DOT, this.grammar.start_symbol], lookahead: SYMBOL_EOF};
 		let first_closure = Immutable.OrderedSet([first_item]);
 		first_closure = this.expandClosure(first_closure);
-		let dfa = Immutable.List<ImmutableDFANode>();
-		dfa = dfa.push(this.convertDFANode2Immutable({closure: first_closure, edge: Immutable.Map<Token, number>()}));
+		let dfa = Immutable.List<DFANode>();
+		dfa = dfa.push({closure: first_closure, edge: Immutable.Map<Token, number>()});
 
-		let prev = null;
-		while(!Immutable.is(dfa, prev)){
-			prev = dfa;
-			dfa.forEach((current_node:ImmutableDFANode, index:number)=>{
-				let closure = <Immutable.OrderedSet<ImmutableClosureItem>>current_node.get("closure");
-				let edge = <DFAEdge>current_node.get("edge");
-				let new_items = Immutable.Map<Token, Immutable.OrderedSet<ImmutableClosureItem>>();
+		let flg_done = false;
+		while(!flg_done){
+			flg_done = true;
+			dfa.forEach((current_node:DFANode, index:number)=>{
+				let closure:ClosureSet = current_node.closure;
+				let edge:DFAEdge = current_node.edge;
+				let new_items = Immutable.Map<Token, ClosureSet>();
 				// 規則から新しい規則を生成し、対応する記号ごとにまとめる
-				closure.forEach((item:ImmutableClosureItem)=>{
-					let syntax_id = <number>item.get("syntax_id");
-					let ltoken = <Token>item.get("ltoken");
-					let pattern = <Immutable.Seq<number, Token>>item.get("pattern");
-					let lookahead = <Token>item.get("lookahead");
+				closure.forEach((item:ClosureItem)=>{
+					let syntax_id:number = item.syntax_id;
+					let ltoken:Token = item.ltoken;
+					let pattern:Array<Token> = item.pattern;
+					let lookahead:Token = item.lookahead;
 
-					let dot_index:number = pattern.findKey((v)=>{return v == SYMBOL_DOT});
-					if(dot_index == pattern.size-1) return; // . が末尾にある場合はスキップ
+					let dot_index:number = pattern.indexOf(SYMBOL_DOT);
+					if(dot_index == pattern.length-1) return; // . が末尾にある場合はスキップ
 					// .を右の要素と交換する
 					let sort_flg = true;
-					let edge_label:Token = pattern.get(pattern.keyOf(SYMBOL_DOT)+1);
-					let newpattern = Immutable.Seq<number, Token>(pattern.sort((front,behind)=>{
+					let edge_label:Token = pattern[dot_index+1];
+					// TODO:高速化
+					let pattern_ = pattern.slice();
+					let newpattern:Array<Token> = pattern_.sort((front,behind)=>{
 						if(front == SYMBOL_DOT && sort_flg){
 							// .があった場合は次の要素と交換
 							sort_flg = false; // 一度しかずらさない
-							edge_label = behind; // 交換した記号を保持
 							return 1;
 						}
 						// 通常は何もしない
 						return 0;
-					}));
-					let newitem = Immutable.Map<string, Immutable.Seq<number, Token>>({syntax_id: syntax_id, ltoken:ltoken, pattern:newpattern, lookahead:lookahead});
-					let itemset;
+					});
+					let newitem:ClosureItem = {syntax_id: syntax_id, ltoken:ltoken, pattern:newpattern, lookahead:lookahead};
+					let itemset:ClosureSet;
 					if(new_items.has(edge_label)){
 						// 既に同じ記号が登録されている
 						itemset = new_items.get(edge_label);
 					}
 					else{
 						// 同じ記号が登録されていない
-						itemset = Immutable.OrderedSet<ImmutableClosureItem>();
+						itemset = Immutable.OrderedSet<ClosureItem>();
 					}
 					itemset = itemset.add(newitem);
 					new_items = new_items.set(edge_label, itemset);
 				});
 				// 新しいノードを生成する
-				new_items.forEach((itemset:Immutable.OrderedSet<ImmutableClosureItem>, edge_label:Token)=>{
-					let newnode:DFANode = {closure: Immutable.OrderedSet<ClosureItem>(), edge:Immutable.Map<Token, number>()};
-					// それぞれの規則を追加する
-					itemset.forEach((item:ImmutableClosureItem)=>{
-						newnode.closure = newnode.closure.add(this.convertImmutableClosureItem2Object(item));
-					});
+				new_items.forEach((itemset:ClosureSet, edge_label:Token)=>{
+					let newnode:DFANode = {closure: itemset, edge:Immutable.Map<Token, number>()};
+
 					// クロージャー展開する
 					newnode.closure = this.expandClosure(newnode.closure);
-					let newnode_immutable = this.convertDFANode2Immutable(newnode);
 					// 同一のclosureを持つ状態がないかどうか調べる
-					let i = dfa.map((n:ImmutableDFANode)=>{return n.get("closure");}).keyOf(newnode_immutable.get("closure"));
+					// 一度Immutableに変換して比較
+					//let i = dfa.map((n:DFANode)=>{return this.convertDFANode2Immutable(n).get("closure");}).keyOf(newnode_immutable.get("closure"));
+					let i = dfa.map((n:DFANode)=>{return this.convertClosureSet2Immutable(n.closure)}).keyOf(this.convertClosureSet2Immutable(newnode.closure));
 					let index_to;
 					if(i === undefined){
 						// 既存の状態と重複しない
 						// 新しい状態としてDFAに追加し、現在のノードから辺を張る
-						dfa = dfa.push(newnode_immutable);
+						dfa = dfa.push(newnode);
 						index_to = dfa.size-1;
+
+						flg_done = false;
 					}
 					else{
 						// 既存の状態と規則が重複する
@@ -490,22 +478,34 @@ export class ParserGenerator{
 						index_to = i;
 					}
 					// 辺を追加
+					let edge_num_prev = edge.size;
 					edge = edge.set(edge_label, index_to);
-					// DFAを更新
-					dfa = dfa.set(index, Immutable.Map({closure: closure, edge: edge}));
+					if(edge.size != edge_num_prev){
+						// 新しい辺が追加された
+						flg_done = false;
+						// DFAを更新
+						dfa = dfa.set(index, {closure: closure, edge: edge});
+					}
 				});
 			});
 		}
-		this.lr_dfa = dfa;
-		this.lalr_dfa = this.mergeLA(dfa);
+
+		let obj_lr_dfa = dfa;
+		//let obj_lr_dfa = this.convertImmutableDFA2Obj(dfa);
+		this.lr_dfa = obj_lr_dfa;
+		this.lalr_dfa = this.mergeLA(obj_lr_dfa);
 	}
+
+
+
+
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
-	private mergeLA(dfa:Immutable.List<ImmutableDFANode>): Immutable.List<ImmutableDFANode>{
-		let array: Array<DFANode|null> = dfa.toArray().map((node)=>{return this.convertImmutableDFANode2Object(node);});
+	private mergeLA(dfa:Immutable.List<DFANode>): Immutable.List<DFANode>{
+		let array: Array<DFANode|null> = dfa.toArray();
 		// DFAからLR(0)テーブル部分のみを抽出した配列を生成
-		let lr0_itemsets:Array<Immutable.OrderedSet<Immutable.Map<string, number|Token|Immutable.Seq<number, Token>>>> = dfa.map((node:ImmutableDFANode)=>{
+		let lr0_itemsets:Array<Immutable.OrderedSet<Immutable.Map<string, number|Token|Immutable.Seq<number, Token>>>> = dfa.map((node:DFANode)=>{
 			// クロージャー部分を取得
-			let closure:ImmutableClosureSet = <ImmutableClosureSet>node.get("closure");
+			let closure:ImmutableClosureSet = this.convertClosureSet2Immutable(node.closure);
 			// 先読み部分を消したものを取得
 			return closure.map((item:ImmutableClosureItem)=>{
 				return item.delete("lookahead");
@@ -554,25 +554,26 @@ export class ParserGenerator{
 			fix[from] = fix[index]; // toを繰り返し辿っているので未定義部分へのアクセスは発生しない
 		});
 
-		let result:Immutable.List<ImmutableDFANode> = Immutable.List<ImmutableDFANode>();
+		let result:Immutable.List<DFANode> = Immutable.List<DFANode>();
 		// インデックスの対応表をもとに辺情報を書き換える
 		shortened.forEach((node:DFANode)=>{
 			node.edge = node.edge.map((node_index:number)=>{
 				return fix[node_index];
 			}).toMap();
-			result = result.push(this.convertDFANode2Immutable(node));
+			result = result.push(node);
 		});
 		
 		return result;
 	}
-	private generateParsingTable(dfa:Immutable.List<ImmutableDFANode>){
+
+	private generateParsingTable(dfa:Immutable.List<DFANode>){
 		let parsing_table:ParsingTable = new Array<Map<Token, ParsingOperation>>();
 		let flg_conflicted = false;
 		// 構文解析表を構築
-		dfa.forEach((node:ImmutableDFANode)=>{
+		dfa.forEach((node:DFANode)=>{
 			let table_row = new Map<Token, ParsingOperation>();
 			// 辺をもとにshiftとgotoオペレーションを追加
-			(<DFAEdge>node.get("edge")).forEach((to:number, label:Token)=>{
+			node.edge.forEach((to:number, label:Token)=>{
 				if(this.symbols.isTerminalSymbol(label)){
 					// ラベルが終端記号の場合
 					// shiftオペレーションを追加
@@ -588,16 +589,16 @@ export class ParserGenerator{
 			});
 
 			// acceptとreduceオペレーションを追加していく
-			(<ImmutableClosureSet>node.get("closure")).forEach((item:ImmutableClosureItem)=>{
+			node.closure.forEach((item:ClosureItem)=>{
 				// 規則末尾が.でないならスキップ
-				if((<Immutable.Seq<number, Token>>item.get("pattern")).last() != SYMBOL_DOT) return;
+				if(item.pattern[item.pattern.length-1] != SYMBOL_DOT) return;
 				else{
 					// acceptオペレーションの条件を満たすかどうか確認
 					// S' -> S . [$] の規則が存在するか調べる
 					let flg_accept = true;
-					if(<number>item.get("syntax_id") != 0) flg_accept = false;
-					else if(<Token>item.get("ltoken") != SYMBOL_SYNTAX) flg_accept = false;
-					else if(<Token>item.get("lookahead") != SYMBOL_EOF) flg_accept = false;
+					if(item.syntax_id != 0) flg_accept = false;
+					else if(item.ltoken != SYMBOL_SYNTAX) flg_accept = false;
+					else if(item.lookahead != SYMBOL_EOF) flg_accept = false;
 					if(flg_accept){
 						// この規則を読み終わると解析終了
 						// $をラベルにacceptオペレーションを追加
@@ -605,8 +606,8 @@ export class ParserGenerator{
 						table_row.set(SYMBOL_EOF, operation);
 					}
 					else{
-						let label = <Token>item.get("lookahead");
-						let operation:ReduceOperation = {type:"reduce", syntax: <number>item.get("syntax_id")};
+						let label = item.lookahead;
+						let operation:ReduceOperation = {type:"reduce", syntax: item.syntax_id};
 						// 既に同じ記号でオペレーションが登録されていないか確認
 						if(table_row.has(label)){
 							// コンフリクトが発生
