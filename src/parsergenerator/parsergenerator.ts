@@ -1,4 +1,6 @@
 import * as Immutable from "immutable";
+import {FirstSet} from "./firstset";
+import {NullableSet} from "./nullableset";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 import {Token, SYMBOL_EOF, SYMBOL_SYNTAX, SYMBOL_DOT} from "../def/token";
 import {SyntaxDefinitionSection, GrammarDefinition} from "../def/grammar";
@@ -15,21 +17,19 @@ type DFAEdge = Immutable.Map<Token, number>;
 type DFANode = {closure: ClosureSet, edge: DFAEdge};
 
 export class ParserGenerator{
-	private nulls:Immutable.Set<Token>;
-	private first_map: Immutable.Map<Token, Immutable.Set<Token>>;
-	private follow_map: Immutable.Map<Token, Immutable.Set<Token>>;
+	private nulls: NullableSet;
+	private first: FirstSet;
 	private lr_dfa: Immutable.List<DFANode>;
 	private lalr_dfa: Immutable.List<DFANode>;
 	private parsing_table: ParsingTable;
 	private symbols: SymbolDiscriminator;
 	constructor(private grammar: GrammarDefinition){
 		this.symbols = new SymbolDiscriminator(this.grammar.syntax);
-
+		this.nulls = new NullableSet(this.grammar);
+		this.first = new FirstSet(this.grammar, this.symbols, this.nulls);
 		this.init();
 	}
 	init(){
-		this.generateNulls();
-		this.generateFirst();
 		this.generateDFA();
 		let lalr_result = this.generateParsingTable(this.lalr_dfa);
 		if(lalr_result.success){
@@ -50,294 +50,7 @@ export class ParserGenerator{
 	public getParsingTable():ParsingTable{
 		return this.parsing_table;
 	}
-	private isNullable(x:Token){
-		return this.nulls.includes(x);
-	}
-	// nulls初期化
-	private generateNulls(){
-		// 制約条件を導出するために、
-		// 空列になりうる記号の集合nullsを導出
-		this.nulls = Immutable.Set<Token>();
-		for(let i=0; i<this.grammar.syntax.length; i++){
-			let ltoken = this.grammar.syntax[i].ltoken;
-			let pattern = this.grammar.syntax[i].pattern;
 
-			// 右辺の記号の数が0の規則を持つ記号は空列になりうる
-			if(pattern == []){
-				this.nulls = this.nulls.add(ltoken);
-			}
-		}
-		let flg_changed:boolean = true;
-		// 変更が起きなくなるまでループする
-		while(flg_changed){
-			flg_changed = false;
-			for(let i=0; i<this.grammar.syntax.length; i++){
-				let ltoken = this.grammar.syntax[i].ltoken;
-
-				// 既にnullsに含まれていればスキップ
-				if(this.isNullable(ltoken)) continue;
-
-				let pattern = this.grammar.syntax[i].pattern;
-				let flg_nulls = true;
-				// 右辺に含まれる記号がすべてnullableの場合はその左辺はnullable
-				for(let ii=0; ii<pattern.length; ii++){
-					if(!this.isNullable(pattern[ii])){
-						flg_nulls = false;
-						break;
-					}
-				}
-				if(flg_nulls){
-					if(this.nulls.includes(ltoken)) flg_changed = true;
-					this.nulls = this.nulls.add(ltoken);
-				}
-			}
-		}
-	}
-	// 制約条件がすべて満たされたかどうかを判定する
-	// 与えられたtable内の配列がソートされていることを前提とする
-	private isConstraintFilled(constraint:Constraint, table:Immutable.Map<Token, Immutable.Set<Token>>): boolean{
-		for(let i=0; i<constraint.length; i++){
-			let superset = table.get(constraint[i].superset);
-			let subset = table.get(constraint[i].subset);
-			// tableのsubの要素がすべてsupに含まれていることを調べる
-			if(!superset.isSuperset(subset)){
-				// subの要素がすべてsupに含まれていなかった
-				return false;
-			}
-		}
-		return true;
-	}
-	private generateFirst(){
-		//Firstを導出
-		let first_result: Immutable.Map<Token, Immutable.Set<Token>> = Immutable.Map<Token, Immutable.Set<Token>>();
-		// 初期化
-		// FIRST($) = {$} だけ手動で追加
-		first_result = first_result.set(SYMBOL_EOF, Immutable.Set<Token>([SYMBOL_EOF]));
-		let terminal_symbols = this.symbols.getTerminalSymbols();
-		terminal_symbols.forEach((value:Token)=>{
-			first_result = first_result.set(value, Immutable.Set<Token>([value]));
-		});
-		let nonterminal_symbols = this.symbols.getNonterminalSymbols();
-		nonterminal_symbols.forEach((value:Token)=>{
-			first_result = first_result.set(value, Immutable.Set<Token>());
-		});
-
-		// 包含についての制約を生成
-		let constraint:Constraint = [];
-		for(let i=0; i<this.grammar.syntax.length; i++){
-			let def = this.grammar.syntax[i];
-			let sup = def.ltoken;
-			let pattern = def.pattern;
-			for(let ii=0; ii<pattern.length; ii++){
-				let sub = pattern[ii];
-				if(sup != sub){
-					constraint.push({superset: sup, subset: sub});
-				}
-				if(!this.isNullable(sub)){
-					break;
-				}
-			}
-		}
-
-		// 制約解消
-		while(!this.isConstraintFilled(constraint, first_result)){
-			for(let i=0; i<constraint.length; i++){
-				let sup = constraint[i].superset;
-				let sub = constraint[i].subset;
-				let superset = first_result.get(sup);
-				let subset = first_result.get(sub);
-				// 包含関係にあるべき2つの集合が包含関係にない
-				if(!superset.isSuperset(subset)){
-					// subset内の要素をsupersetに入れる
-					superset = superset.union(subset);
-					first_result = first_result.set(sup, superset);
-				}
-			}
-		}
-		this.first_map = first_result;
-	}
-	/*
-	// SLR法で使うやつ
-	private generateFollow(){
-		let pushWithoutDuplicate = (value:any, array:Array<any>, cmp:(x:any,y:any)=>boolean =(x,y)=>{return x == y;}):boolean=>{
-			for(let i=0; i<array.length; i++){
-				if(cmp(array[i], value)) {
-					return false;
-				}
-			}
-			array.push(value);
-			return true;
-		}
-		// Followを導出
-		// 初期化
-		let follow_result:Map<Token, Array<Token>> = new Map();
-		let nonterminal_symbols = this.symbols.getNonterminalSymbols();
-		for(let i=0; i<nonterminal_symbols.length; i++){
-			follow_result.set(nonterminal_symbols[i], []);
-		}
-
-		for(let i=0; i<this.grammar.syntax.length; i++){
-			let ltoken = this.grammar.syntax[i].ltoken;
-			let pattern = this.grammar.syntax[i].pattern;
-			for(let ii=0; ii<pattern.length; ii++){
-				// 一番右を除いてループ(べつにその必要はないが)
-				for(let iii=0; iii<pattern[ii].length-1; iii++){
-					let sup = pattern[ii][iii];
-					if(this.symbols.isTerminalSymbol(sup)){
-						// 終端記号はFollow(X)のXにはならない
-						break;
-					}
-					for(let d=1; iii+d<pattern[ii].length; d++){
-						let sub = pattern[ii][iii+d];
-						// Follow(sup)にFirst(sub)を重複を許さずに追加
-						for(let index = 0; index<this.first_map.get(sub).length; index++){
-							pushWithoutDuplicate(this.first_map.get(sub)[index], follow_result.get(sup));
-						}
-						// 記号がnullsに含まれている限り、右隣の記号のFirstもFollowに加える
-						if(!this.isNullable(sub)){
-							// 記号がnullsに含まれていない場合はその記号までで終了
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		let sort_with_symbol = (x:Token, y:Token) =>{
-			let symbols = [];
-			return ((x:Token, y:Token) =>{
-				if(typeof x == "string" && typeof y == "string"){
-					if(x < y) return -1;
-					else if(x > y) return 1;
-					else return 0;
-				}
-				else if(typeof x == "string"){
-					return -1;
-				}
-				else if(typeof y == "string"){
-					return 1;
-				}
-				else {
-					// x, yともにsymbol
-					let i_x = -1, i_y = -1;
-					for(let i=0; i<symbols.length; i++){
-						if(symbols[i] == x) i_x = i;
-						if(symbols[i] == y) i_y = i;
-						if(i_x >= 0 && i_y >= 0) break;
-					}
-					// 両方とも登録されている場合は登録順に返す
-					if(i_x >= 0 && i_y >= 0) return i_x - i_y;
-					else if(i_x >= 0 && i_y < 0) {
-						// xだけ見つかった
-						symbols.push(y);
-						return -1; // xのほうが小さい
-					}
-					else if(i_x < 0 && i_y >= 0) {
-						// yだけ見つかった
-						symbols.push(x);
-						return 1; // yのほうが小さい
-					}
-					else {
-						// 両方見つからなかった
-						if(x == y) {
-							symbols.push(x);
-							return 0;
-						}
-						else {
-							// xのほうを先に登録 -> xのほうが小さい
-							symbols.push(x);
-							symbols.push(y);
-							return -1;
-						}
-					}
-				}
-			})(x,y);
-		}
-
-		// とりあえずiterableを使わずに実装(target=es5)
-		follow_result.forEach((value,key,map)=>{value.sort(sort_with_symbol);});
-		// 包含についての制約を生成
-		let constraint:Constraint = [];
-		for(let i=0; i<this.grammar.syntax.length; i++){
-			let def = this.grammar.syntax[i];
-			let sub = def.ltoken; // 左辺の記号はsubsetになる
-			let pattern = def.pattern;
-			for(let ii=0; ii<pattern.length; ii++){
-				// 右端から左に見ていく
-				for(let iii=pattern[ii].length-1; iii>=0; iii--){
-					let sup = pattern[ii][iii];
-					// supが終端記号ならスキップ(nullsに含まれていないことは自明なのでここでbreakする)
-					if(this.symbols.isTerminalSymbol(sup)){
-						break;
-					}
-					// supersetとsubsetが同じ場合は制約を追加しない
-					if(sup != sub){
-						pushWithoutDuplicate({superset: sup, subset: sub}, constraint,
-											 (x,y)=>{return x.superset == y.superset && x.subset == y.subset});
-					}
-					// 右側の記号がすべてnullsに含まれている限り制約を追加していく
-					if(!this.isNullable(sub)){
-						break;
-					}
-				}
-			}
-		}
-
-		// 制約解消
-		while(!this.isConstraintFilled(constraint, follow_result)){
-			for(let i=0; i<constraint.length; i++){
-				let sup = constraint[i].superset;
-				let sub = constraint[i].subset;
-				let superset = follow_result.get(sup);
-				let subset = follow_result.get(sub);
-				// 包含関係にあるべき2つの集合が包含関係にない
-				if(!this.isInclude(superset, subset)){
-					// subset内の要素をsupersetに入れていく
-					let flg_changed = false;
-					for(let ii=0; ii<subset.length; ii++){
-						// 既に登録されている要素は登録しない
-						let flg_duplicated = false;
-						for(let iii=0; iii<superset.length; iii++){
-							if(subset[ii] == superset[ii]){
-								flg_duplicated = true;
-								break;
-							}
-						}
-						if(!flg_duplicated){
-							superset.push(subset[ii]);
-							flg_changed = true;
-						}
-					}
-					// 要素の追加が行われた場合、supersetをsortしておく
-					if(flg_changed){
-						superset.sort(sort_with_symbol);
-					}
-				}
-			}
-		}
-		console.log("Follow:",follow_result);
-		this.follow_map = follow_result;
-	}*/
-	// 記号または記号列を与えて、その記号から最初に導かれうる非終端記号の集合を返す
-	private getFirst(arg: Token):Immutable.Set<Token>;
-	private getFirst(arg: Array<Token>):Immutable.Set<Token>;
-	private getFirst(arg: Token|Array<Token>): Immutable.Set<Token>{
-		if(!Array.isArray(arg)){
-			return this.first_map.get(arg);
-		}
-		let w: Array<Token> = arg;
-
-		let result: Immutable.Set<Token> = Immutable.Set<Token>();
-		for(let i=0; i<w.length; i++){
-			let add = this.first_map.get(w[i]); // i文字目のFirst集合を取得
-			result = result.union(add); // 追加
-			if(!this.isNullable(w[i])){
-				// w[i] ∉ Nulls ならばここでストップ
-				break;
-			}
-		}
-		return result;
-	}
 	private convertClosureItem2Immutable(item: ClosureItem):ImmutableClosureItem{
 		return Immutable.Map({syntax_id: item.syntax_id, ltoken: item.ltoken, pattern: Immutable.Seq<Token>(item.pattern), lookahead: item.lookahead});
 	}
@@ -382,7 +95,7 @@ export class ParserGenerator{
 				if(!this.symbols.isNonterminalSymbol(symbol)) return; // symbolが非終端記号でなければスキップ
 				// クロージャー展開を行う
 				// 先読み記号を導出
-				let lookahead_set:Immutable.Set<Token> = this.getFirst(pattern.slice(dot_index+1+1).toArray().concat(lookahead));
+				let lookahead_set:Immutable.Set<Token> = this.first.get(pattern.slice(dot_index+1+1).toArray().concat(lookahead));
 
 				let def:Array<{id:number, def:SyntaxDefinitionSection}> = findDef(symbol);
 				// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
