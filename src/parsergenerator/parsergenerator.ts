@@ -7,7 +7,7 @@ import {ParserCallback, Parser} from "../parser/parser";
 import {ParserFactory} from "../parser/factory";
 
 type Constraint = Array<{superset:Token, subset:Token}>;
-type ClosureItem = {syntax_id: number, ltoken: Token, pattern: Array<Token>, lookahead: Token};
+type ClosureItem = {syntax_id: number, ltoken: Token, pattern: Immutable.Seq<number, Token>, lookahead: Token};
 type ImmutableClosureItem = Immutable.Map<string,number | Token | Immutable.Seq<number, Token>>;
 type ClosureSet = Immutable.OrderedSet<ClosureItem>;
 type ImmutableClosureSet = Immutable.OrderedSet<ImmutableClosureItem>;
@@ -342,7 +342,7 @@ export class ParserGenerator{
 		return Immutable.Map({syntax_id: item.syntax_id, ltoken: item.ltoken, pattern: Immutable.Seq<Token>(item.pattern), lookahead: item.lookahead});
 	}
 	private convertImmutableClosureItem2Object(item_im: ImmutableClosureItem):ClosureItem{
-		return {syntax_id: <number>item_im.get("syntax_id"), ltoken: <Token>item_im.get("ltoken"), pattern: (<Immutable.Seq<number, Token>>item_im.get("pattern")).toArray(), lookahead: <Token>item_im.get("lookahead")};
+		return {syntax_id: <number>item_im.get("syntax_id"), ltoken: <Token>item_im.get("ltoken"), pattern: (<Immutable.Seq<number, Token>>item_im.get("pattern")), lookahead: <Token>item_im.get("lookahead")};
 	}
 	private convertClosureSet2Immutable(closure: ClosureSet):ImmutableClosureSet{
 		return closure.map((item:ClosureItem)=>{return this.convertClosureItem2Immutable(item);}).toOrderedSet();
@@ -350,8 +350,9 @@ export class ParserGenerator{
 	private convertImmutableClosureSet2Object(closure_im: ImmutableClosureSet):ClosureSet{
 		return closure_im.map((item_im:ImmutableClosureItem)=>{return this.convertImmutableClosureItem2Object(item_im);}).toOrderedSet();
 	}
+
 	// クロージャー展開を行う
-	private expandClosure(start: Immutable.OrderedSet<ClosureItem>): Immutable.OrderedSet<ClosureItem>{
+	private expandClosure(start: ClosureSet): ClosureSet{
 		// 非終端記号xに対し、それが左辺として対応する定義を返す
 		let findDef = (x:Token):Array<{id: number, def: SyntaxDefinitionSection}> =>{
 			let result:Array<{id:number, def: SyntaxDefinitionSection}> = new Array();
@@ -366,10 +367,10 @@ export class ParserGenerator{
 		start.forEach((v:ClosureItem)=>{
 			tmp = tmp.add(this.convertClosureItem2Immutable(v));
 		});
-		let prev = null;
+		let prev_size = -1;
 		// 変更がなくなるまで繰り返す
-		while(!Immutable.is(tmp, prev)){
-			prev = tmp;
+		while(tmp.size != prev_size){
+			prev_size = tmp.size;
 			tmp.forEach((v:ImmutableClosureItem)=>{
 				let ltoken = <Token>v.get("ltoken");
 				let pattern = <Immutable.Seq<number, Token>>v.get("pattern");
@@ -400,11 +401,11 @@ export class ParserGenerator{
 			result = result.add(this.convertImmutableClosureItem2Object(v));
 		});
 		return result;
-
 	}
 
+
 	private generateDFA(){
-		let first_item:ClosureItem = {syntax_id: 0, ltoken: SYMBOL_SYNTAX, pattern:[SYMBOL_DOT, this.grammar.start_symbol], lookahead: SYMBOL_EOF};
+		let first_item:ClosureItem = {syntax_id: 0, ltoken: SYMBOL_SYNTAX, pattern:Immutable.Seq([SYMBOL_DOT, this.grammar.start_symbol]), lookahead: SYMBOL_EOF};
 		let first_closure = Immutable.OrderedSet([first_item]);
 		first_closure = this.expandClosure(first_closure);
 		let dfa = Immutable.List<DFANode>();
@@ -421,17 +422,17 @@ export class ParserGenerator{
 				closure.forEach((item:ClosureItem)=>{
 					let syntax_id:number = item.syntax_id;
 					let ltoken:Token = item.ltoken;
-					let pattern:Array<Token> = item.pattern;
+					let pattern:Immutable.Seq<number, Token> = item.pattern;
 					let lookahead:Token = item.lookahead;
 
-					let dot_index:number = pattern.indexOf(SYMBOL_DOT);
-					if(dot_index == pattern.length-1) return; // . が末尾にある場合はスキップ
+					let dot_index:number = pattern.keyOf(SYMBOL_DOT);
+					if(dot_index == pattern.size-1) return; // . が末尾にある場合はスキップ
 					// .を右の要素と交換する
 					let sort_flg = true;
-					let edge_label:Token = pattern[dot_index+1];
+					let edge_label:Token = pattern.get(dot_index+1);
 					// TODO:高速化
-					let pattern_ = pattern.slice();
-					let newpattern:Array<Token> = pattern_.sort((front,behind)=>{
+					//let pattern_ = pattern.slice();
+					let newpattern:Immutable.Seq<number,Token> = Immutable.Seq<number,Token>(pattern.sort((front,behind)=>{
 						if(front == SYMBOL_DOT && sort_flg){
 							// .があった場合は次の要素と交換
 							sort_flg = false; // 一度しかずらさない
@@ -439,7 +440,7 @@ export class ParserGenerator{
 						}
 						// 通常は何もしない
 						return 0;
-					});
+					}));
 					let newitem:ClosureItem = {syntax_id: syntax_id, ltoken:ltoken, pattern:newpattern, lookahead:lookahead};
 					let itemset:ClosureSet;
 					if(new_items.has(edge_label)){
@@ -591,7 +592,7 @@ export class ParserGenerator{
 			// acceptとreduceオペレーションを追加していく
 			node.closure.forEach((item:ClosureItem)=>{
 				// 規則末尾が.でないならスキップ
-				if(item.pattern[item.pattern.length-1] != SYMBOL_DOT) return;
+				if(item.pattern.get(item.pattern.size-1) != SYMBOL_DOT) return;
 				else{
 					// acceptオペレーションの条件を満たすかどうか確認
 					// S' -> S . [$] の規則が存在するか調べる
