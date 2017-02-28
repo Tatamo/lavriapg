@@ -1,6 +1,6 @@
-import {GrammarDefinition} from "./grammar";
-import {ParsingTable} from "./parsingtable";
-import {Lexer} from "./lexer";
+import {GrammarDefinition} from "../def/grammar";
+import {ParsingTable} from "../def/parsingtable";
+import {Lexer} from "../lexer/lexer";
 import {ParserCallback, Parser} from "./parser";
 
 export class ParserFactory{

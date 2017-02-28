@@ -1,7 +1,7 @@
-import {Token, SYMBOL_EOF} from "./token";
-import {LexDefinitions, SyntaxDefinitions, GrammarDefinition} from "./grammar";
-import {ParsingOperation, ParsingTable} from "./parsingtable";
-import {ParserGenerator} from "./parsergenerator";
+import {Token, SYMBOL_EOF} from "../def/token";
+import {LexDefinitions, SyntaxDefinitions, GrammarDefinition} from "../def/grammar";
+import {ParsingOperation, ParsingTable} from "../def/parsingtable";
+import {ParserGenerator} from "../parsergenerator/parsergenerator";
 import {grammar_grammar, grammar_parser} from "./ruleparser";
 
 export class PreCompiler{

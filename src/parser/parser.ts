@@ -1,8 +1,8 @@
-import {Token, TokenList} from "./token";
-import {SyntaxDefinitions} from "./grammar";
-import {ParsingTable} from "./parsingtable";
+import {Token, TokenList} from "../def/token";
+import {SyntaxDefinitions} from "../def/grammar";
+import {ParsingTable} from "../def/parsingtable";
 import {ASTNode} from "./ast";
-import {ILexer} from "./lexer";
+import {ILexer} from "../lexer/lexer";
 
 export interface TerminalCallbackArg{
 	token: string;

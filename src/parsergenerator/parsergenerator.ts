@@ -1,10 +1,10 @@
 import * as Immutable from "immutable";
 import {SymbolDiscriminator} from "./symboldiscriminator";
-import {Token, SYMBOL_EOF, SYMBOL_SYNTAX, SYMBOL_DOT} from "./token";
-import {SyntaxDefinitionSection, GrammarDefinition} from "./grammar";
-import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "./parsingtable";
-import {ParserCallback, Parser} from "./parser";
-import {ParserFactory} from "./factory";
+import {Token, SYMBOL_EOF, SYMBOL_SYNTAX, SYMBOL_DOT} from "../def/token";
+import {SyntaxDefinitionSection, GrammarDefinition} from "../def/grammar";
+import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "../def/parsingtable";
+import {ParserCallback, Parser} from "../parser/parser";
+import {ParserFactory} from "../parser/factory";
 
 type Constraint = Array<{superset:Token, subset:Token}>;
 type ClosureItem = {syntax_id: number, ltoken: Token, pattern: Array<Token>, lookahead: Token};

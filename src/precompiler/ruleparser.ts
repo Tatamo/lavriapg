@@ -1,9 +1,9 @@
-import {Token, SYMBOL_EOF} from "./token";
-import {LexDefinitions, SyntaxDefinitions, GrammarDefinition} from "./grammar";
-import {ParsingOperation, ParsingTable} from "./parsingtable";
-//import {ParserGenerator} from "./parsergenerator";
-import {Parser, ParserCallbackArg} from "./parser";
-import {ParserFactory} from "./factory";
+import {Token, SYMBOL_EOF} from "../def/token";
+import {LexDefinitions, SyntaxDefinitions, GrammarDefinition} from "../def/grammar";
+import {ParsingOperation, ParsingTable} from "../def/parsingtable";
+//import {ParserGenerator} from "../parsergenerator/parsergenerator";
+import {Parser, ParserCallbackArg} from "../parser/parser";
+import {ParserFactory} from "../parser/factory";
 
 const lex: LexDefinitions = [
 	{token:"EXCLAMATION", pattern:"!"},

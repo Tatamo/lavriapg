@@ -1,4 +1,4 @@
-import {Token} from "./token";
+import {Token} from "../def/token";
 
 // AST
 export interface ASTNode{

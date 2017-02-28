@@ -1,5 +1,5 @@
-import {Token, SYMBOL_EOF, TokenList} from "./token";
-import {LexDefinitions} from "./grammar";
+import {Token, SYMBOL_EOF, TokenList} from "../def/token";
+import {LexDefinitions} from "../def/grammar";
 
 export interface ILexer{
 	exec(str: string):TokenList;
