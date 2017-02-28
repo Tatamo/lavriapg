@@ -96,12 +96,9 @@ export class Parser{
 				// 対応する規則の右辺の記号の数だけスタックからポップする
 				for(let i=0; i<rnum; i++) state_stack.pop();
 
-				// rnumの数だけスタックからポップする
-				let children = rnum==0?[]:result_stack.slice(rnum*-1);
 				// rnumが0でないなら、右辺の記号の数だけスタックからポップする
-				if(rnum != 0) {
-					result_stack = result_stack.slice(0, rnum*-1);
-				}
+				let children = [];
+				for(let i=0; i<rnum; i++) children[rnum-1-i] = result_stack.pop();
 
 				result_stack.push(callback({token: <string>syntax_item.ltoken, children: children, pattern:<Array<string>>syntax_item.pattern, terminal:false}));
 
