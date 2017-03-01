@@ -31,12 +31,11 @@ export class FirstSet{
 
 		// 包含についての制約を生成
 		let constraint:Constraint = [];
-		for(let i=0; i<this.grammar.syntax.length; i++){
-			let def:SyntaxDefinitionSection = this.grammar.syntax[i];
-			let sup:Token = def.ltoken;
-			let pattern:Array<Token> = def.pattern;
-			for(let ii=0; ii<pattern.length; ii++){
-				let sub:Token = pattern[ii];
+		for(let rule of this.grammar.syntax){
+			let sup:Token = rule.ltoken;
+			// 右辺の左から順に、non-nullableな記号が現れるまで制約に追加
+			// 最初のnon-nullableな記号は制約に含める
+			for(let sub of rule.pattern){
 				if(sup != sub){
 					constraint.push({superset: sup, subset: sub});
 				}
@@ -47,12 +46,12 @@ export class FirstSet{
 		}
 
 		// 制約解消
-		let flg_done = false;
-		while(!flg_done){
-			flg_done = true;
-			for(let i=0; i<constraint.length; i++){
-				let sup:Token = constraint[i].superset;
-				let sub:Token = constraint[i].subset;
+		let flg_changed = true;
+		while(flg_changed){
+			flg_changed = false;
+			for(let pair of constraint){
+				let sup:Token = pair.superset;
+				let sub:Token = pair.subset;
 				let superset:Set<Token> = first_result.get(sup)!;
 				let subset:Set<Token> = first_result.get(sub)!;
 				subset.forEach((token:Token)=>{
@@ -60,48 +59,20 @@ export class FirstSet{
 					if(!superset.has(token)){
 						// subset内の要素をsupersetに入れる
 						superset.add(token);
-						flg_done = false;
+						flg_changed = true;
 					}
 				});
+				// First集合を更新
 				first_result.set(sup, superset);
-				/*
-				if(!superset.isSuperset(subset)){
-					// subset内の要素をsupersetに入れる
-					superset = superset.union(subset);
-					first_result = first_result.set(sup, superset);
-				}
-				*/
 			}
 		}
 		this.first_map = first_result;
-	}
-	// 制約条件がすべて満たされたかどうかを判定する
-	private isConstraintFilled(constraint:Constraint, table:Map<Token, Set<Token>>): boolean{
-		for(let i=0; i<constraint.length; i++){
-			let superset = table.get(constraint[i].superset)!;
-			let subset = table.get(constraint[i].subset)!;
-			// tableのsubの要素がすべてsupに含まれていることを調べる
-			let flg_includes = true;
-			subset.forEach((token:Token)=>{
-				if(!superset.has(token)){
-				// subの要素がすべてsupに含まれていなかった
-					flg_includes = false;
-				}
-			});
-			/*
-			if(!superset.isSuperset(subset)){
-				// subの要素がすべてsupに含まれていなかった
-				return false;
-			}
-			*/
-			if(!flg_includes) return false;
-		}
-		return true;
 	}
 	// 記号または記号列を与えて、その記号から最初に導かれうる非終端記号の集合を返す
 	public get(arg: Token):Immutable.Set<Token>;
 	public get(arg: Array<Token>):Immutable.Set<Token>;
 	public get(arg: Token|Array<Token>): Immutable.Set<Token>{
+		// 単一の記号の場合
 		if(!Array.isArray(arg)){
 			//return this.first_map.get(arg)!;
 			let r = Immutable.Set<Token>();
@@ -110,6 +81,7 @@ export class FirstSet{
 			});
 			return r;
 		}
+		// 記号列の場合
 		let w: Array<Token> = arg;
 
 		let result: Set<Token> = new Set<Token>();
