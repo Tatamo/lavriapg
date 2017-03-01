@@ -125,12 +125,19 @@ export class ParserGenerator{
 		dfa = dfa.push({closure: first_closure, edge: Immutable.Map<Token, number>()});
 
 		let flg_done = false;
+		console.log("start generate DFA");
+		console.time("generateDFA");
+		let cnt = 0;
+		let timesum:number = 0;
 		while(!flg_done){
 			flg_done = true;
 			dfa.forEach((current_node:DFANode, index:number)=>{
+				cnt++;
 				let closure:ClosureSet = current_node.closure;
 				let edge:DFAEdge = current_node.edge;
 				let new_items = Immutable.Map<Token, ClosureSet>();
+
+
 				// 規則から新しい規則を生成し、対応する記号ごとにまとめる
 				closure.forEach((item:ClosureItem)=>{
 					let syntax_id:number = item.syntax_id;
@@ -176,6 +183,7 @@ export class ParserGenerator{
 					// 同一のclosureを持つ状態がないかどうか調べる
 					// 一度Immutableに変換して比較
 					//let i = dfa.map((n:DFANode)=>{return this.convertDFANode2Immutable(n).get("closure");}).keyOf(newnode_immutable.get("closure"));
+					// TODO:高速化(ここがボトルネック)
 					let i = dfa.map((n:DFANode)=>{return this.convertClosureSet2Immutable(n.closure)}).keyOf(this.convertClosureSet2Immutable(newnode.closure));
 					let index_to;
 					if(i === undefined){
@@ -204,6 +212,9 @@ export class ParserGenerator{
 			});
 		}
 
+		console.timeEnd("generateDFA");
+		console.log("time:",timesum);
+		console.log("loop count:", cnt);
 		let obj_lr_dfa = dfa;
 		//let obj_lr_dfa = this.convertImmutableDFA2Obj(dfa);
 		this.lr_dfa = obj_lr_dfa;
