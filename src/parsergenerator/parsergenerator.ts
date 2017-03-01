@@ -8,19 +8,19 @@ import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, G
 import {ParserCallback, Parser} from "../parser/parser";
 import {ParserFactory} from "../parser/factory";
 
-type Constraint = Array<{superset:Token, subset:Token}>;
 type ClosureItem = {syntax_id: number, ltoken: Token, pattern: Immutable.Seq<number, Token>, lookahead: Token};
 type ImmutableClosureItem = Immutable.Map<string,number | Token | Immutable.Seq<number, Token>>;
 type ClosureSet = Immutable.OrderedSet<ClosureItem>;
 type ImmutableClosureSet = Immutable.OrderedSet<ImmutableClosureItem>;
 type DFAEdge = Immutable.Map<Token, number>;
 type DFANode = {closure: ClosureSet, edge: DFAEdge};
+type DFA = Array<DFANode>;
 
 export class ParserGenerator{
 	private nulls: NullableSet;
 	private first: FirstSet;
-	private lr_dfa: Immutable.List<DFANode>;
-	private lalr_dfa: Immutable.List<DFANode>;
+	private lr_dfa: DFA;
+	private lalr_dfa: DFA;
 	private parsing_table: ParsingTable;
 	private symbols: SymbolDiscriminator;
 	constructor(private grammar: GrammarDefinition){
@@ -121,8 +121,8 @@ export class ParserGenerator{
 		let first_item:ClosureItem = {syntax_id: 0, ltoken: SYMBOL_SYNTAX, pattern:Immutable.Seq([SYMBOL_DOT, this.grammar.start_symbol]), lookahead: SYMBOL_EOF};
 		let first_closure = Immutable.OrderedSet([first_item]);
 		first_closure = this.expandClosure(first_closure);
-		let dfa = Immutable.List<DFANode>();
-		dfa = dfa.push({closure: first_closure, edge: Immutable.Map<Token, number>()});
+		let dfa:DFA = new Array<DFANode>();
+		dfa.push({closure: first_closure, edge: Immutable.Map<Token, number>()});
 
 		let flg_done = false;
 		console.log("start generate DFA");
@@ -183,14 +183,23 @@ export class ParserGenerator{
 					// 同一のclosureを持つ状態がないかどうか調べる
 					// 一度Immutableに変換して比較
 					//let i = dfa.map((n:DFANode)=>{return this.convertDFANode2Immutable(n).get("closure");}).keyOf(newnode_immutable.get("closure"));
+
 					// TODO:高速化(ここがボトルネック)
-					let i = dfa.map((n:DFANode)=>{return this.convertClosureSet2Immutable(n.closure)}).keyOf(this.convertClosureSet2Immutable(newnode.closure));
+					let closureset:Array<ImmutableClosureSet> = dfa.map((n:DFANode)=>{return this.convertClosureSet2Immutable(n.closure)});
+					let i = -1;
+					for(let ii=0; ii<closureset.length; ii++){
+						if(Immutable.is(closureset[ii], this.convertClosureSet2Immutable(newnode.closure))){
+							i = ii;
+							break;
+						}
+					}
+
 					let index_to;
-					if(i === undefined){
+					if(i == -1){
 						// 既存の状態と重複しない
 						// 新しい状態としてDFAに追加し、現在のノードから辺を張る
-						dfa = dfa.push(newnode);
-						index_to = dfa.size-1;
+						dfa.push(newnode);
+						index_to = dfa.length-1;
 
 						flg_done = false;
 					}
@@ -206,7 +215,7 @@ export class ParserGenerator{
 						// 新しい辺が追加された
 						flg_done = false;
 						// DFAを更新
-						dfa = dfa.set(index, {closure: closure, edge: edge});
+						dfa[index] = {closure: closure, edge: edge};
 					}
 				});
 			});
@@ -225,8 +234,8 @@ export class ParserGenerator{
 
 
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
-	private mergeLA(dfa:Immutable.List<DFANode>): Immutable.List<DFANode>{
-		let array: Array<DFANode|null> = dfa.toArray();
+	private mergeLA(dfa:DFA): DFA{
+		let array: Array<DFANode|null> = dfa;
 		// DFAからLR(0)テーブル部分のみを抽出した配列を生成
 		let lr0_itemsets:Array<Immutable.OrderedSet<Immutable.Map<string, number|Token|Immutable.Seq<number, Token>>>> = dfa.map((node:DFANode)=>{
 			// クロージャー部分を取得
@@ -235,7 +244,7 @@ export class ParserGenerator{
 			return closure.map((item:ImmutableClosureItem)=>{
 				return item.delete("lookahead");
 			}).toOrderedSet();
-		}).toArray();
+		});
 		let merge_to = Immutable.Map<number, number>();;
 		for(let i=0; i<array.length; i++){
 			if(array[i] == null) continue;
@@ -279,19 +288,19 @@ export class ParserGenerator{
 			fix[from] = fix[index]; // toを繰り返し辿っているので未定義部分へのアクセスは発生しない
 		});
 
-		let result:Immutable.List<DFANode> = Immutable.List<DFANode>();
+		let result:DFA = new Array<DFANode>();
 		// インデックスの対応表をもとに辺情報を書き換える
 		shortened.forEach((node:DFANode)=>{
 			node.edge = node.edge.map((node_index:number)=>{
 				return fix[node_index];
 			}).toMap();
-			result = result.push(node);
+			result.push(node);
 		});
 		
 		return result;
 	}
 
-	private generateParsingTable(dfa:Immutable.List<DFANode>){
+	private generateParsingTable(dfa:DFA){
 		let parsing_table:ParsingTable = new Array<Map<Token, ParsingOperation>>();
 		let flg_conflicted = false;
 		// 構文解析表を構築
