@@ -1,10 +1,9 @@
 import {Token} from "../def/token";
 import {SyntaxDefinitions} from "../def/grammar";
-import * as Immutable from "immutable";
 
 export class SymbolDiscriminator{
-	private terminal_symbols: Immutable.OrderedSet<Token>;
-	private nonterminal_symbols: Immutable.OrderedSet<Token>;
+	private terminal_symbols: Set<Token>;
+	private nonterminal_symbols: Set<Token>;
 	constructor(syntaxdef:SyntaxDefinitions){
 		let symbol_table:Array<{symbol:Token, is_terminal:boolean}> = [];
 
@@ -42,30 +41,27 @@ export class SymbolDiscriminator{
 				}
 			});
 		});
-		this.terminal_symbols = Immutable.OrderedSet<Token>();
-		this.nonterminal_symbols = Immutable.OrderedSet<Token>();
+		this.terminal_symbols = new Set<Token>();
+		this.nonterminal_symbols = new Set<Token>();
 		for(let i=0; i<symbol_table.length; i++){
 			if(symbol_table[i].is_terminal){
-				this.terminal_symbols = this.terminal_symbols.add(symbol_table[i].symbol);
+				this.terminal_symbols.add(symbol_table[i].symbol);
 			}
 			else{
-				this.nonterminal_symbols =  this.nonterminal_symbols.add(symbol_table[i].symbol);
+				this.nonterminal_symbols.add(symbol_table[i].symbol);
 			}
 		}
 	}
-	getTerminalSymbols():Immutable.OrderedSet<Token>{
+	getTerminalSymbols():Set<Token>{
 		return this.terminal_symbols;
 	}
-	getNonterminalSymbols():Immutable.OrderedSet<Token>{
+	getNonterminalSymbols():Set<Token>{
 		return this.nonterminal_symbols;
 	}
-	getAllSymbols():Immutable.OrderedSet<Token>{
-		return this.terminal_symbols.union(this.nonterminal_symbols);
-	}
 	isTerminalSymbol(symbol:Token):boolean{
-		return this.terminal_symbols.includes(symbol);
+		return this.terminal_symbols.has(symbol);
 	}
 	isNonterminalSymbol(symbol:Token):boolean{
-		return this.nonterminal_symbols.includes(symbol);
+		return this.nonterminal_symbols.has(symbol);
 	}
 }

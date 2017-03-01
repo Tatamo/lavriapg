@@ -88,7 +88,7 @@ export class ParserGenerator{
 				let ltoken = <Token>v.get("ltoken");
 				let pattern = <Immutable.Seq<number, Token>>v.get("pattern");
 				let lookahead = <Token>v.get("lookahead");
-				let dot_index:number = pattern.findKey((v)=>{return v == SYMBOL_DOT});
+				let dot_index:number = pattern.findKey((v:Token)=>{return v == SYMBOL_DOT});
 				if(dot_index == pattern.size-1) return; // . が末尾にある場合はスキップ
 				let symbol = pattern.get(dot_index+1);
 				//if(symbol == ltoken) return; // 左辺の記号と.の次にある記号が同じ場合はスキップ
@@ -152,7 +152,7 @@ export class ParserGenerator{
 					let edge_label:Token = pattern.get(dot_index+1);
 					// TODO:高速化
 					//let pattern_ = pattern.slice();
-					let newpattern:Immutable.Seq<number,Token> = Immutable.Seq<number,Token>(pattern.sort((front,behind)=>{
+					let newpattern:Immutable.Seq<number,Token> = Immutable.Seq<number,Token>(pattern.sort((front:Token,behind:Token)=>{
 						if(front == SYMBOL_DOT && sort_flg){
 							// .があった場合は次の要素と交換
 							sort_flg = false; // 一度しかずらさない

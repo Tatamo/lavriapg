@@ -46,7 +46,6 @@ export class FirstSet{
 			}
 		}
 
-		console.log("constraint solve");
 		// 制約解消
 		let flg_done = false;
 		while(!flg_done){
@@ -74,7 +73,6 @@ export class FirstSet{
 				*/
 			}
 		}
-		console.log("constraint solved");
 		this.first_map = first_result;
 	}
 	// 制約条件がすべて満たされたかどうかを判定する

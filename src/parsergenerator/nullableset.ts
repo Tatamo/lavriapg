@@ -1,9 +1,8 @@
-import * as Immutable from "immutable";
 import {Token} from "../def/token";
 import {GrammarDefinition} from "../def/grammar";
 
 export class NullableSet{
-	private nulls:Immutable.Set<Token>;
+	private nulls:Set<Token>;
 	constructor(private grammar: GrammarDefinition){
 		this.generateNulls();
 	}
@@ -11,14 +10,14 @@ export class NullableSet{
 	private generateNulls(){
 		// 制約条件を導出するために、
 		// 空列になりうる記号の集合nullsを導出
-		this.nulls = Immutable.Set<Token>();
+		this.nulls = new Set<Token>();
 		for(let i=0; i<this.grammar.syntax.length; i++){
 			let ltoken = this.grammar.syntax[i].ltoken;
 			let pattern = this.grammar.syntax[i].pattern;
 
 			// 右辺の記号の数が0の規則を持つ記号は空列になりうる
 			if(pattern == []){
-				this.nulls = this.nulls.add(ltoken);
+				this.nulls.add(ltoken);
 			}
 		}
 		let flg_changed:boolean = true;
@@ -41,13 +40,13 @@ export class NullableSet{
 					}
 				}
 				if(flg_nulls){
-					if(this.nulls.includes(ltoken)) flg_changed = true;
-					this.nulls = this.nulls.add(ltoken);
+					if(this.nulls.has(ltoken)) flg_changed = true;
+					else this.nulls.add(ltoken);
 				}
 			}
 		}
 	}
 	public isNullable(x:Token){
-		return this.nulls.includes(x);
+		return this.nulls.has(x);
 	}
 }
