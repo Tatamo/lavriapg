@@ -20,6 +20,7 @@ console.time("process");
 //console.log(new PreCompiler("./").exec(input));
 
 
-console.log((new ParserGenerator(grammar_grammar).getParser(constructGrammar)).parse(input));
+console.log(new ParserGenerator(grammar_grammar).getParser(constructGrammar).parse(input));
+//console.log(new ParserGenerator(grammar_grammar).getParsingTable());
 
 console.timeEnd("process");

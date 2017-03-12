@@ -118,7 +118,7 @@ export class ParserGenerator{
 
 
 	private generateDFA(){
-		let first_item:ClosureItem = {syntax_id: 0, ltoken: SYMBOL_SYNTAX, pattern:Immutable.Seq([SYMBOL_DOT, this.grammar.start_symbol]), lookahead: SYMBOL_EOF};
+		let first_item:ClosureItem = {syntax_id: -1, ltoken: SYMBOL_SYNTAX, pattern:Immutable.Seq([SYMBOL_DOT, this.grammar.start_symbol]), lookahead: SYMBOL_EOF};
 		let first_closure = Immutable.OrderedSet([first_item]);
 		first_closure = this.expandClosure(first_closure);
 		let dfa:DFA = new Array<DFANode>();
@@ -330,7 +330,8 @@ export class ParserGenerator{
 					// acceptオペレーションの条件を満たすかどうか確認
 					// S' -> S . [$] の規則が存在するか調べる
 					let flg_accept = true;
-					if(item.syntax_id != 0) flg_accept = false;
+					// S' -> S . [$] の規則のidは-1
+					if(item.syntax_id != -1) flg_accept = false;
 					else if(item.ltoken != SYMBOL_SYNTAX) flg_accept = false;
 					else if(item.lookahead != SYMBOL_EOF) flg_accept = false;
 					if(flg_accept){
