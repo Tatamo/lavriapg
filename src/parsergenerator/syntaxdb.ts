@@ -9,9 +9,9 @@ export class SyntaxDB{
 	private defmap: Map<Token, Array<{id: number, def: SyntaxDefinitionSection}>>;
 	private _first: FirstSet;
 	private _symbols: SymbolDiscriminator;
-	constructor(private syntax:SyntaxDefinitions, first:FirstSet, symbols:SymbolDiscriminator){
-		this._first = first;
-		this._symbols = symbols;
+	constructor(private syntax:SyntaxDefinitions){
+		this._symbols = new SymbolDiscriminator(syntax);
+		this._first = new FirstSet(syntax, this.symbols);;
 
 		this.tokenid_counter = 0;
 		this.tokenmap = new Map<Token, number>();

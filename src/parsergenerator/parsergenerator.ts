@@ -1,7 +1,5 @@
 import * as Immutable from "immutable";
-import {FirstSet} from "./firstset";
-import {NullableSet} from "./nullableset";
-import {SymbolDiscriminator} from "./symboldiscriminator";
+import {SyntaxDB} from "./syntaxdb";
 import {Token, SYMBOL_EOF, SYMBOL_SYNTAX, SYMBOL_DOT} from "../def/token";
 import {SyntaxDefinitionSection, GrammarDefinition} from "../def/grammar";
 import {ShiftOperation, ReduceOperation, ConflictedOperation, AcceptOperation, GotoOperation, ParsingOperation, ParsingTable} from "../def/parsingtable";
@@ -17,16 +15,12 @@ type DFANode = {closure: ClosureSet, edge: DFAEdge};
 type DFA = Array<DFANode>;
 
 export class ParserGenerator{
-	private nulls: NullableSet;
-	private first: FirstSet;
 	private lr_dfa: DFA;
 	private lalr_dfa: DFA;
 	private parsing_table: ParsingTable;
-	private symbols: SymbolDiscriminator;
+	private syntax: SyntaxDB;
 	constructor(private grammar: GrammarDefinition){
-		this.symbols = new SymbolDiscriminator(this.grammar.syntax);
-		this.nulls = new NullableSet(this.grammar);
-		this.first = new FirstSet(this.grammar, this.symbols, this.nulls);
+		this.syntax = new SyntaxDB(this.grammar.syntax);
 		this.init();
 	}
 	init(){
@@ -92,10 +86,10 @@ export class ParserGenerator{
 				if(dot_index == pattern.size-1) return; // . が末尾にある場合はスキップ
 				let symbol = pattern.get(dot_index+1);
 				//if(symbol == ltoken) return; // 左辺の記号と.の次にある記号が同じ場合はスキップ
-				if(!this.symbols.isNonterminalSymbol(symbol)) return; // symbolが非終端記号でなければスキップ
+				if(!this.syntax.symbols.isNonterminalSymbol(symbol)) return; // symbolが非終端記号でなければスキップ
 				// クロージャー展開を行う
 				// 先読み記号を導出
-				let lookahead_set:Immutable.Set<Token> = this.first.get(pattern.slice(dot_index+1+1).toArray().concat(lookahead));
+				let lookahead_set:Immutable.Set<Token> = this.syntax.first.get(pattern.slice(dot_index+1+1).toArray().concat(lookahead));
 
 				let def:Array<{id:number, def:SyntaxDefinitionSection}> = findDef(symbol);
 				// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
@@ -307,13 +301,13 @@ export class ParserGenerator{
 			let table_row = new Map<Token, ParsingOperation>();
 			// 辺をもとにshiftとgotoオペレーションを追加
 			node.edge.forEach((to:number, label:Token)=>{
-				if(this.symbols.isTerminalSymbol(label)){
+				if(this.syntax.symbols.isTerminalSymbol(label)){
 					// ラベルが終端記号の場合
 					// shiftオペレーションを追加
 					let operation:ShiftOperation = {type: "shift", to: to};
 					table_row.set(label, operation);
 				}
-				else if(this.symbols.isNonterminalSymbol(label)){
+				else if(this.syntax.symbols.isNonterminalSymbol(label)){
 					// ラベルが非終端記号の場合
 					// gotoオペレーションを追加
 					let operation:GotoOperation = {type: "goto", to: to};

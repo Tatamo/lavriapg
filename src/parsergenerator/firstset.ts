@@ -2,14 +2,16 @@ import * as Immutable from "immutable";
 import {NullableSet} from "./nullableset";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 import {Token, SYMBOL_EOF} from "../def/token";
-import {GrammarDefinition, SyntaxDefinitionSection} from "../def/grammar";
+import {SyntaxDefinitions, SyntaxDefinitionSection} from "../def/grammar";
 
 type Constraint = Array<{superset:Token, subset:Token}>;
 
 export class FirstSet{
 	private first_map: Map<Token, Set<Token>>;
-	constructor(private grammar: GrammarDefinition, private symbols: SymbolDiscriminator, private nulls: NullableSet){
+	private nulls: NullableSet;
+	constructor(private syntax: SyntaxDefinitions, private symbols: SymbolDiscriminator){
 		this.first_map = new Map<Token, Set<Token>>();
+		this.nulls = new NullableSet(this.syntax);
 		this.generateFirst();
 	}
 	private generateFirst(){
@@ -31,7 +33,7 @@ export class FirstSet{
 
 		// 包含についての制約を生成
 		let constraint:Constraint = [];
-		for(let rule of this.grammar.syntax){
+		for(let rule of this.syntax){
 			let sup:Token = rule.ltoken;
 			// 右辺の左から順に、non-nullableな記号が現れるまで制約に追加
 			// 最初のnon-nullableな記号は制約に含める
