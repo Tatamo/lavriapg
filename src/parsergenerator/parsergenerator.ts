@@ -116,7 +116,6 @@ export class ParserGenerator{
 		return result;
 	}
 
-
 	private generateDFA(){
 		let first_item:ClosureItem = {syntax_id: -1, ltoken: SYMBOL_SYNTAX, pattern:Immutable.Seq([SYMBOL_DOT, this.grammar.start_symbol]), lookahead: SYMBOL_EOF};
 		let first_closure = Immutable.OrderedSet([first_item]);
