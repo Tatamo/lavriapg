@@ -1,4 +1,3 @@
-import * as Immutable from "immutable";
 import {NullableSet} from "./nullableset";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 import {Token, SYMBOL_EOF} from "../def/token";
@@ -71,17 +70,12 @@ export class FirstSet{
 		this.first_map = first_result;
 	}
 	// 記号または記号列を与えて、その記号から最初に導かれうる非終端記号の集合を返す
-	public get(arg: Token):Immutable.Set<Token>;
-	public get(arg: Array<Token>):Immutable.Set<Token>;
-	public get(arg: Token|Array<Token>): Immutable.Set<Token>{
+	public get(arg: Token): Set<Token>;
+	public get(arg: Array<Token>): Set<Token>;
+	public get(arg: Token|Array<Token>): Set<Token>{
 		// 単一の記号の場合
 		if(!Array.isArray(arg)){
-			//return this.first_map.get(arg)!;
-			let r = Immutable.Set<Token>();
-			(this.first_map.get(arg)!).forEach((token:Token)=>{
-				r = r.add(token);
-			});
-			return r;
+			return this.first_map.get(arg)!;
 		}
 		// 記号列の場合
 		let w: Array<Token> = arg;
@@ -100,11 +94,6 @@ export class FirstSet{
 				break;
 			}
 		}
-		//return result;
-		let immutableset = Immutable.Set<Token>();
-		result.forEach((token:Token)=>{
-			immutableset = immutableset.add(token);
-		});
-		return immutableset;
+		return result;
 	}
 }

@@ -1,4 +1,3 @@
-import * as Immutable from "immutable";
 import {DFAGenerator, DFA, DFANode} from "./dfagenerator";
 import {SyntaxDB} from "./syntaxdb";
 import {Token, SYMBOL_EOF, SYMBOL_SYNTAX, SYMBOL_DOT} from "../def/token";
@@ -19,7 +18,6 @@ export class ParserGenerator{
 		this.init();
 	}
 	init(){
-		//console.log(JSON.stringify(this.lr_dfa));
 		let lalr_result = this.generateParsingTable(this.dfa_generator.getLALR1DFA());
 		if(lalr_result.success){
 			this.parsing_table = lalr_result.table;
@@ -114,6 +112,5 @@ export class ParserGenerator{
 		if(!flg_conflicted) console.error("warn: some conflicts may be occured");
 		return {table: parsing_table, success: !flg_conflicted};
 	}
-
 }
 

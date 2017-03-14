@@ -17,10 +17,8 @@
   "author": "Tatamo",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "typescript": "^2.1.1",
-    "typings": "^2.0.0"
+    "typescript": "^2.1.1"
   },
   "dependencies": {
-    "immutable": "^3.8.1"
   }
 }

@@ -142,7 +142,7 @@ export class ClosureSet{
 				// TODO: リファクタリング
 				let la_set = new Set<Token>();
 				for(let la of ci.lookaheads){
-					for(let la2 of this.syntax.first.get(pattern.slice(ci.dot_index+1).concat(la)).toArray()){
+					for(let la2 of this.syntax.first.get(pattern.slice(ci.dot_index+1).concat(la))){
 						la_set.add(la2);
 					}
 				}
