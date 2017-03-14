@@ -1,4 +1,4 @@
-import {Token} from "../def/token";
+import {Token, SYMBOL_SYNTAX, SYMBOL_EOF} from "../def/token";
 import {SyntaxDefinitions, GrammarDefinition} from "../def/grammar";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 import {SyntaxDB} from "./syntaxdb";
@@ -64,31 +64,34 @@ export class ClosureItem{
 		let new_la = [];
 		// 2つのLA配列をマージして新しい配列を生成する
 		while(i1 < this.lookaheads.length || i2 < c.lookaheads.length){
-			if(this.lookaheads[i1] == c.lookaheads[i2]){
-				new_la.push(this.lookaheads[i1]);
-				i1++;
+			if(i1 == this.lookaheads.length){
+				new_la.push(c.lookaheads[i2++]);
+			}
+			else if(i2 == c.lookaheads.length){
+				new_la.push(this.lookaheads[i1++]);
+			}
+			else if(this.lookaheads[i1] == c.lookaheads[i2]){
+				new_la.push(this.lookaheads[i1++]);
 				i2++;
 			}
 			else if(this.syntax.getTokenId(this.lookaheads[i1]) < this.syntax.getTokenId(c.lookaheads[i2])){
-				new_la.push(this.lookaheads[i1]);
-				i1++;
+				new_la.push(this.lookaheads[i1++]);
 			}
 			else {
-				new_la.push(c.lookaheads[i2]);
-				i2++;
+				new_la.push(c.lookaheads[i2++]);
 			}
 		}
 		return new ClosureItem(this.syntax, this.syntax_id, this.dot_index, new_la);
 	}
 }
 
+var f = 0;
 export class ClosureSet{
 	// インスタンス生成後に内部状態が変化することはないものとする
 	private _lr0_hash: string;
 	private _lr1_hash: string;
 	constructor(private syntax:SyntaxDB, private closureset:Array<ClosureItem>){
 		this.expandClosure();
-		this.sort();
 		this.updateHash();
 	}
 	private updateHash(){
@@ -122,11 +125,13 @@ export class ClosureSet{
 	private expandClosure(){
 		let flg_changed:boolean = true;
 		// 変更がなくなるまで繰り返す
+		let i=0;
 		while(flg_changed){
 			flg_changed = false;
-			for(let ci of this.closureset){
-				let ltoken = this.syntax.get(ci.syntax_id).ltoken;
-				let pattern = this.syntax.get(ci.syntax_id).pattern;
+			while(i<this.closureset.length){
+				let ci = this.closureset[i++];
+				let {ltoken, pattern} = this.syntax.get(ci.syntax_id);
+
 				if(ci.dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
 				let follow = pattern[ci.dot_index];
 				// if(follow == ltoken) continue;
@@ -134,51 +139,58 @@ export class ClosureSet{
 
 				// クロージャー展開を行う
 				// 先読み記号を導出
-				let lookaheads = this.syntax.first.get(pattern.slice(ci.dot_index+1)).toArray();
+				// TODO: リファクタリング
+				let la_set = new Set<Token>();
+				for(let la of ci.lookaheads){
+					for(let la2 of this.syntax.first.get(pattern.slice(ci.dot_index+1).concat(la)).toArray()){
+						la_set.add(la2);
+					}
+				}
+				let lookaheads = [...la_set.values()];
+				lookaheads.sort((t1:Token, t2:Token)=>{
+					return this.syntax.getTokenId(t1) - this.syntax.getTokenId(t2);
+				});
 
+				// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
 				let definitions = this.syntax.findDef(follow);
 				for(let {id, def} of definitions){
-					this.closureset.push(new ClosureItem(this.syntax, id, ci.dot_index+1, lookaheads));
-					flg_changed = true;
+					//this.closureset.push(new ClosureItem(this.syntax, id, 0, lookaheads));
+					let new_ci = new ClosureItem(this.syntax, id, 0, lookaheads);
+					// 重複がなければ新しいアイテムを追加する
+					let flg_duplicated = false;
+					for(let ii=0; ii<this.closureset.length; ii++){
+						let item = this.closureset[ii];
+						if(new_ci.isSameLR1(item)) {
+							flg_duplicated = true;
+							break;
+						}
+						else if(new_ci.isSameLR0(item)){
+							// 先読み部分以外だけ重複している
+							flg_duplicated = true;
+							// 先読み部分をマージする
+							this.closureset[ii] = this.closureset[ii].merge(new_ci)!;
+							break;
+						}
+					}
+					if(!flg_duplicated){
+						this.closureset.push(new_ci);
+						flg_changed = true;
+					}
 				}
 			}
 		}
-		/*
-		let prev_size = -1;
-		// 変更がなくなるまで繰り返す
-		while(tmp.size != prev_size){
-			prev_size = tmp.size;
-			tmp.forEach((v:ImmutableClosureItem)=>{
-				let ltoken = <Token>v.get("ltoken");
-				let pattern = <Immutable.Seq<number, Token>>v.get("pattern");
-				let lookahead = <Token>v.get("lookahead");
-				let dot_index:number = pattern.findKey((v:Token)=>{return v == SYMBOL_DOT});
-				if(dot_index == pattern.size-1) return; // . が末尾にある場合はスキップ
-				let symbol = pattern.get(dot_index+1);
-				//if(symbol == ltoken) return; // 左辺の記号と.の次にある記号が同じ場合はスキップ
-				if(!this.symbols.isNonterminalSymbol(symbol)) return; // symbolが非終端記号でなければスキップ
-				// クロージャー展開を行う
-				// 先読み記号を導出
-				let lookahead_set:Immutable.Set<Token> = this.first.get(pattern.slice(dot_index+1+1).toArray().concat(lookahead));
-
-				let def:Array<{id:number, def:SyntaxDefinitionSection}> = findDef(symbol);
-				// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
-				def.forEach((syntax:{id:number, def:SyntaxDefinitionSection})=>{
-					// 構文規則の右辺の一番左に.をつける
-					let new_pattern = Immutable.Seq((<Array<Token>>[SYMBOL_DOT]).concat(syntax.def.pattern));
-					// すべての先読み記号について追加
-					lookahead_set.forEach((la:Token)=>{
-						tmp = tmp.add(Immutable.Map({syntax_id: syntax.id, ltoken: symbol, pattern: new_pattern, lookahead: la}));
-					});
-				});
-			});
+		// ソートする
+		this.sort();
+		// 重複を削除する
+		// TODO: 処理の重さを確認する
+		let tmp = this.closureset;
+		this.closureset = [];
+		for(let i=0; i<tmp.length; i++){
+			if(i == 0 || !tmp[i].isSameLR1(tmp[i-1])){
+				this.closureset.push(tmp[i]);
+			}
 		}
-		let result: Immutable.OrderedSet<ClosureItem> = Immutable.OrderedSet<ClosureItem>();
-		tmp.forEach((v:ImmutableClosureItem)=>{
-			result = result.add(this.convertImmutableClosureItem2Object(v));
-		});
-		return result;
-		*/
+		f=1;
 	}
 	get size(){
 		return this.closureset.length;

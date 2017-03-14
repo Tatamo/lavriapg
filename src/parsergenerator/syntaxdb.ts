@@ -1,17 +1,21 @@
 import {FirstSet} from "./firstset";
 import {SymbolDiscriminator} from "./symboldiscriminator";
-import {Token} from "../def/token";
-import {SyntaxDefinitions, SyntaxDefinitionSection} from "../def/grammar";
+import {Token, SYMBOL_SYNTAX, SYMBOL_EOF} from "../def/token";
+import {GrammarDefinition, SyntaxDefinitions, SyntaxDefinitionSection} from "../def/grammar";
 
 export class SyntaxDB{
+	private syntax: SyntaxDefinitions;
+	private _start_symbol: Token;
+	private _first: FirstSet;
+	private _symbols: SymbolDiscriminator;
 	private tokenmap: Map<Token, number>;
 	private tokenid_counter: number;
 	private defmap: Map<Token, Array<{id: number, def: SyntaxDefinitionSection}>>;
-	private _first: FirstSet;
-	private _symbols: SymbolDiscriminator;
-	constructor(private syntax:SyntaxDefinitions){
-		this._symbols = new SymbolDiscriminator(syntax);
-		this._first = new FirstSet(syntax, this.symbols);;
+	constructor(grammar:GrammarDefinition){
+		this.syntax = grammar.syntax;
+		this._start_symbol = grammar.start_symbol;
+		this._symbols = new SymbolDiscriminator(this.syntax);
+		this._first = new FirstSet(this.syntax, this.symbols);;
 
 		this.tokenid_counter = 0;
 		this.tokenmap = new Map<Token, number>();
@@ -32,6 +36,9 @@ export class SyntaxDB{
 			this.defmap.set(this.syntax[i].ltoken, tmp);
 		}
 	}
+	get start_symbol(): Token{
+		return this._start_symbol;
+	}
 	get first(): FirstSet{
 		return this._first;
 	}
@@ -49,7 +56,12 @@ export class SyntaxDB{
 		if(!this.tokenmap.has(token)) this.tokenmap.set(token, this.tokenid_counter++);
 		return this.tokenmap.get(token)!;
 	}
+	// -1が与えられた時は S' -> S $の規則を返す
 	public get(id: number): SyntaxDefinitionSection{
+		if(id == -1){
+			return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol]};
+			//return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF]};
+		}
 		return this.syntax[id];
 	}
 }
