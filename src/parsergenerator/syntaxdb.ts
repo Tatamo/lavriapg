@@ -15,13 +15,14 @@ export class SyntaxDB{
 		this.syntax = grammar.syntax;
 		this._start_symbol = grammar.start_symbol;
 		this._symbols = new SymbolDiscriminator(this.syntax);
-		this._first = new FirstSet(this.syntax, this.symbols);;
+		this._first = new FirstSet(this.syntax, this.symbols);
 
 		this.tokenid_counter = 0;
 		this.tokenmap = new Map<Token, number>();
 
 		this.initDefMap();
 	}
+	// Token->numberの対応を生成
 	private initDefMap(){
 		this.defmap = new Map<Token, Array<{id:number, def: SyntaxDefinitionSection}>>();
 		for(let i=0; i<this.syntax.length; i++){
@@ -52,6 +53,7 @@ export class SyntaxDB{
 		}
 		return [];
 	}
+	// Tokenを与えると一意なidを返す
 	public getTokenId(token: Token): number{
 		if(!this.tokenmap.has(token)) this.tokenmap.set(token, this.tokenid_counter++);
 		return this.tokenmap.get(token)!;

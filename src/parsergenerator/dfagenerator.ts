@@ -20,6 +20,7 @@ export class DFAGenerator{
 	public getLALR1DFA():DFA{
 		return this.lalr_dfa;
 	}
+	// DFAの生成
 	private generateDFA(){
 		let initial_item: ClosureItem = new ClosureItem(this.syntax, -1, 0, [SYMBOL_EOF]);
 		let initial_set: ClosureSet = new ClosureSet(this.syntax, [initial_item]);

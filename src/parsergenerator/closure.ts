@@ -5,33 +5,11 @@ import {SyntaxDB} from "./syntaxdb";
 
 export class ClosureItem{
 	// インスタンス生成後に内部状態が変化することはないものとする
-	/*
-	private syntax_id: number;
-	private dot_index: number;
-	private lookahead: Token;
-	*/
 	private _lr0_hash: string;
 	private _lr1_hash: string;
 	constructor(private syntax:SyntaxDB, private _syntax_id:number, private _dot_index:number, private _lookaheads:Array<Token>){
 		this.sortLA();
 		this.updateHash();
-	}
-	// ハッシュ文字列を生成する
-	private updateHash(){
-		this._lr0_hash = this.syntax_id.toString() + "," + this.dot_index.toString();
-		let la_hash = "[";
-		for(let i=0; i<this.lookaheads.length; i++){
-			la_hash += this.syntax.getTokenId(this.lookaheads[i]).toString();
-			if(i != this.lookaheads.length-1) la_hash += ",";
-		}
-		la_hash += "]";
-		this._lr1_hash = this._lr0_hash + "," + la_hash;
-	}
-	public getLR0Hash(){
-		return this._lr0_hash;
-	}
-	public getLR1Hash(){
-		return this._lr1_hash;
 	}
 	get syntax_id():number{
 		return this._syntax_id;
@@ -47,12 +25,34 @@ export class ClosureItem{
 			return this.syntax.getTokenId(t1) - this.syntax.getTokenId(t2);
 		});
 	}
+	// ハッシュ文字列を生成する
+	private updateHash(){
+		this._lr0_hash = this.syntax_id.toString() + "," + this.dot_index.toString();
+		let la_hash = "[";
+		for(let i=0; i<this.lookaheads.length; i++){
+			la_hash += this.syntax.getTokenId(this.lookaheads[i]).toString();
+			if(i != this.lookaheads.length-1) la_hash += ",";
+		}
+		la_hash += "]";
+		this._lr1_hash = this._lr0_hash + "," + la_hash;
+	}
+	// 先読み部分を除いたハッシュ文字列を取得
+	public getLR0Hash(): string{
+		return this._lr0_hash;
+	}
+	// 先読み部分を含めたハッシュ文字列を取得
+	public getLR1Hash(): string{
+		return this._lr1_hash;
+	}
+	// 先読み部分を除いた部分が一致しているか調べる
 	public isSameLR0(c:ClosureItem): boolean{
 		return this.getLR0Hash() == c.getLR0Hash();
 	}
+	// 先読み部分も含めて完全に一致しているか調べる
 	public isSameLR1(c:ClosureItem): boolean{
 		return this.getLR1Hash() == c.getLR1Hash();
 	}
+	// LR0部分の同じ2つのClosureItemの先読み部分を統合して新しいClosureItemを生成する
 	public merge(c:ClosureItem): ClosureItem|null{
 		// LR0部分が違っている場合はnullを返す
 		if(!this.isSameLR0(c)) return null;
@@ -85,15 +85,45 @@ export class ClosureItem{
 	}
 }
 
-var f = 0;
 export class ClosureSet{
 	// インスタンス生成後に内部状態が変化することはないものとする
 	private _lr0_hash: string;
 	private _lr1_hash: string;
 	constructor(private syntax:SyntaxDB, private closureset:Array<ClosureItem>){
 		this.expandClosure();
+		this.sort();
 		this.updateHash();
 	}
+	// 必ずソートされた状態に保たれているようにする
+	private sort(){
+		this.closureset.sort((i1:ClosureItem, i2:ClosureItem)=>{
+			if(i1.getLR1Hash() < i2.getLR1Hash()) return -1;
+			else if(i1.getLR1Hash() > i2.getLR1Hash()) return 1;
+			return 0;
+		});
+	}
+	get size(){
+		return this.closureset.length;
+	}
+	public getArray(){
+		return this.closureset;
+	}
+	// アイテムが含まれているかどうかを調べる
+	public includes(item: ClosureItem):boolean{
+		for(let i of this.closureset){
+			if(i.isSameLR1(item)) return true;
+		}
+		return false;
+	}
+	// 先読み部分を除いた部分が一致しているか調べる
+	public isSameLR0(c:ClosureSet): boolean{
+		return this.getLR0Hash() == c.getLR0Hash();
+	}
+	// 先読み部分も含めて完全に一致しているか調べる
+	public isSameLR1(c:ClosureSet): boolean{
+		return this.getLR1Hash() == c.getLR1Hash();
+	}
+	// ハッシュ文字列を生成する
 	private updateHash(){
 		let lr0_hash = "";
 		let lr1_hash = "";
@@ -114,17 +144,28 @@ export class ClosureSet{
 	public getLR1Hash(){
 		return this._lr1_hash;
 	}
-	private sort(){
-		this.closureset.sort((i1:ClosureItem, i2:ClosureItem)=>{
-			if(i1.getLR1Hash() < i2.getLR1Hash()) return -1;
-			else if(i1.getLR1Hash() > i2.getLR1Hash()) return 1;
-			return 0;
-		});
+	// 先読み部分を除いて一致している2つのClosureSetの先読み部分を統合して新しいClosureSetを生成する
+	public mergeLA(cs: ClosureSet): ClosureSet|null{
+		// LR0部分が違っている場合はnullを返す
+		if(!this.isSameLR0(cs)) return null;
+		// LR1部分まで同じ場合は自身を返す
+		if(this.isSameLR1(cs)) return this;
+		let a1 = this.getArray();
+		let a2 = cs.getArray();
+		let new_set:Array<ClosureItem> = [];
+		// 2つの配列においてLR部分は順序を含めて等しい
+		for(let i=0; i<a1.length; i++){
+			let new_item = a1[i].merge(a2[i]);
+			if(new_item != null) new_set.push(new_item);
+		}
+		return new ClosureSet(this.syntax, new_set);
 	}
+
 	// クロージャー展開を行う
 	private expandClosure(){
 		let flg_changed:boolean = true;
 		// 変更がなくなるまで繰り返す
+		// TODO: これなんでiを0に戻さなくてもちゃんと動くの
 		let i=0;
 		while(flg_changed){
 			flg_changed = false;
@@ -134,7 +175,6 @@ export class ClosureSet{
 
 				if(ci.dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
 				let follow = pattern[ci.dot_index];
-				// if(follow == ltoken) continue;
 				if(!this.syntax.symbols.isNonterminalSymbol(follow)) continue; // .の次の記号が非終端記号でないならばスキップ
 
 				// クロージャー展開を行う
@@ -179,56 +219,5 @@ export class ClosureSet{
 				}
 			}
 		}
-		// ソートする
-		this.sort();
-		// 重複を削除する
-		// TODO: 処理の重さを確認する
-		let tmp = this.closureset;
-		this.closureset = [];
-		for(let i=0; i<tmp.length; i++){
-			if(i == 0 || !tmp[i].isSameLR1(tmp[i-1])){
-				this.closureset.push(tmp[i]);
-			}
-		}
-		f=1;
-	}
-	get size(){
-		return this.closureset.length;
-	}
-	public getArray(){
-		return this.closureset;
-	}
-	public includes(item: ClosureItem):boolean{
-		for(let i of this.closureset){
-			if(i.isSameLR1(item)) return true;
-		}
-		return false;
-	}
-	public isSubSet(cs: ClosureSet): boolean{
-		for(let item of this.closureset){
-			if(!cs.includes(item)) return false;
-		}
-		return true;
-	}
-	public isSameLR0(c:ClosureSet): boolean{
-		return this.getLR0Hash() == c.getLR0Hash();
-	}
-	public isSameLR1(c:ClosureSet): boolean{
-		return this.getLR1Hash() == c.getLR1Hash();
-	}
-	public mergeLA(cs: ClosureSet): ClosureSet|null{
-		// LR0部分が違っている場合はnullを返す
-		if(!this.isSameLR0(cs)) return null;
-		// LR1部分まで同じ場合は自身を返す
-		if(this.isSameLR1(cs)) return this;
-		let a1 = this.getArray();
-		let a2 = cs.getArray();
-		let new_set:Array<ClosureItem> = [];
-		// 2つの配列においてLR部分は順序を含めて等しい
-		for(let i=0; i<a1.length; i++){
-			let new_item = a1[i].merge(a2[i]);
-			if(new_item != null) new_set.push(new_item);
-		}
-		return new ClosureSet(this.syntax, new_set);
 	}
 }
