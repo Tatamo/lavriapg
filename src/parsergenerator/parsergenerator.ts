@@ -109,7 +109,7 @@ export class ParserGenerator{
 			}
 			parsing_table.push(table_row);
 		}
-		if(!flg_conflicted) console.error("warn: some conflicts may be occured");
+		if(flg_conflicted) console.error("warn: some conflicts may be occured");
 		return {table: parsing_table, success: !flg_conflicted};
 	}
 }
