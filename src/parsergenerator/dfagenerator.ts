@@ -95,52 +95,32 @@ export class DFAGenerator{
 			i = 0;
 		}
 		this.lr_dfa = dfa;
-		//this.lalr_dfa = margeLA(dfa.slice());
-		this.lalr_dfa = dfa.slice();
-
+		this.lalr_dfa = this.mergeLA(dfa);
 	}
 
-	// UNDONE
-	/*
+	// TODO: バグがないか確認
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
 	private mergeLA(dfa:DFA): DFA{
-		let array: Array<DFANode|null> = dfa; // nullを許容する
+		let array: Array<DFANode|null> = dfa.slice(); // nullを許容する
 		let merge_to: Map<number, number> = new Map<number, number>(); // マージ先への対応関係を保持する
-	}
-	*/
 
-	/*
-	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
-	private mergeLA(dfa:DFA): DFA{
-		let array: Array<DFANode|null> = dfa;
-		// DFAからLR(0)テーブル部分のみを抽出した配列を生成
-		let lr0_itemsets:Array<Immutable.OrderedSet<Immutable.Map<string, number|Token|Immutable.Seq<number, Token>>>> = dfa.map((node:DFANode)=>{
-			// クロージャー部分を取得
-			let closure:ImmutableClosureSet = this.convertClosureSet2Immutable(node.closure);
-			// 先読み部分を消したものを取得
-			return closure.map((item:ImmutableClosureItem)=>{
-				return item.delete("lookahead");
-			}).toOrderedSet();
-		});
-		let merge_to = Immutable.Map<number, number>();;
 		for(let i=0; i<array.length; i++){
 			if(array[i] == null) continue;
 			for(let ii=i+1; ii<array.length; ii++){
 				if(array[ii] == null) continue;
 				// LR(0)アイテムセット部分が重複
-				if(Immutable.is(lr0_itemsets[i], lr0_itemsets[ii])){
+				if(array[i]!.closure.isSameLR0(array[ii]!.closure)){
 					// ii番目の先読み部分をi番目にマージする
 					// インデックス番号の大きい方が削除される
-					// つまり項全体をマージ
 					// 辺情報は、対象となる辺もいずれマージされて消えるため操作しなくてよい
-					let merged_closure_to_im = this.convertClosureSet2Immutable(array[i]!.closure); // マージ先のクロージャー(Immutable)
-					let merged_closure_from_im = this.convertClosureSet2Immutable(array[ii]!.closure); // 削除される方のクロージャー(Immutable)
 
-					let merged_closure = merged_closure_to_im.merge(merged_closure_from_im);
-					array[i]!.closure = this.convertImmutableClosureSet2Object(merged_closure); // 更新
-					merge_to = merge_to.set(ii, i);
+					// 更新
+					// Nodeに変更をかけるとLR(1)DFAの中身まで変化してしまうため新しいオブジェクトとする
+					array[i] = {closure: array[i]!.closure.mergeLA(array[ii]!.closure)!, edge: array[i]!.edge};
 					// ii番目を削除
 					array[ii] = null;
+					// マージ元->マージ先への対応関係を保持
+					merge_to.set(ii, i);
 				}
 			}
 		}
@@ -155,27 +135,26 @@ export class DFAGenerator{
 		}
 		// 配列からnull埋めした部分を削除したものを作る
 		let shortened:Array<DFANode> = [];
-		array.forEach((node:DFANode|null)=>{
+		for(let node of array){
 			if(node !== null) shortened.push(node);
-		});
+		}
 		// fixのノードが削除された部分を埋める
-		merge_to.forEach((to:number, from:number)=>{
+		for(let [from, to] of merge_to){
 			let index = to;
-			while(merge_to.has(index)) index = merge_to.get(index);
+			while(merge_to.has(index)) index = merge_to.get(index)!;
 			fix[from] = fix[index]; // toを繰り返し辿っているので未定義部分へのアクセスは発生しない
-		});
+		}
 
 		let result:DFA = new Array<DFANode>();
 		// インデックスの対応表をもとに辺情報を書き換える
-		shortened.forEach((node:DFANode)=>{
-			node.edge = node.edge.map((node_index:number)=>{
-				return fix[node_index];
-			}).toMap();
-			result.push(node);
-		});
-		
+		for(let node of shortened){
+			let new_edge = new Map<Token, number>();
+			for(let [token, node_index] of node.edge){
+				new_edge.set(token, fix[node_index]);
+			}
+			result.push({closure: node.closure, edge: new_edge});
+		}
 		return result;
 	}
-	*/
 }
 
