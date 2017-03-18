@@ -162,61 +162,69 @@ export class ClosureSet{
 	}
 
 	// クロージャー展開を行う
+	// TODO: リファクタリング
 	private expandClosure(){
-		let flg_changed:boolean = true;
+		// 展開処理中はClosureItemのlookaheadsの要素数を常に1に保つこととする
+		// 初期化
+		let set:Array<ClosureItem> = [];
+		// ClosureItemをlookaheadsごとに分解する
+		for(let ci of this.closureset){
+			for(let la of ci.lookaheads){
+				set.push(new ClosureItem(this.syntax, ci.syntax_id, ci.dot_index, [la]));
+			}
+		}
+		this.closureset = set;
+		this.sort();
+
 		// 変更がなくなるまで繰り返す
-		// TODO: これなんでiを0に戻さなくてもちゃんと動くの
 		let i=0;
-		while(flg_changed){
-			flg_changed = false;
-			while(i<this.closureset.length){
-				let ci = this.closureset[i++];
-				let {ltoken, pattern} = this.syntax.get(ci.syntax_id);
+		while(i<this.closureset.length){
+			let ci = this.closureset[i++];
+			let {ltoken, pattern} = this.syntax.get(ci.syntax_id);
 
-				if(ci.dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
-				let follow = pattern[ci.dot_index];
-				if(!this.syntax.symbols.isNonterminalSymbol(follow)) continue; // .の次の記号が非終端記号でないならばスキップ
+			if(ci.dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
+			let follow = pattern[ci.dot_index];
+			if(!this.syntax.symbols.isNonterminalSymbol(follow)) continue; // .の次の記号が非終端記号でないならばスキップ
 
-				// クロージャー展開を行う
-				// 先読み記号を導出
-				// TODO: リファクタリング
-				let la_set = new Set<Token>();
-				for(let la of ci.lookaheads){
-					for(let la2 of this.syntax.first.get(pattern.slice(ci.dot_index+1).concat(la))){
-						la_set.add(la2);
-					}
-				}
-				let lookaheads = [...la_set.values()];
-				lookaheads.sort((t1:Token, t2:Token)=>{
-					return this.syntax.getTokenId(t1) - this.syntax.getTokenId(t2);
-				});
+			// クロージャー展開を行う
 
-				// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
-				let definitions = this.syntax.findDef(follow);
-				for(let {id, def} of definitions){
-					//this.closureset.push(new ClosureItem(this.syntax, id, 0, lookaheads));
-					let new_ci = new ClosureItem(this.syntax, id, 0, lookaheads);
+			// 先読み記号を導出
+			// ci.lookaheadsは要素数1のため、0番目のインデックスのみを参照すればよい
+			let lookaheads = [...this.syntax.first.get(pattern.slice(ci.dot_index+1).concat(ci.lookaheads[0])).values()];
+			lookaheads.sort((t1:Token, t2:Token)=>{
+				return this.syntax.getTokenId(t1) - this.syntax.getTokenId(t2);
+			});
+
+			// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
+			let definitions = this.syntax.findDef(follow);
+			for(let {id, def} of definitions){
+				for(let la of lookaheads){
+					let new_ci = new ClosureItem(this.syntax, id, 0, [la]);
 					// 重複がなければ新しいアイテムを追加する
 					let flg_duplicated = false;
-					for(let ii=0; ii<this.closureset.length; ii++){
-						let item = this.closureset[ii];
-						if(new_ci.isSameLR1(item)) {
+					for(let existing_item of this.closureset){
+						if(new_ci.isSameLR1(existing_item)){
 							flg_duplicated = true;
-							break;
-						}
-						else if(new_ci.isSameLR0(item)){
-							// 先読み部分以外だけ重複している
-							flg_duplicated = true;
-							// 先読み部分をマージする
-							this.closureset[ii] = this.closureset[ii].merge(new_ci)!;
 							break;
 						}
 					}
 					if(!flg_duplicated){
 						this.closureset.push(new_ci);
-						flg_changed = true;
 					}
 				}
+			}
+		}
+		this.sort();
+
+		// ClosureItemの先読み部分をマージする
+		let tmp = this.closureset;
+		this.closureset = [];
+		let lookaheads = [];
+		for(let i=0; i<tmp.length; i++){
+			lookaheads.push(tmp[i].lookaheads[0]);
+			if(i == tmp.length-1 || !tmp[i].isSameLR0(tmp[i+1])){
+				this.closureset.push(new ClosureItem(this.syntax, tmp[i].syntax_id, tmp[i].dot_index, lookaheads));
+				lookaheads = [];
 			}
 		}
 	}
