@@ -7,8 +7,6 @@ import {ParserCallback, Parser} from "../parser/parser";
 import {ParserFactory} from "../parser/factory";
 
 export class ParserGenerator{
-	private lr_dfa: DFA;
-	private lalr_dfa: DFA;
 	private parsing_table: ParsingTable;
 	private syntax: SyntaxDB;
 	private dfa_generator: DFAGenerator;
@@ -24,7 +22,7 @@ export class ParserGenerator{
 		}
 		else{
 			console.log("LALR parsing conflict found. return LR(1) table.");
-			let lr_result = this.generateParsingTable(this.lr_dfa);
+			let lr_result = this.generateParsingTable(this.dfa_generator.getLR1DFA());
 			this.parsing_table = lr_result.table;
 			if(!lr_result.success){
 				console.log("LR(1) parsing conflict found. return LR(1) conflicted table.");

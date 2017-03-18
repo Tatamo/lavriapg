@@ -28,7 +28,6 @@ export class DFAGenerator{
 
 		// 変更がなくなるまでループ
 		let flg_changed = true;
-		console.log("start generate dfa");
 		let i=0;
 		while(flg_changed){
 			flg_changed = false;
