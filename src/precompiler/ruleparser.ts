@@ -35,15 +35,19 @@ const syntax: SyntaxDefinitions = [
 	},
 	{
 		ltoken: "LEXSECT",
-		pattern: ["LABEL", "LEXDEF"]
+		pattern: ["LEXLABEL", "LEXDEF"]
 	},
 	{
-		ltoken: "LEXSECT",
-		pattern: ["EXCLAMATION", "LEXDEF"]
+		ltoken: "LEXLABEL",
+		pattern: ["LABEL"]
 	},
 	{
-		ltoken: "LEXSECT",
-		pattern: ["EXCLAMATION", "LABEL", "LEXDEF"]
+		ltoken: "LEXLABEL",
+		pattern: ["EXCLAMATION"]
+	},
+	{
+		ltoken: "LEXLABEL",
+		pattern: ["EXCLAMATION", "LABEL"]
 	},
 	{
 		ltoken: "LEXDEF",
@@ -55,7 +59,7 @@ const syntax: SyntaxDefinitions = [
 	},
 	{
 		ltoken: "SYNTAX",
-		pattern: ["SYNTAX", "SECT"]
+		pattern: ["SECT", "SYNTAX"]
 	},
 	{
 		ltoken: "SYNTAX",
@@ -63,19 +67,15 @@ const syntax: SyntaxDefinitions = [
 	},
 	{
 		ltoken: "SECT",
-		pattern: ["STARTSECT"]
+		pattern: ["SECTLABEL", "COLON", "DEF", "SEMICOLON"]
 	},
 	{
-		ltoken: "SECT",
-		pattern: ["NORMALSECT"]
+		ltoken: "SECTLABEL",
+		pattern: ["LABEL"]
 	},
 	{
-		ltoken: "STARTSECT",
-		pattern: ["DOLLAR", "LABEL", "COLON", "DEF", "SEMICOLON"]
-	},
-	{
-		ltoken: "NORMALSECT",
-		pattern: ["LABEL", "COLON", "DEF", "SEMICOLON"]
+		ltoken: "SECTLABEL",
+		pattern: ["DOLLAR", "LABEL"]
 	},
 	{
 		ltoken: "DEF",
@@ -87,12 +87,20 @@ const syntax: SyntaxDefinitions = [
 	},
 	{
 		ltoken: "PATTERN",
-		pattern: ["LABEL", "PATTERN"]
+		pattern: ["SYMBOLLIST"]
 	},
 	{
 		ltoken: "PATTERN",
-		pattern: ["LABEL"]
+		pattern: []
 	},
+	{
+		ltoken: "SYMBOLLIST",
+		pattern: ["LABEL", "SYMBOLLIST"]
+	},
+	{
+		ltoken: "SYMBOLLIST",
+		pattern: ["LABEL"]
+	}
 ];
 
 export const grammar_grammar:GrammarDefinition = {lex: lex, syntax: syntax, start_symbol: "GRAMMAR"};
@@ -128,39 +136,40 @@ export var constructGrammar = (()=>{
 					return {lex: children[0], syntax: children[1], start_symbol: start_symbol};
 				case "LEXDEF":
 					return children[0];
-				case "LEXSECT":
+				case "LEXLABEL":
 					if(pattern[0] == "EXCLAMATION"){
-						if(pattern[1] == "LABEL") return {token:null, pattern:children[2]};
-						else return {token:null, pattern:children[1]};
+						return null;
 					}
-					else return {token:children[0], pattern: children[1]};
+					else return children[0];
+				case "LEXSECT":
+					return {token:children[0], pattern: children[1]};
 				case "LEX":
 					if(pattern.length == 2) return children[0].concat([children[1]]);
 					else return [children[0]];
-				case "PATTERN":
+				case "SYMBOLLIST":
 					if(pattern.length == 2) return [children[0]].concat(children[1]);
 					else return [children[0]];
+				case "PATTERN":
+					if(pattern.length == 0) return [];
+					else return children[0];
 				case "DEF":
 					if(pattern.length == 3) return [children[0]].concat(children[2]);
 					else return [children[0]];
-				case "SECT":
-					return children[0];
-				case "STARTSECT":
-					// 開始記号がまだ指定されていない場合はこれを開始記号とする
-					if(start_symbol === null) {
-						start_symbol = children[1];
+				case "SECTLABEL":
+					if(pattern.length == 2){
+						// 開始記号がまだ指定されていない場合はこれを開始記号とする
+						if(start_symbol === null){
+							start_symbol = children[1];
+						}
+						return children[1];
 					}
-					let result_s:SyntaxDefinitions = [];
-					children[3].forEach((pattern:Array<Token>)=>{
-						result_s.push({ltoken: children[1], pattern: pattern});
-					});
-					return result_s;
-				case "NORMALSECT":
-					let result_n:SyntaxDefinitions = [];
-					children[2].forEach((pattern:Array<Token>)=>{
-						result_n.push({ltoken: children[0], pattern: pattern});
-					});
-					return result_n;
+					return children[0];
+				case "SECT":
+					let result:SyntaxDefinitions = [];
+					for(let pattern of children[2]){
+						result.push({ltoken:children[0], pattern: pattern});
+					}
+					return result;
 				case "SYNTAX":
 					if(pattern.length == 2) return children[0].concat(children[1]);
 					else return children[0];
@@ -172,135 +181,117 @@ export var constructGrammar = (()=>{
 
 
 export const grammar_parsing_table:ParsingTable = [
-new Map<Token,ParsingOperation>([
+new Map<Token, ParsingOperation>([
 	['GRAMMAR', { type: 'goto', to: 1 }],
 	['LEX', { type: 'goto', to: 2 }],
 	['LEXSECT', { type: 'goto', to: 3 }],
-	['LABEL', { type: 'shift', to: 4 }],
-	['EXCLAMATION', { type: 'shift', to: 5 }] ]),
-new Map<Token,ParsingOperation>([
-	[ SYMBOL_EOF, { type: 'accept' }] ]),
-new Map<Token,ParsingOperation>([
-	['SYNTAX', { type: 'goto', to: 6 }],
-	['LEXSECT', { type: 'goto', to: 7 }],
-	['SECT', { type: 'goto', to: 8 }],
-	['LABEL', { type: 'shift', to: 9 }],
-	['EXCLAMATION', { type: 'shift', to: 5 }],
-	['STARTSECT', { type: 'goto', to: 10 }],
-	['NORMALSECT', { type: 'goto', to: 11 }],
-	['DOLLAR', { type: 'shift', to: 12 }] ]),
-new Map<Token,ParsingOperation>([
-	['DOLLAR', { type: 'reduce', syntax: 2 }],
-	['LABEL', { type: 'reduce', syntax: 2 }],
-	['EXCLAMATION', { type: 'reduce', syntax: 2 }] ]),
-new Map<Token,ParsingOperation>([
-	['LEXDEF', { type: 'goto', to: 13 }],
-	['STRING', { type: 'shift', to: 14 }],
-	['REGEXP', { type: 'shift', to: 15 }] ]),
-new Map<Token,ParsingOperation>([
-	['LEXDEF', { type: 'goto', to: 16 }],
-	['LABEL', { type: 'shift', to: 17 }],
-	['STRING', { type: 'shift', to: 14 }],
-	['REGEXP', { type: 'shift', to: 15 }] ]),
-new Map<Token,ParsingOperation>([
-	['SECT', { type: 'goto', to: 18 }],
-	['STARTSECT', { type: 'goto', to: 10 }],
-	['NORMALSECT', { type: 'goto', to: 11 }],
+	['LEXLABEL', { type: 'goto', to: 4 }],
+	['LABEL', { type: 'shift', to: 5 }],
+	['EXCLAMATION', { type: 'shift', to: 6 }] ]),
+new Map<Token, ParsingOperation>([
+	[SYMBOL_EOF, { type: 'accept' }] ]),
+new Map<Token, ParsingOperation>([
+	['SYNTAX', { type: 'goto', to: 7 }],
+	['LEXSECT', { type: 'goto', to: 8 }],
+	['SECT', { type: 'goto', to: 9 }],
+	['SECTLABEL', { type: 'goto', to: 10 }],
+	['LABEL', { type: 'shift', to: 11 }],
 	['DOLLAR', { type: 'shift', to: 12 }],
-	['LABEL', { type: 'shift', to: 19 }],
-	[SYMBOL_EOF, { type: 'reduce', syntax: 0 }] ]),
-new Map<Token,ParsingOperation>([
-	['DOLLAR', { type: 'reduce', syntax: 1 }],
-	['LABEL', { type: 'reduce', syntax: 1 }],
-	['EXCLAMATION', { type: 'reduce', syntax: 1 }] ]),
-new Map<Token,ParsingOperation>([
-	[SYMBOL_EOF, { type: 'reduce', syntax: 9 }],
-	['DOLLAR', { type: 'reduce', syntax: 9 }],
-	['LABEL', { type: 'reduce', syntax: 9 }] ]),
-new Map<Token,ParsingOperation>([
+	['LEXLABEL', { type: 'goto', to: 4 }],
+	['EXCLAMATION', { type: 'shift', to: 6 }] ]),
+new Map<Token, ParsingOperation>([
+	['LABEL', { type: 'reduce', syntax: 2 }],
+	['DOLLAR', { type: 'reduce', syntax: 2 }],
+	['EXCLAMATION', { type: 'reduce', syntax: 2 }] ]),
+new Map<Token, ParsingOperation>([
 	['LEXDEF', { type: 'goto', to: 13 }],
-	['COLON', { type: 'shift', to: 20 }],
 	['STRING', { type: 'shift', to: 14 }],
 	['REGEXP', { type: 'shift', to: 15 }] ]),
-new Map<Token,ParsingOperation>([
-	[SYMBOL_EOF, { type: 'reduce', syntax: 10 }],
-	['DOLLAR', { type: 'reduce', syntax: 10 }],
-	['LABEL', { type: 'reduce', syntax: 10 }] ]),
-new Map<Token,ParsingOperation>([
-	[SYMBOL_EOF, { type: 'reduce', syntax: 11 }],
-	['DOLLAR', { type: 'reduce', syntax: 11 }],
-	['LABEL', { type: 'reduce', syntax: 11 }] ]),
-new Map<Token,ParsingOperation>([
-	[ 'LABEL', { type: 'shift', to: 21 }] ]),
-new Map<Token,ParsingOperation>([
-	['DOLLAR', { type: 'reduce', syntax: 3 }],
+new Map<Token, ParsingOperation>([
+	['STRING', { type: 'reduce', syntax: 4 }],
+	['REGEXP', { type: 'reduce', syntax: 4 }] ]),
+new Map<Token, ParsingOperation>([
+	['LABEL', { type: 'shift', to: 16 }],
+	['STRING', { type: 'reduce', syntax: 5 }],
+	['REGEXP', { type: 'reduce', syntax: 5 }] ]),
+new Map<Token, ParsingOperation>([
+	[SYMBOL_EOF, { type: 'reduce', syntax: 0 }] ]),
+new Map<Token, ParsingOperation>([
+	['LABEL', { type: 'reduce', syntax: 1 }],
+	['DOLLAR', { type: 'reduce', syntax: 1 }],
+	['EXCLAMATION', { type: 'reduce', syntax: 1 }] ]),
+new Map<Token, ParsingOperation>([
+	['SECT', { type: 'goto', to: 9 }],
+	['SECTLABEL', { type: 'goto', to: 10 }],
+	['LABEL', { type: 'shift', to: 17 }],
+	['DOLLAR', { type: 'shift', to: 12 }],
+	['SYNTAX', { type: 'goto', to: 18 }],
+	[SYMBOL_EOF, { type: 'reduce', syntax: 10 }] ]),
+new Map<Token, ParsingOperation>([
+	['COLON', { type: 'shift', to: 19 }] ]),
+new Map<Token, ParsingOperation>([
+	['COLON', { type: 'reduce', syntax: 12 }],
+	['STRING', { type: 'reduce', syntax: 4 }],
+	['REGEXP', { type: 'reduce', syntax: 4 }] ]),
+new Map<Token, ParsingOperation>([
+	['LABEL', { type: 'shift', to: 20 }] ]),
+new Map<Token, ParsingOperation>([
 	['LABEL', { type: 'reduce', syntax: 3 }],
+	['DOLLAR', { type: 'reduce', syntax: 3 }],
 	['EXCLAMATION', { type: 'reduce', syntax: 3 }] ]),
-new Map<Token,ParsingOperation>([
-	['DOLLAR', { type: 'reduce', syntax: 6 }],
-	['LABEL', { type: 'reduce', syntax: 6 }],
-	['EXCLAMATION', { type: 'reduce', syntax: 6 }] ]),
-new Map<Token,ParsingOperation>([
-	['DOLLAR', { type: 'reduce', syntax: 7 }],
+new Map<Token, ParsingOperation>([
 	['LABEL', { type: 'reduce', syntax: 7 }],
+	['DOLLAR', { type: 'reduce', syntax: 7 }],
 	['EXCLAMATION', { type: 'reduce', syntax: 7 }] ]),
-new Map<Token,ParsingOperation>([
-	['DOLLAR', { type: 'reduce', syntax: 4 }],
-	['LABEL', { type: 'reduce', syntax: 4 }],
-	['EXCLAMATION', { type: 'reduce', syntax: 4 }] ]),
-new Map<Token,ParsingOperation>([
-	['LEXDEF', { type: 'goto', to: 22 }],
-	['STRING', { type: 'shift', to: 14 }],
-	['REGEXP', { type: 'shift', to: 15 }] ]),
-new Map<Token,ParsingOperation>([
-	[SYMBOL_EOF, { type: 'reduce', syntax: 8 }],
+new Map<Token, ParsingOperation>([
+	['LABEL', { type: 'reduce', syntax: 8 }],
 	['DOLLAR', { type: 'reduce', syntax: 8 }],
-	['LABEL', { type: 'reduce', syntax: 8 }] ]),
-new Map<Token,ParsingOperation>([
-	[ 'COLON', { type: 'shift', to: 20 }] ]),
-new Map<Token,ParsingOperation>([
-	['DEF', { type: 'goto', to: 23 }],
-	['PATTERN', { type: 'goto', to: 24 }],
-	['LABEL', { type: 'shift', to: 25 }] ]),
-new Map<Token,ParsingOperation>([
-	[ 'COLON', { type: 'shift', to: 26 }] ]),
-new Map<Token,ParsingOperation>([
-	['DOLLAR', { type: 'reduce', syntax: 5 }],
-	['LABEL', { type: 'reduce', syntax: 5 }],
-	['EXCLAMATION', { type: 'reduce', syntax: 5 }] ]),
-new Map<Token,ParsingOperation>([
-	[ 'SEMICOLON', { type: 'shift', to: 27 }] ]),
-new Map<Token,ParsingOperation>([
-	['VBAR', { type: 'shift', to: 28 }],
+	['EXCLAMATION', { type: 'reduce', syntax: 8 }] ]),
+new Map<Token, ParsingOperation>([
+	['STRING', { type: 'reduce', syntax: 6 }],
+	['REGEXP', { type: 'reduce', syntax: 6 }] ]),
+new Map<Token, ParsingOperation>([
+	['COLON', { type: 'reduce', syntax: 12 }] ]),
+new Map<Token, ParsingOperation>([
+	[SYMBOL_EOF, { type: 'reduce', syntax: 9 }] ]),
+new Map<Token, ParsingOperation>([
+	['DEF', { type: 'goto', to: 21 }],
+	['PATTERN', { type: 'goto', to: 22 }],
+	['SYMBOLLIST', { type: 'goto', to: 23 }],
+	['LABEL', { type: 'shift', to: 24 }],
+	['SEMICOLON', { type: 'reduce', syntax: 17 }],
+	['VBAR', { type: 'reduce', syntax: 17 }] ]),
+new Map<Token, ParsingOperation>([
+	['COLON', { type: 'reduce', syntax: 13 }] ]),
+new Map<Token, ParsingOperation>([
+	['SEMICOLON', { type: 'shift', to: 25 }] ]),
+new Map<Token, ParsingOperation>([
+	['VBAR', { type: 'shift', to: 26 }],
 	['SEMICOLON', { type: 'reduce', syntax: 15 }] ]),
-new Map<Token,ParsingOperation>([
-	['PATTERN', { type: 'goto', to: 29 }],
-	['LABEL', { type: 'shift', to: 25 }],
-	['VBAR', { type: 'reduce', syntax: 17 }],
-	['SEMICOLON', { type: 'reduce', syntax: 17 }] ]),
-new Map<Token,ParsingOperation>([
-	['DEF', { type: 'goto', to: 30 }],
-	['PATTERN', { type: 'goto', to: 24 }],
-	['LABEL', { type: 'shift', to: 25 }] ]),
-new Map<Token,ParsingOperation>([
-	[SYMBOL_EOF, { type: 'reduce', syntax: 13 }],
-	['DOLLAR', { type: 'reduce', syntax: 13 }],
-	['LABEL', { type: 'reduce', syntax: 13 }] ]),
-new Map<Token,ParsingOperation>([
-	['DEF', { type: 'goto', to: 31 }],
-	['PATTERN', { type: 'goto', to: 24 }],
-	['LABEL', { type: 'shift', to: 25 }] ]),
-new Map<Token,ParsingOperation>([
-	['VBAR', { type: 'reduce', syntax: 16 }],
-	['SEMICOLON', { type: 'reduce', syntax: 16 }] ]),
-new Map<Token,ParsingOperation>([
-	[ 'SEMICOLON', { type: 'shift', to: 32 }] ]),
-new Map<Token,ParsingOperation>([
-	[ 'SEMICOLON', { type: 'reduce', syntax: 14 }] ]),
-new Map<Token,ParsingOperation>([
-	[SYMBOL_EOF, { type: 'reduce', syntax: 12 }],
-	['DOLLAR', { type: 'reduce', syntax: 12 }],
-	['LABEL', { type: 'reduce', syntax: 12 }] ])
+new Map<Token, ParsingOperation>([
+	['SEMICOLON', { type: 'reduce', syntax: 16 }],
+	['VBAR', { type: 'reduce', syntax: 16 }] ]),
+new Map<Token, ParsingOperation>([
+	['LABEL', { type: 'shift', to: 24 }],
+	['SYMBOLLIST', { type: 'goto', to: 27 }],
+	['SEMICOLON', { type: 'reduce', syntax: 19 }],
+	['VBAR', { type: 'reduce', syntax: 19 }] ]),
+new Map<Token, ParsingOperation>([
+	[SYMBOL_EOF, { type: 'reduce', syntax: 11 }],
+	['LABEL', { type: 'reduce', syntax: 11 }],
+	['DOLLAR', { type: 'reduce', syntax: 11 }] ]),
+new Map<Token, ParsingOperation>([
+	['PATTERN', { type: 'goto', to: 22 }],
+	['DEF', { type: 'goto', to: 28 }],
+	['SYMBOLLIST', { type: 'goto', to: 23 }],
+	['LABEL', { type: 'shift', to: 24 }],
+	['SEMICOLON', { type: 'reduce', syntax: 17 }],
+	['VBAR', { type: 'reduce', syntax: 17 }] ]),
+new Map<Token, ParsingOperation>([
+	['SEMICOLON', { type: 'reduce', syntax: 18 }],
+	['VBAR', { type: 'reduce', syntax: 18 }] ]),
+new Map<Token, ParsingOperation>([
+	['SEMICOLON', { type: 'reduce', syntax: 14 }] ])
 ];
 
 // 予めParsingTableを用意しておくことで高速化
