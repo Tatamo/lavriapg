@@ -20,6 +20,47 @@ export class DFAGenerator{
 	public getLALR1DFA():DFA{
 		return this.lalr_dfa;
 	}
+	// 既存のClosureSetから新しい規則を生成し、対応する記号ごとにまとめる
+	private generateNewClosureSets(closureset: ClosureSet): Map<Token, ClosureSet>{
+		let tmp:Map<Token, Array<ClosureItem>> = new Map<Token, Array<ClosureItem>>();
+		// 規則から新しい規則を生成し、対応する記号ごとにまとめる
+		for(let {syntax_id, dot_index, lookaheads} of closureset.getArray()){
+			let {ltoken, pattern} = this.syntax.get(syntax_id);
+			if(dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
+			let new_ci = new ClosureItem(this.syntax, syntax_id, dot_index+1, lookaheads);
+			let edge_label:Token = pattern[dot_index];
+
+			let items:Array<ClosureItem>;
+			if(tmp.has(edge_label)){
+				// 既に同じ記号が登録されている
+				items = tmp.get(edge_label)!;
+			}
+			else{
+				// 同じ記号が登録されていない
+				items = [];
+			}
+			items.push(new_ci);
+			tmp.set(edge_label, items);
+		}
+		// ClosureItemの配列からClosureSetに変換
+		let result:Map<Token, ClosureSet> = new Map<Token, ClosureSet>();
+		for(let [edge_label, items] of tmp){
+			result.set(edge_label, new ClosureSet(this.syntax, items));
+		}
+		return result;
+	}
+	// 与えられたDFANodeと全く同じDFANodeがある場合、そのindexを返す
+	// 見つからなければ-1を返す
+	private indexOfDuplicatedNode(dfa:DFA, new_node:DFANode):number{
+		let index = -1;
+		for(let [i,node] of dfa.entries()){
+			if(new_node.closure.isSameLR1(node.closure)){
+				index = i;
+				break;
+			}
+		}
+		return index;
+	}
 	// DFAの生成
 	private generateDFA(){
 		let initial_item: ClosureItem = new ClosureItem(this.syntax, -1, 0, [SYMBOL_EOF]);
@@ -31,42 +72,16 @@ export class DFAGenerator{
 		let i=0;
 		while(flg_changed){
 			flg_changed = false;
-			//for(let [index, {closure, edge}] of dfa.entries()){
 			while(i<dfa.length){
 				let closure = dfa[i].closure;
 				let edge = dfa[i].edge;
-				let new_sets:Map<Token, Array<ClosureItem>> = new Map<Token, Array<ClosureItem>>();
+				let new_sets:Map<Token, ClosureSet> = this.generateNewClosureSets(closure);
 
-				// 規則から新しい規則を生成し、対応する記号ごとにまとめる
-				for(let {syntax_id, dot_index, lookaheads} of closure.getArray()){
-					let {ltoken, pattern} = this.syntax.get(syntax_id);
-					if(dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
-					let new_ci = new ClosureItem(this.syntax, syntax_id, dot_index+1, lookaheads);
-					let edge_label:Token = pattern[dot_index];
-
-					let items:Array<ClosureItem>;
-					if(new_sets.has(edge_label)){
-						// 既に同じ記号が登録されている
-						items = new_sets.get(edge_label)!;
-					}
-					else{
-						// 同じ記号が登録されていない
-						items = [];
-					}
-					items.push(new_ci);
-					new_sets.set(edge_label, items);
-				}
 				// 新しいノードを生成する
-				for(let [edge_label, items] of new_sets){
-					let new_node:DFANode = {closure: new ClosureSet(this.syntax, items), edge: new Map<Token, number>()};
+				for(let [edge_label, cs] of new_sets){
+					let new_node:DFANode = {closure: cs, edge: new Map<Token, number>()};
 					// 既存のNodeのなかに同一のClosureSetを持つものがないか調べる
-					let duplicated_index = -1;
-					for(let [i,node] of dfa.entries()){
-						if(new_node.closure.isSameLR1(node.closure)){
-							duplicated_index = i;
-							break;
-						}
-					}
+					let duplicated_index = this.indexOfDuplicatedNode(dfa, new_node);
 					let index_to;
 					if(duplicated_index == -1){
 						// 既存の状態と重複しない
@@ -76,13 +91,12 @@ export class DFAGenerator{
 					}
 					else{
 						// 既存の状態と規則が重複する
-						// 新しい状態の追加は行わず、重複する既存ノードに対して辺を張る
+						// 新しいノードの追加は行わず、重複する既存ノードに対して辺を張る
 						index_to = duplicated_index;
 					}
 					// 辺を追加する
-					let edge_size_prev = edge.size;
-					edge.set(edge_label, index_to);
-					if(edge.size != edge_size_prev){
+					if(!edge.has(edge_label)){
+						edge.set(edge_label, index_to);
 						// 新しい辺が追加された
 						flg_changed = true;
 						// DFAを更新
