@@ -10,6 +10,7 @@ import {PreCompiler} from "./precompiler/precompiler";
 import {LexDefinitions, SyntaxDefinitions, GrammarDefinition} from "./def/grammar";
 
 let input = require("fs").readFileSync("/dev/stdin", "utf8");
+// let input = require("fs").readFileSync("grammar", "utf8");
 
 console.time("process");
 

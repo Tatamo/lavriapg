@@ -6,9 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "node dist/test.js",
-    "tsc": "tsc --watch",
-    "tsc_make": "tsc",
-    "typings_install": "typings install"
+    "build": "gulp",
+    "watch": "gulp watch"
   },
   "repository": {
     "type": "git",
@@ -17,6 +16,10 @@
   "author": "Tatamo",
   "license": "BSD-3-Clause",
   "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-sourcemaps": "^2.6.0",
+    "gulp-typescript": "^3.2.1",
+    "merge2": "^1.1.0",
     "typescript": "^2.1.1"
   },
   "dependencies": {}
