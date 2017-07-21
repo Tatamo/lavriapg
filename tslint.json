@@ -1,0 +1,71 @@
+{
+	"defaultSeverity": "error",
+	"rules": {
+		"adjacent-overload-signatures": true,
+		"align": [true, "parameters", "statements"],
+		"array-type": false,
+		"arrow-parens": true,
+		"arrow-return-shorthand": true,
+		"ban-types": [
+			true,
+			["Object", "Avoid using the `Object` type. Did you mean `object`?"],
+			["Function", "Avoid using the `Function` type. Prefer a specific function type, like `() => void`."],
+			["Boolean", "Avoid using the `Boolean` type. Did you mean `boolean`?"],
+			["Number", "Avoid using the `Number` type. Did you mean `number`?"],
+			["String", "Avoid using the `String` type. Did you mean `string`?"],
+			["Symbol", "Avoid using the `Symbol` type. Did you mean `symbol`?"]
+		],
+		"callable-types": true,
+		"class-name": true,
+		"comment-format": [true, "check-space"],
+		"curly": [true, "ignore-same-line"],
+		"eofline": true,
+		"forin": true,
+		"import-spacing": true,
+		"indent": [true, "tabs"],
+		"interface-name": false,
+		"interface-over-type-literal": false,
+		"jsdoc-format": true,
+		"label-position": true,
+		"max-classes-per-file": false,
+		"max-line-length": false,
+		"member-access": false,
+		"member-ordering": false,
+		"new-parens": true,
+		"no-angle-bracket-type-assertion": true,
+		"no-arg": true,
+		"no-consecutive-blank-lines": [true, 2],
+		"no-console": false,
+		"no-duplicate-variable": true,
+		"no-empty": true,
+		"no-eval": true,
+		"no-internal-module": true,
+		"no-trailing-whitespace": true,
+		"no-var-keyword": true,
+		"object-literal-shorthand": false,
+		"object-literal-sort-keys": false,
+		"one-line": [true, "check-whitespace", "check-open-brace"],
+		"one-variable-per-declaration": true,
+		"ordered-imports": false,
+		"prefer-const": true,
+		"prefer-for-of": false,
+		"quotemark": [true, "double", "avoid-escape"],
+		"semicolon": [true, "always"],
+		"trailing-comma": [
+			true, {
+				"multiline": "never",
+				"singleline": "never"
+			}
+		],
+		"triple-equals": false,
+		"use-isnan": true,
+		"variable-name": [true, "ban-keywords"],
+		"whitespace": [
+			true,
+			"check-branch",
+			"check-decl",
+			"check-separator",
+			"check-type"
+		]
+	}
+}
