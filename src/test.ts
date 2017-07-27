@@ -65,6 +65,7 @@ const grammar: GrammarDefinition = {
 	start_symbol: "EXP"
 };
 
+
 // new ParserGenerator(grammar);
 // console.log(new ParserGenerator(grammar).getParser().parse("1+1"));
 console.log(new ParserGenerator(grammar_grammar).getParser(constructGrammar).parse(input));
