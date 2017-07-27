@@ -14,8 +14,7 @@ describe("basic grammar test", () => {
 
 	const parser = new ParserGenerator(grammar_grammar).getParser(constructGrammar);
 	test("parsing grammar file", () => {
-			expect(parser.parse(input)).toBe(ideal_result_grammar);
-			console.log(parser.parse(input));
+			expect(parser.parse(input)).toEqual(ideal_result_grammar);
 		}
 	);
 });

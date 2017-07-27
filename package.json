@@ -6,6 +6,7 @@
 	"types": "dist/index.d.ts",
 	"scripts": {
 		"test": "jest",
+		"test-w": "jest --watchAll",
 		"build": "gulp",
 		"watch": "gulp watch"
 	},
