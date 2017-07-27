@@ -6,12 +6,14 @@ export interface ILexer {
 }
 
 export class Lexer implements ILexer {
-	constructor(public def: LexDefinitions) {
+	public def: LexDefinitions;
+	constructor(definition: LexDefinitions) {
+		const formatted_def: LexDefinitions = [];
 		// 正しいトークン定義が与えられているかチェック
-		for (let i = 0; i < this.def.length; i++) {
-			const token_pattern = this.def[i].pattern;
+		for (const def_sect of definition) {
+			const token_pattern = def_sect.pattern;
 			if (typeof token_pattern == "string") {
-				continue;
+				formatted_def.push(def_sect);
 			}
 			else if (token_pattern instanceof RegExp) {
 				// フラグを整形する
@@ -29,12 +31,16 @@ export class Lexer implements ILexer {
 				}
 				// yフラグは必ずつける
 				flags += "y";
-				// フラグをつけなおして新しい正規表現オブジェクトにする
-				this.def[i].pattern = new RegExp(token_pattern, flags);
-				continue;
+				formatted_def.push({
+					token: def_sect.token,
+					pattern: new RegExp(token_pattern, flags)
+				});
 			}
-			throw new Error("invalid token definition: neither string nor RegExp object");
+			else {
+				throw new Error("invalid token definition: neither string nor RegExp object");
+			}
 		}
+		this.def = formatted_def;
 	}
 	exec(str: string): TokenList {
 		const result: TokenList = [];
