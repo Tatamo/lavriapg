@@ -42,7 +42,7 @@ export class NullableSet {
 			}
 		}
 	}
-	public isNullable(x: Token) {
-		return this.nulls.has(x);
+	public isNullable(token: Token) {
+		return this.nulls.has(token);
 	}
 }
