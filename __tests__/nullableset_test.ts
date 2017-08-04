@@ -1,56 +1,21 @@
 import {NullableSet} from "../src/parsergenerator/nullableset";
-import {SyntaxDefinitions} from "../src/def/grammar";
-
-const syntax: SyntaxDefinitions = [
-	{
-		ltoken: "S",
-		pattern: ["E"]
-	},
-	{
-		ltoken: "E",
-		pattern: ["LIST", "SEMICOLON"]
-	},
-	{
-		ltoken: "E",
-		pattern: ["HOGE"]
-	},
-	{
-		ltoken: "LIST",
-		pattern: ["T"]
-	},
-	{
-		ltoken: "LIST",
-		pattern: ["LIST", "SEPARATE", "T"]
-	},
-	{
-		ltoken: "T",
-		pattern: ["ATOM"]
-	},
-	{
-		ltoken: "T",
-		pattern: []
-	},
-	{
-		ltoken: "HOGE",
-		pattern: ["ID"]
-	}
-];
+import {test_sample_syntax} from "./data/sample_grammar";
 
 describe("NullableSet test", () => {
-	const nulls = new NullableSet(syntax);
+	const nulls = new NullableSet(test_sample_syntax);
 	test("T is Nullable", () => {
-		expect(nulls.isNullable("T")).toBe(true);
+		expect(nulls.isNullable("T")).toBeTruthy();
 	});
 	test("LIST is Nullable", () => {
-		expect(nulls.isNullable("LIST")).toBe(true);
+		expect(nulls.isNullable("LIST")).toBeTruthy();
 	});
 	test("HOGE is not Nullable", () => {
-		expect(nulls.isNullable("HOGE")).toBe(false);
+		expect(nulls.isNullable("HOGE")).toBeFalsy();
 	});
 	test("E is not Nullable", () => {
-		expect(nulls.isNullable("E")).toBe(false);
+		expect(nulls.isNullable("E")).toBeFalsy();
 	});
 	test("S is not Nullable", () => {
-		expect(nulls.isNullable("S")).toBe(false);
+		expect(nulls.isNullable("S")).toBeFalsy();
 	});
 });
