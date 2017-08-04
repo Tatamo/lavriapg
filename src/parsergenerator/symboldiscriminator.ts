@@ -25,10 +25,12 @@ export class SymbolDiscriminator {
 		}
 	}
 	public getTerminalSymbols(): Set<Token> {
-		return this.terminal_symbols;
+		// コピーを返す
+		return new Set(this.terminal_symbols);
 	}
 	public getNonterminalSymbols(): Set<Token> {
-		return this.nonterminal_symbols;
+		// コピーを返す
+		return new Set(this.nonterminal_symbols);
 	}
 	public isTerminalSymbol(symbol: Token): boolean {
 		return this.terminal_symbols.has(symbol);
