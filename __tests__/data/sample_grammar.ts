@@ -36,6 +36,22 @@ export const test_sample_syntax: SyntaxDefinitions = [
 	}
 ];
 
+export const test_sample_lex: LexDefinitions = [
+	{token: "ATOM", pattern: "x"},
+	{token: "ID", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
+	{token: "SEMICOLON", pattern: ";"},
+	{token: "SEPARATE", pattern: "|"},
+	{token: null, pattern: /(\r\n|\r|\n)+/},
+	{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
+	{token: "INVALID", pattern: /./}
+];
+
+export const test_sample_grammar: GrammarDefinition = {
+	lex: test_sample_lex,
+	syntax: test_sample_syntax,
+	start_symbol: "S"
+};
+
 export const test_calc_syntax: SyntaxDefinitions = [
 	{
 		ltoken: "EXP",

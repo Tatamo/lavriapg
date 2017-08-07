@@ -47,7 +47,7 @@ export class SyntaxDB {
 		return this._symbols;
 	}
 	// 非終端記号xに対し、それが左辺として対応する定義を返す
-	public findDef(x: Token): Array<{ id: number, def: SyntaxDefinitionSection }> {
+	public findDefinition(x: Token): Array<{ id: number, def: SyntaxDefinitionSection }> {
 		if (this.defmap.has(x)) {
 			return this.defmap.get(x)!;
 		}
@@ -61,7 +61,7 @@ export class SyntaxDB {
 		return this.tokenmap.get(token)!;
 	}
 	// -1が与えられた時は S' -> S $の規則を返す
-	public get(id: number): SyntaxDefinitionSection {
+	public getDefinitionById(id: number): SyntaxDefinitionSection {
 		if (id == -1) {
 			return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol]};
 			// return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF]};

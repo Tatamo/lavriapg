@@ -97,7 +97,7 @@ export class ClosureSet {
 		let index = 0;
 		while (index < this.closureset.length) {
 			const ci = this.closureset[index++];
-			const {ltoken, pattern} = this.syntax.get(ci.syntax_id);
+			const {ltoken, pattern} = this.syntax.getDefinitionById(ci.syntax_id);
 
 			if (ci.dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
 			const follow = pattern[ci.dot_index];
@@ -113,7 +113,7 @@ export class ClosureSet {
 			});
 
 			// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
-			const definitions = this.syntax.findDef(follow);
+			const definitions = this.syntax.findDefinition(follow);
 			for (const {id, def} of definitions) {
 				for (const la of lookaheads) {
 					const new_ci = new ClosureItem(this.syntax, id, 0, [la]);
