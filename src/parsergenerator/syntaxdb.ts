@@ -17,12 +17,33 @@ export class SyntaxDB {
 		this._symbols = new SymbolDiscriminator(this.syntax);
 		this._first = new FirstSet(this.syntax, this.symbols);
 
-		this.tokenid_counter = 0;
-		this.tokenmap = new Map<Token, number>();
-
+		this.initTokenMap();
 		this.initDefMap();
 	}
 	// Token->numberの対応を生成
+	private initTokenMap() {
+		this.tokenid_counter = 0;
+		this.tokenmap = new Map<Token, number>();
+
+		// 左辺値の登録
+		for (const sect of this.syntax) {
+			const ltoken = sect.ltoken;
+			// 構文規則の左辺に現れる記号は非終端記号
+			if (!this.tokenmap.has(ltoken)) {
+				this.tokenmap.set(ltoken, this.tokenid_counter++);
+			}
+		}
+		// 右辺値の登録
+		for (const sect of this.syntax) {
+			for (const symbol of sect.pattern) {
+				if (!this.tokenmap.has(symbol)) {
+					// 非終端記号でない(=左辺値に現れない)場合、終端記号である
+					this.tokenmap.set(symbol, this.tokenid_counter++);
+				}
+			}
+		}
+	}
+	// Token-> [{id,syntax}]の対応を生成
 	private initDefMap() {
 		this.defmap = new Map<Token, Array<{ id: number, def: SyntaxDefinitionSection }>>();
 		for (let i = 0; i < this.syntax.length; i++) {
@@ -54,12 +75,15 @@ export class SyntaxDB {
 		return [];
 	}
 	// Tokenを与えると一意なidを返す
+	// 構文規則に現れないトークンの場合は−１を返す
 	public getTokenId(token: Token): number {
 		if (!this.tokenmap.has(token)) {
-			this.tokenmap.set(token, this.tokenid_counter++);
+			// this.tokenmap.set(token, this.tokenid_counter++);
+			return -1;
 		}
 		return this.tokenmap.get(token)!;
 	}
+	// 規則idに対応した規則を返す
 	// -1が与えられた時は S' -> S $の規則を返す
 	public getDefinitionById(id: number): SyntaxDefinitionSection {
 		if (id == -1) {

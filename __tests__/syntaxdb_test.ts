@@ -1,5 +1,5 @@
 import {test_sample_grammar} from "./data/sample_grammar";
-import {SyntaxDB} from "../dist/parsergenerator/syntaxdb";
+import {SyntaxDB} from "../src/parsergenerator/syntaxdb";
 
 describe("SyntaxDB test", () => {
 	const syntaxdb = new SyntaxDB(test_sample_grammar);
