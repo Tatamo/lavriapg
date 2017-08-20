@@ -47,43 +47,34 @@ describe("SymbolDiscriminator test", () => {
 		});
 		test("Check nonterminal symbols set", () => {
 			const nt: Set<Token> = symbols.getNonterminalSymbols();
-			const nt_set = new Set<Token>();
-			nt_set.add("S");
-			nt_set.add("E");
-			nt_set.add("LIST");
-			nt_set.add("T");
-			nt_set.add("HOGE");
-			expect(nt).toEqual(nt_set);
+			for (const symbol of ["S", "E", "LIST", "T", "HOGE"]) {
+				expect(nt).toContain(symbol);
+			}
+			expect(nt.size).toBe(5);
 		});
 		test("Check terminal symbols set", () => {
 			const t: Set<Token> = symbols.getTerminalSymbols();
-			const t_set = new Set<Token>();
-			t_set.add("SEMICOLON");
-			t_set.add("SEPARATE");
-			t_set.add("ATOM");
-			t_set.add("ID");
-			expect(t).toEqual(t_set);
+			for (const symbol of ["SEMICOLON", "SEPARATE", "ATOM", "ID"]) {
+				expect(t).toContain(symbol);
+			}
+			expect(t.size).toBe(4);
 		});
 	});
 	describe("test sample grammar", () => {
 		const symbols = new SymbolDiscriminator(test_calc_syntax);
 		test("Check nonterminal symbols set", () => {
 			const nt: Set<Token> = symbols.getNonterminalSymbols();
-			const nt_set = new Set<Token>();
-			nt_set.add("EXP");
-			nt_set.add("TERM");
-			nt_set.add("ATOM");
-			expect(nt).toEqual(nt_set);
+			for (const symbol of ["EXP", "TERM", "ATOM"]) {
+				expect(nt).toContain(symbol);
+			}
+			expect(nt.size).toBe(3);
 		});
 		test("Check terminal symbols set", () => {
 			const t: Set<Token> = symbols.getTerminalSymbols();
-			const t_set = new Set<Token>();
-			t_set.add("PLUS");
-			t_set.add("ASTERISK");
-			t_set.add("DIGITS");
-			t_set.add("LPAREN");
-			t_set.add("RPAREN");
-			expect(t).toEqual(t_set);
+			for (const symbol of ["PLUS", "ASTERISK", "DIGITS", "LPAREN", "RPAREN"]) {
+				expect(t).toContain(symbol);
+			}
+			expect(t.size).toBe(5);
 		});
 	});
 });
