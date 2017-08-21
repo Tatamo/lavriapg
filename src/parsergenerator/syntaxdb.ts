@@ -90,6 +90,7 @@ export class SyntaxDB {
 			return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol]};
 			// return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF]};
 		}
-		return this.syntax[id];
+		else if (id >= 0 && id < this.syntax.length) return this.syntax[id];
+		throw new Error("syntax id out of range");
 	}
 }
