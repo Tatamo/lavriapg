@@ -1,5 +1,5 @@
 import {GrammarDefinition, SyntaxDefinitions, SyntaxDefinitionSection} from "../def/grammar";
-import {SYMBOL_SYNTAX, Token} from "../def/token";
+import {SYMBOL_EOF, SYMBOL_SYNTAX, Token} from "../def/token";
 import {FirstSet} from "./firstset";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 
@@ -24,6 +24,11 @@ export class SyntaxDB {
 	private initTokenMap() {
 		this.tokenid_counter = 0;
 		this.tokenmap = new Map<Token, number>();
+
+		// 入力の終端$の登録
+		this.tokenmap.set(SYMBOL_EOF, this.tokenid_counter++);
+		// 仮の開始記号S'の登録
+		this.tokenmap.set(SYMBOL_SYNTAX, this.tokenid_counter++);
 
 		// 左辺値の登録
 		for (const sect of this.syntax) {
@@ -75,11 +80,11 @@ export class SyntaxDB {
 		return [];
 	}
 	// Tokenを与えると一意なidを返す
-	// 構文規則に現れないトークンの場合は−１を返す
 	public getTokenId(token: Token): number {
 		if (!this.tokenmap.has(token)) {
 			// this.tokenmap.set(token, this.tokenid_counter++);
-			return -1;
+			// return -1;
+			throw new Error(`invalid token ${token}`);
 		}
 		return this.tokenmap.get(token)!;
 	}

@@ -19,47 +19,6 @@ export class DFAGenerator {
 	public getLALR1DFA(): DFA {
 		return this.lalr_dfa;
 	}
-	// 既存のClosureSetから新しい規則を生成し、対応する記号ごとにまとめる
-	private generateNewClosureSets(closureset: ClosureSet): Map<Token, ClosureSet> {
-		const tmp: Map<Token, Array<ClosureItem>> = new Map<Token, Array<ClosureItem>>();
-		// 規則から新しい規則を生成し、対応する記号ごとにまとめる
-		for (const {syntax_id, dot_index, lookaheads} of closureset.getArray()) {
-			const {ltoken, pattern} = this.syntax.getDefinitionById(syntax_id);
-			if (dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
-			const new_ci = new ClosureItem(this.syntax, syntax_id, dot_index + 1, lookaheads);
-			const edge_label: Token = pattern[dot_index];
-
-			let items: Array<ClosureItem>;
-			if (tmp.has(edge_label)) {
-				// 既に同じ記号が登録されている
-				items = tmp.get(edge_label)!;
-			}
-			else {
-				// 同じ記号が登録されていない
-				items = [];
-			}
-			items.push(new_ci);
-			tmp.set(edge_label, items);
-		}
-		// ClosureItemの配列からClosureSetに変換
-		const result: Map<Token, ClosureSet> = new Map<Token, ClosureSet>();
-		for (const [edge_label, items] of tmp) {
-			result.set(edge_label, new ClosureSet(this.syntax, items));
-		}
-		return result;
-	}
-	// 与えられたDFANodeと全く同じDFANodeがある場合、そのindexを返す
-	// 見つからなければ-1を返す
-	private indexOfDuplicatedNode(dfa: DFA, new_node: DFANode): number {
-		let index = -1;
-		for (const [i, node] of dfa.entries()) {
-			if (new_node.closure.isSameLR1(node.closure)) {
-				index = i;
-				break;
-			}
-		}
-		return index;
-	}
 	// DFAの生成
 	private generateDFA() {
 		const initial_item: ClosureItem = new ClosureItem(this.syntax, -1, 0, [SYMBOL_EOF]);
@@ -109,7 +68,6 @@ export class DFAGenerator {
 		this.lr_dfa = dfa;
 		this.lalr_dfa = this.mergeLA(dfa);
 	}
-
 	// TODO: バグがないか確認
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
 	private mergeLA(dfa: DFA): DFA {
@@ -167,5 +125,46 @@ export class DFAGenerator {
 			result.push({closure: node.closure, edge: new_edge});
 		}
 		return result;
+	}
+	// 既存のClosureSetから新しい規則を生成し、対応する記号ごとにまとめる
+	private generateNewClosureSets(closureset: ClosureSet): Map<Token, ClosureSet> {
+		const tmp: Map<Token, Array<ClosureItem>> = new Map<Token, Array<ClosureItem>>();
+		// 規則から新しい規則を生成し、対応する記号ごとにまとめる
+		for (const {syntax_id, dot_index, lookaheads} of closureset.getArray()) {
+			const {ltoken, pattern} = this.syntax.getDefinitionById(syntax_id);
+			if (dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
+			const new_ci = new ClosureItem(this.syntax, syntax_id, dot_index + 1, lookaheads);
+			const edge_label: Token = pattern[dot_index];
+
+			let items: Array<ClosureItem>;
+			if (tmp.has(edge_label)) {
+				// 既に同じ記号が登録されている
+				items = tmp.get(edge_label)!;
+			}
+			else {
+				// 同じ記号が登録されていない
+				items = [];
+			}
+			items.push(new_ci);
+			tmp.set(edge_label, items);
+		}
+		// ClosureItemの配列からClosureSetに変換
+		const result: Map<Token, ClosureSet> = new Map<Token, ClosureSet>();
+		for (const [edge_label, items] of tmp) {
+			result.set(edge_label, new ClosureSet(this.syntax, items));
+		}
+		return result;
+	}
+	// 与えられたDFANodeと全く同じDFANodeがある場合、そのindexを返す
+	// 見つからなければ-1を返す
+	private indexOfDuplicatedNode(dfa: DFA, new_node: DFANode): number {
+		let index = -1;
+		for (const [i, node] of dfa.entries()) {
+			if (new_node.closure.isSameLR1(node.closure)) {
+				index = i;
+				break;
+			}
+		}
+		return index;
 	}
 }
