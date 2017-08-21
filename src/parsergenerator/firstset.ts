@@ -8,11 +8,13 @@ type Constraint = Array<{ superset: Token, subset: Token }>;
 export class FirstSet {
 	private first_map: Map<Token, Set<Token>>;
 	private nulls: NullableSet;
+
 	constructor(private syntax: SyntaxDefinitions, private symbols: SymbolDiscriminator) {
 		this.first_map = new Map<Token, Set<Token>>();
 		this.nulls = new NullableSet(this.syntax);
 		this.generateFirst();
 	}
+
 	private generateFirst() {
 		// Firstを導出
 		const first_result: Map<Token, Set<Token>> = new Map<Token, Set<Token>>();
@@ -69,15 +71,25 @@ export class FirstSet {
 		}
 		this.first_map = first_result;
 	}
+
 	// 記号または記号列を与えて、その記号から最初に導かれうる非終端記号の集合を返す
 	public get(arg: Token | Token[]): Set<Token> {
 		// 単一の記号の場合
 		if (!Array.isArray(arg)) {
+			if (!this.first_map.has(arg)) {
+				throw new Error(`invalid token found: ${arg}`);
+			}
 			return this.first_map.get(arg)!;
 		}
 		// 記号列の場合
 		const tokens: Token[] = arg;
 
+		// 不正な記号を発見
+		for (const token of tokens) {
+			if (!this.first_map.has(token)) {
+				throw new Error(`invalid token found: ${token}`);
+			}
+		}
 		const result: Set<Token> = new Set<Token>();
 		for (const token of tokens) {
 			const add = this.first_map.get(token)!; // トークン列の先頭から順にFirst集合を取得
