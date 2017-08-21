@@ -1,4 +1,4 @@
-import {test_calc_syntax, test_sample_syntax} from "./data/sample_grammar";
+import {test_calc_syntax, test_empty_grammar, test_sample_syntax} from "./data/sample_grammar";
 import {SymbolDiscriminator} from "../src/parsergenerator/symboldiscriminator";
 import {Token} from "../src/def/token";
 
@@ -75,6 +75,18 @@ describe("SymbolDiscriminator test", () => {
 				expect(t).toContain(symbol);
 			}
 			expect(t.size).toBe(5);
+		});
+	});
+	describe("test empty grammar", () => {
+		const symbols = new SymbolDiscriminator(test_empty_grammar.syntax);
+		test("Check nonterminal symbols set", () => {
+			const nt: Set<Token> = symbols.getNonterminalSymbols();
+			expect(nt).toContain("S");
+			expect(nt.size).toBe(1);
+		});
+		test("Check terminal symbols set", () => {
+			const t: Set<Token> = symbols.getTerminalSymbols();
+			expect(t.size).toBe(0);
 		});
 	});
 });

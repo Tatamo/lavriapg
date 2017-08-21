@@ -1,11 +1,10 @@
 import {NullableSet} from "../src/parsergenerator/nullableset";
 import {FirstSet} from "../src/parsergenerator/firstset";
-import {test_sample_syntax} from "./data/sample_grammar";
+import {test_empty_grammar, test_sample_syntax} from "./data/sample_grammar";
 import {SymbolDiscriminator} from "../src/parsergenerator/symboldiscriminator";
 
 describe("FirstSet test", () => {
-	const symbols: SymbolDiscriminator = new SymbolDiscriminator(test_sample_syntax);
-	const first = new FirstSet(test_sample_syntax, symbols);
+	const first = new FirstSet(test_sample_syntax, new SymbolDiscriminator(test_sample_syntax));
 	describe("valid one terminal and nonterminal symbol", () => {
 		test("First(S) is {SEMICOLON, SEPARATE, ATOM, ID}", () => {
 			for (const symbol of ["SEMICOLON", "SEPARATE", "ATOM", "ID"]) {
@@ -72,5 +71,12 @@ describe("FirstSet test", () => {
 		test("First(S INVALID) throws error", () => {
 			expect(() => first.get(["S", "INVALID"])).toThrow(/invalid token/);
 		});
+	});
+});
+
+describe("FirstSet test(empty grammar)", () => {
+	const first = new FirstSet(test_empty_grammar.syntax, new SymbolDiscriminator(test_empty_grammar.syntax));
+	test("First(S) is {}", () => {
+		expect(first.get("S").size).toBe(0);
 	});
 });

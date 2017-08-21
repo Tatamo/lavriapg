@@ -18,7 +18,7 @@ describe("SyntaxDB test", () => {
 		});
 	});
 	describe("getDefinitionById test", () => {
-		test("definition of syntax 2 is: E -> LIST SEMICOLON", () => {
+		test("definition of syntax 1 is: E -> LIST SEMICOLON", () => {
 			expect(syntaxdb.getDefinitionById(1)).toEqual({ltoken: "E", pattern: ["LIST", "SEMICOLON"]});
 		});
 	});
