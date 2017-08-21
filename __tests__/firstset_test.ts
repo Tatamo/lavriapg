@@ -17,7 +17,13 @@ describe("FirstSet test", () => {
 			for (const symbol of ["SEMICOLON", "SEPARATE", "ATOM", "ID"]) {
 				expect(first.get("E")).toContain(symbol);
 			}
-			expect(first.get("S").size).toBe(4);
+			expect(first.get("E").size).toBe(4);
+		});
+		test("First([E]) is {SEMICOLON, SEPARATE, ATOM, ID}", () => {
+			for (const symbol of ["SEMICOLON", "SEPARATE", "ATOM", "ID"]) {
+				expect(first.get(["E"])).toContain(symbol);
+			}
+			expect(first.get(["E"]).size).toBe(4);
 		});
 		test("First(LIST) is {SEPARATE, ATOM}", () => {
 			for (const symbol of ["SEPARATE", "ATOM"]) {
@@ -38,7 +44,7 @@ describe("FirstSet test", () => {
 			expect(first.get("ID").size).toBe(1);
 		});
 	});
-	describe("valid word (multiple terminal or nonterminal symbols)", ()=> {
+	describe("valid word (multiple terminal or nonterminal symbols)", () => {
 		test("First(LIST ID) is {SEPARATE ATOM ID}", () => {
 			for (const symbol of ["SEPARATE", "ATOM", "ID"]) {
 				expect(first.get(["LIST", "ID"])).toContain(symbol);
@@ -50,25 +56,21 @@ describe("FirstSet test", () => {
 			expect(first.get(["HOGE", "HOGE"]).size).toBe(1);
 		});
 	});
-	describe("invalid input (contains neither terminal nor nonterminal symbols)", ()=> {
-		test("First(FOO) is {}", () => {
-			expect(first.get("FOO").size).toBe(0);
+	describe("invalid input (contains neither terminal nor nonterminal symbols)", () => {
+		test("First(FOO) throws error", () => {
+			expect(() => first.get("FOO")).toThrow(/invalid token/);
 		});
-		test("First(INVALID) is {}", () => {
-			expect(first.get("INVALID").size).toBe(0);
+		test("First(INVALID) throws error", () => {
+			expect(() => first.get("INVALID")).toThrow(/invalid token/);
 		});
-		test("First(INVALID INVALID) is {}", () => {
-			expect(first.get(["INVALID", "INVALID"])).toBe(0);
+		test("First(INVALID INVALID) throws error", () => {
+			expect(() => first.get(["INVALID", "INVALID"])).toThrow(/invalid token/);
 		});
-		test("First(INVALID S) is {}", () => {
-			expect(first.get(["INVALID", "S"])).toBe(0);
+		test("First(INVALID S) throws error", () => {
+			expect(() => first.get(["INVALID", "S"])).toThrow(/invalid token/);
 		});
-		test("First(S) is {SEMICOLON, SEPARATE, ATOM, ID}", () => {
-			// TODO: この挙動で正しいといえるのか？
-			for (const symbol of ["SEMICOLON", "SEPARATE", "ATOM", "ID"]) {
-				expect(first.get(["S", "INVALID"])).toContain(symbol);
-			}
-			expect(first.get(["S", "INVALID"]).size).toBe(4);
+		test("First(S INVALID) throws error", () => {
+			expect(() => first.get(["S", "INVALID"])).toThrow(/invalid token/);
 		});
 	});
 });
