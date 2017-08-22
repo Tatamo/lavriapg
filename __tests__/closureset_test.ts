@@ -57,6 +57,25 @@ describe("ClosureSet test", () => {
 				expect(cs.isSameLR1(new ClosureSet(syntaxdb, expanded_shuffled))).toBeTruthy();
 			});
 		});
+		test("ClosureSet#include", () => {
+			for (const ci of expanded) {
+				expect(cs.includes(ci)).toBeTruthy();
+			}
+		});
+		test("ClosureSet#include invalid inputs", () => {
+			expect(cs.includes(new ClosureItem(syntaxdb, 0, 1, [SYMBOL_EOF]))).toBeFalsy();
+			expect(cs.includes(new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF]))).toBeFalsy();
+			expect(cs.includes(new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF]))).toBeFalsy();
+			expect(cs.includes(new ClosureItem(syntaxdb, -8, 0, [SYMBOL_EOF]))).toBeFalsy();
+		});
+		describe("invalid ClosureSet", () => {
+			test("invalid syntax id", () => {
+				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF])])).toThrow();
+			});
+			test("invalid dot position", () => {
+				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF])])).toThrow();
+			});
+		});
 	});
 	describe("empty syntax", () => {
 		const syntaxdb = new SyntaxDB(test_empty_grammar);
@@ -70,6 +89,11 @@ describe("ClosureSet test", () => {
 		});
 		test("ClosureSet array", () => {
 			expect(cs.getArray()).toEqual(expect.arrayContaining(expanded));
+		});
+		test("ClosureSet#include", () => {
+			for (const ci of expanded) {
+				expect(cs.includes(ci)).toBeTruthy();
+			}
 		});
 	});
 });

@@ -42,4 +42,12 @@ describe("ClosureItem test", () => {
 			expect(()=>new ClosureItem(syntaxdb, -1, 0, ["X"])).toThrow(/invalid token/);
 		});
 	});
+	describe("invalid ClosureItem", () => {
+		test("invalid syntax id", () => {
+			expect(()=>new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF])).toThrow();
+		});
+		test("invalid dot position", () => {
+			expect(()=>new ClosureItem(syntaxdb, -1, -1, [SYMBOL_EOF])).toThrow();
+		});
+	});
 });
