@@ -38,7 +38,7 @@ export class ParserGenerator {
 
 	// 構文解析表を構築する
 	private generateParsingTable(dfa: DFA) {
-		const parsing_table: ParsingTable = new Array<Map<Token, ParsingOperation>>();
+		const parsing_table: ParsingTable = [];
 		let flg_conflicted = false;
 
 		for (const node of dfa) {

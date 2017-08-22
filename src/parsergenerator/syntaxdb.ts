@@ -78,9 +78,7 @@ export class SyntaxDB {
 	}
 	// 与えられたidの規則が存在するかどうかを調べる
 	public hasDefinitionId(id: number): boolean {
-		if (id < -1) return false;
-		if (id >= this.def_size) return false;
-		return true;
+		return id >= -1 && id < this.def_size;
 	}
 	// 非終端記号xに対し、それが左辺として対応する定義を返す
 	public findDefinition(x: Token): Array<{ id: number, def: SyntaxDefinitionSection }> {

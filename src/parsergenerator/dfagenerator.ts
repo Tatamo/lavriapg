@@ -115,7 +115,7 @@ export class DFAGenerator {
 			fix[from] = fix[index]; // toを繰り返し辿っているので未定義部分へのアクセスは発生しない
 		}
 
-		const result: DFA = new Array<DFANode>();
+		const result: DFA = [];
 		// インデックスの対応表をもとに辺情報を書き換える
 		for (const node of shortened) {
 			const new_edge = new Map<Token, number>();
@@ -131,7 +131,7 @@ export class DFAGenerator {
 		const tmp: Map<Token, Array<ClosureItem>> = new Map<Token, Array<ClosureItem>>();
 		// 規則から新しい規則を生成し、対応する記号ごとにまとめる
 		for (const {syntax_id, dot_index, lookaheads} of closureset.getArray()) {
-			const {ltoken, pattern} = this.syntax.getDefinitionById(syntax_id);
+			const pattern = this.syntax.getDefinitionById(syntax_id).pattern;
 			if (dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
 			const new_ci = new ClosureItem(this.syntax, syntax_id, dot_index + 1, lookaheads);
 			const edge_label: Token = pattern[dot_index];

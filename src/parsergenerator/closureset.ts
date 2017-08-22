@@ -116,7 +116,7 @@ export class ClosureSet {
 
 			// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
 			const definitions = this.syntax.findDefinition(follow);
-			for (const {id, def} of definitions) {
+			for (const {id} of definitions) {
 				for (const la of lookaheads) {
 					const new_ci = new ClosureItem(this.syntax, id, 0, [la]);
 					// 重複がなければ新しいアイテムを追加する

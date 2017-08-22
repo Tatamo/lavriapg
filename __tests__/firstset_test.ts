@@ -1,4 +1,3 @@
-import {NullableSet} from "../src/parsergenerator/nullableset";
 import {FirstSet} from "../src/parsergenerator/firstset";
 import {test_empty_grammar, test_sample_syntax} from "./data/sample_grammar";
 import {SymbolDiscriminator} from "../src/parsergenerator/symboldiscriminator";

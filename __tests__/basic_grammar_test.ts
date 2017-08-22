@@ -1,4 +1,3 @@
-import {readFileSync} from "fs";
 import {constructGrammar, grammar_grammar} from "../src/precompiler/ruleparser";
 import {ParserGenerator} from "../src/parsergenerator/parsergenerator";
 
