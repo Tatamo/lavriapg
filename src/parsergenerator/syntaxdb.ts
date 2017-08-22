@@ -72,21 +72,22 @@ export class SyntaxDB {
 	get symbols(): SymbolDiscriminator {
 		return this._symbols;
 	}
+	// 構文規則がいくつあるかを返す ただし-1番の規則は含めない
+	get def_size(): number {
+		return this.syntax.length;
+	}
+	// 与えられたidの規則が存在するかどうかを調べる
+	public hasDefinitionId(id: number): boolean {
+		if (id < -1) return false;
+		if (id >= this.def_size) return false;
+		return true;
+	}
 	// 非終端記号xに対し、それが左辺として対応する定義を返す
 	public findDefinition(x: Token): Array<{ id: number, def: SyntaxDefinitionSection }> {
 		if (this.defmap.has(x)) {
 			return this.defmap.get(x)!;
 		}
 		return [];
-	}
-	// Tokenを与えると一意なidを返す
-	public getTokenId(token: Token): number {
-		if (!this.tokenmap.has(token)) {
-			// this.tokenmap.set(token, this.tokenid_counter++);
-			// return -1;
-			throw new Error(`invalid token ${token}`);
-		}
-		return this.tokenmap.get(token)!;
 	}
 	// 規則idに対応した規則を返す
 	// -1が与えられた時は S' -> S $の規則を返す
@@ -97,5 +98,14 @@ export class SyntaxDB {
 		}
 		else if (id >= 0 && id < this.syntax.length) return this.syntax[id];
 		throw new Error("syntax id out of range");
+	}
+	// Tokenを与えると一意なidを返す
+	public getTokenId(token: Token): number {
+		if (!this.tokenmap.has(token)) {
+			// this.tokenmap.set(token, this.tokenid_counter++);
+			// return -1;
+			throw new Error(`invalid token ${token}`);
+		}
+		return this.tokenmap.get(token)!;
 	}
 }
