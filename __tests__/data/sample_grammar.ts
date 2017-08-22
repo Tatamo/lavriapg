@@ -56,7 +56,7 @@ export const test_empty_grammar: GrammarDefinition = {
 	lex: [],
 	syntax: [{ltoken: "S", pattern: []}],
 	start_symbol: "S"
-}
+};
 
 export const test_calc_syntax: SyntaxDefinitions = [
 	{
