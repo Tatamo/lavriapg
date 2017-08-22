@@ -6,6 +6,17 @@ export class ClosureItem {
 	private _lr0_hash: string;
 	private _lr1_hash: string;
 	constructor(private syntax: SyntaxDB, private _syntax_id: number, private _dot_index: number, private _lookaheads: Array<Token>) {
+		// 有効な値かどうか調べる
+		if (!this.syntax.hasDefinitionId(this._syntax_id)) {
+			throw new Error("invalid syntax id");
+		}
+		if (this._dot_index < 0 || this._dot_index > this.syntax.getDefinitionById(this._syntax_id).pattern.length) {
+			throw new Error("dot index out of range");
+		}
+		if (this._lookaheads.length == 0) {
+			// 必要か？
+			throw new Error("one or more lookahead symbols needed");
+		}
 		this.sortLA();
 		this.updateHash();
 	}
