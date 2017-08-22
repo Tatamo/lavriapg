@@ -23,7 +23,9 @@ export class ClosureSet {
 		return this.closureset.length;
 	}
 	public getArray() {
-		return this.closureset;
+		// とりあえずコピーして返す(パフォーマンスは少し落ちる)
+		// return this.closureset;
+		return this.closureset.concat();
 	}
 	// アイテムが含まれているかどうかを調べる
 	public includes(item: ClosureItem): boolean {
@@ -97,7 +99,7 @@ export class ClosureSet {
 		let index = 0;
 		while (index < this.closureset.length) {
 			const ci = this.closureset[index++];
-			const {ltoken, pattern} = this.syntax.getDefinitionById(ci.syntax_id);
+			const pattern = this.syntax.getDefinitionById(ci.syntax_id).pattern;
 
 			if (ci.dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
 			const follow = pattern[ci.dot_index];
