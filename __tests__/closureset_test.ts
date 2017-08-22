@@ -63,17 +63,18 @@ describe("ClosureSet test", () => {
 			}
 		});
 		test("ClosureSet#include invalid inputs", () => {
-			expect(cs.includes(new ClosureItem(syntaxdb, 0, 1, [SYMBOL_EOF]))).toBeFalsy();
-			expect(cs.includes(new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF]))).toBeFalsy();
-			expect(cs.includes(new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF]))).toBeFalsy();
-			expect(cs.includes(new ClosureItem(syntaxdb, -8, 0, [SYMBOL_EOF]))).toBeFalsy();
+			expect(()=>cs.includes(new ClosureItem(syntaxdb, 0, 1, [SYMBOL_EOF]))).not.toThrow();
+			expect(()=>cs.includes(new ClosureItem(syntaxdb, 0, 2, [SYMBOL_EOF]))).toThrow(/out of range/);
+			expect(()=>cs.includes(new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF]))).toThrow(/out of range/);
+			expect(()=>cs.includes(new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF]))).toThrow(/invalid syntax id/);
+			expect(()=>cs.includes(new ClosureItem(syntaxdb, -8, 0, [SYMBOL_EOF]))).toThrow(/invalid syntax id/);
 		});
 		describe("invalid ClosureSet", () => {
 			test("invalid syntax id", () => {
-				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF])])).toThrow();
+				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF])])).toThrow(/invalid syntax id/);
 			});
 			test("invalid dot position", () => {
-				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF])])).toThrow();
+				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF])])).toThrow(/out of range/);
 			});
 		});
 	});
