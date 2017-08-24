@@ -1,7 +1,7 @@
-import {ClosureItem} from "../src/parsergenerator/closureitem";
-import {test_sample_grammar} from "./data/sample_grammar";
-import {SyntaxDB} from "../src/index";
-import {SYMBOL_EOF} from "../src/def/token";
+import {ClosureItem} from "../../../src/parsergenerator/closureitem";
+import {test_sample_grammar} from "../../data/sample_grammar";
+import {SyntaxDB} from "../../../src/index";
+import {SYMBOL_EOF} from "../../../src/def/token";
 
 describe("ClosureItem test", () => {
 	const syntaxdb = new SyntaxDB(test_sample_grammar);

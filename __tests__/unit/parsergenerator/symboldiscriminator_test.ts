@@ -1,6 +1,6 @@
-import {test_calc_syntax, test_empty_grammar, test_sample_syntax} from "./data/sample_grammar";
-import {SymbolDiscriminator} from "../src/parsergenerator/symboldiscriminator";
-import {Token} from "../src/def/token";
+import {test_calc_syntax, test_empty_grammar, test_sample_syntax} from "../../data/sample_grammar";
+import {SymbolDiscriminator} from "../../../src/parsergenerator/symboldiscriminator";
+import {Token} from "../../../src/def/token";
 
 describe("SymbolDiscriminator test", () => {
 	describe("test sample grammar", () => {

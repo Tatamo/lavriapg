@@ -1,5 +1,5 @@
-import {ParserGenerator} from "../src/parsergenerator/parsergenerator";
-import {test_calc_grammar, test_calc_solver} from "./data/sample_grammar";
+import {ParserGenerator} from "../../../src/parsergenerator/parsergenerator";
+import {test_calc_grammar, test_calc_solver} from "../../data/sample_grammar";
 
 describe("Calculator test", () => {
 	const parser = new ParserGenerator(test_calc_grammar).getParser();

@@ -1,6 +1,6 @@
-import {FirstSet} from "../src/parsergenerator/firstset";
-import {test_empty_grammar, test_sample_syntax} from "./data/sample_grammar";
-import {SymbolDiscriminator} from "../src/parsergenerator/symboldiscriminator";
+import {FirstSet} from "../../../src/parsergenerator/firstset";
+import {test_empty_grammar, test_sample_syntax} from "../../data/sample_grammar";
+import {SymbolDiscriminator} from "../../../src/parsergenerator/symboldiscriminator";
 
 describe("FirstSet test", () => {
 	const first = new FirstSet(test_sample_syntax, new SymbolDiscriminator(test_sample_syntax));
