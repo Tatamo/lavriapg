@@ -6,11 +6,10 @@ export interface ILexer {
 }
 
 export class Lexer implements ILexer {
-	public def: LexDefinitions;
-	constructor(definition: LexDefinitions) {
+	constructor(private def: LexDefinitions) {
 		const formatted_def: LexDefinitions = [];
 		// 正しいトークン定義が与えられているかチェック
-		for (const def_sect of definition) {
+		for (const def_sect of def) {
 			const token_pattern = def_sect.pattern;
 			if (typeof token_pattern == "string") {
 				formatted_def.push(def_sect);
