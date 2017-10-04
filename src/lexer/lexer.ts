@@ -44,33 +44,37 @@ export class Lexer implements ILexer {
 	exec(str: string): TokenList {
 		const result: TokenList = [];
 		let lastindex = 0;
-		while (lastindex < str.length) {
-			for (let i = 0; i < this.def.length; i++) {
-				const token: Token | null = this.def[i].token;
-				const token_pattern = this.def[i].pattern;
-				let match: string;
-				if (typeof token_pattern == "string") {
-					const last_tmp = lastindex + token_pattern.length;
-					if (str.substring(lastindex, last_tmp) != token_pattern) continue;
-					if (last_tmp < str.length && /\w/.test(token_pattern.slice(-1)) && /\w/.test(str[last_tmp])) continue; // ヒットした文字の末尾が\wで、そのすぐ後ろが\wの場合はスキップ
-					match = token_pattern;
-					lastindex += token_pattern.length;
+		top:
+			while (lastindex < str.length) {
+				for (let i = 0; i < this.def.length; i++) {
+					const token: Token | null = this.def[i].token;
+					const token_pattern = this.def[i].pattern;
+					let match: string;
+					if (typeof token_pattern == "string") {
+						const last_tmp = lastindex + token_pattern.length;
+						if (str.substring(lastindex, last_tmp) != token_pattern) continue;
+						if (last_tmp < str.length && /\w/.test(token_pattern.slice(-1)) && /\w/.test(str[last_tmp])) continue; // ヒットした文字の末尾が\wで、そのすぐ後ろが\wの場合はスキップ
+						match = token_pattern;
+						lastindex += token_pattern.length;
+					}
+					else {
+						// token_pattern: RegExp
+						token_pattern.lastIndex = lastindex;
+						const m = token_pattern.exec(str);
+						if (m === null) continue; // マッチ失敗
+						match = m[0];
+						lastindex = token_pattern.lastIndex; // lastindexを進める
+					}
+					// tokenがnullなら処理を飛ばします
+					if (token != null) {
+						// 結果に追加
+						result.push({token, value: match});
+					}
+					continue top;
 				}
-				else {
-					// token_pattern: RegExp
-					token_pattern.lastIndex = lastindex;
-					const m = token_pattern.exec(str);
-					if (m === null) continue; // マッチ失敗
-					match = m[0];
-					lastindex = token_pattern.lastIndex; // lastindexを進める
-				}
-				// tokenがnullなら処理を飛ばします
-				if (token != null) {
-					result.push({token, value: match});
-				}
-				break;
+				// マッチする規則がなかった
+				throw new Error("no pattern matched");
 			}
-		}
 		// 最後にEOFトークンを付与
 		result.push({token: SYMBOL_EOF, value: ""});
 		return result;
