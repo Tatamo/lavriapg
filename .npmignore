@@ -1,2 +1,11 @@
+*.swp
+.idea/
 node_modules/
-typings/
+__tests__/
+coverage/
+.gitignore
+.npmignore
+gulpfile.js
+package-lock.json
+tsconfig.json
+tslint.json
