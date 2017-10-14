@@ -1,6 +1,5 @@
 {
 	"compilerOptions": {
-		//"lib": ["dom", "es5", "es2015.core", "es2015.symbol", "es2015.collection", "es2015.iterable"],
 		"strictNullChecks": true,
 		"noImplicitAny": true,
 		"target": "es6",
@@ -10,7 +9,7 @@
 		"noEmitOnError": true
 	},
 	"include": [
-		"SRC/**/*.TS"
+		"src/**/*.ts"
 	],
 	"exclude": [
 		"node_modules",
