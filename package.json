@@ -39,6 +39,11 @@
 			"ts",
 			"js",
 			"json"
-		]
+		],
+		"globals": {
+			"ts-jest": {
+				"tsConfigFile": "__tests__/tsconfig.json"
+			}
+		}
 	}
 }
