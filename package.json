@@ -1,7 +1,8 @@
 {
-	"name": "parsergenerator",
-	"version": "1.0.0",
-	"description": "simple lr(1) parser generator",
+	"name": "@tatamo/parsergenerator",
+	"version": "0.1.0-1",
+	"description": "simple lr(1) parser generator written in TypeScript",
+	"keywords": ["parser", "generator", "lexer", "parsing", "compiler"],
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
