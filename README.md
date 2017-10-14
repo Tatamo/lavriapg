@@ -11,7 +11,7 @@ $ npm run build
 ```
 ## usage
 ```
-$ node ./dist/test.js < ./grammar
+$ echo 1+1 | node ./dist/sample.js
 ```
 
 TODO: easy to use
