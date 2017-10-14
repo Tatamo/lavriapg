@@ -21,9 +21,9 @@ edit [grammar](/grammar) and run the following code:
 import {grammar_parser, ParserGenerator} from "src/"; // edit path properly if needed
 import {readFileSync} from "fs";
 
-const grammar = grammar_parser.parse(readFileSync("./grammar", "utf8"));
+const grammar = grammar_parser.parse(readFileSync("./grammar", "utf8") as string);
 const parser = new ParserGenerator(grammar).getParser();
-const input = readFileSync("/dev/stdin", "utf8");
+const input = readFileSync("/dev/stdin", "utf8") as string;
 console.log(parser.parse(input));
 ```
 this program parses input (from stdin) and shows its AST.
