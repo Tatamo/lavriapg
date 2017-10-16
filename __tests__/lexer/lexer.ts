@@ -35,4 +35,21 @@ describe("Lexer test", () => {
 			{token: SYMBOL_EOF, value: ""}
 		]);
 	});
+	test("regexp flags", () => {
+		const lexer = new Lexer([
+			{token: "I", pattern: /AbC/i},
+			{token: "M", pattern: /x\nyz/m},
+			{token: "U", pattern: /\u{64}\u{65}\u{66}/u},
+			{token: "G", pattern: /pqr/g},
+			{token: "A", pattern: /\u{61}\nC/imugy}
+		]);
+		expect(lexer.exec("abcx\nyzdefpqra\nc")).toEqual([
+			{token: "I", value: "abc"},
+			{token: "M", value: "x\nyz"},
+			{token: "U", value: "def"},
+			{token: "G", value: "pqr"},
+			{token: "A", value: "a\nc"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+	});
 });
