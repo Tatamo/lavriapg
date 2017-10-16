@@ -102,6 +102,20 @@ export const test_calc_grammar: GrammarDefinition = {
 	start_symbol: "EXP"
 };
 
+export const test_calc_grammar_raw_string = `DIGITS		/[1-9][0-9]*/
+PLUS		"+"
+ASTERISK	"*"
+LPAREN		 "("
+RPAREN		")"
+!ENDLINE	/(\\r\\n|\\r|\\n)+/
+!WHITESPACE	/[ \\f\\t\\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/
+INVALID		/./
+
+$EXP : EXP PLUS TERM | TERM;
+TERM : TERM ASTERISK ATOM | ATOM;
+ATOM : DIGITS | LPAREN EXP RPAREN;
+`;
+
 export const test_calc_solver = (arg: ParserCallbackArg) => {
 	if (arg.terminal) {
 		if (arg.token == "DIGITS") {
