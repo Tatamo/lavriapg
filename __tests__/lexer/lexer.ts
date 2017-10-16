@@ -52,4 +52,24 @@ describe("Lexer test", () => {
 			{token: SYMBOL_EOF, value: ""}
 		]);
 	});
+	test("skip string pattern if the following is \\w", () => {
+		const lexer = new Lexer([
+			{token: "STR", pattern: "abc"},
+			{token: "REGEXP", pattern: /abc/},
+			{token: "ASTERISK", pattern: "*"},
+			{token: "XYZ", pattern: "xyz"}
+		]);
+		expect(lexer.exec("abcxyz*abc*xyz*abcabc")).toEqual([
+			{token: "REGEXP", value: "abc"},
+			{token: "XYZ", value: "xyz"},
+			{token: "ASTERISK", value: "*"},
+			{token: "STR", value: "abc"},
+			{token: "ASTERISK", value: "*"},
+			{token: "XYZ", value: "xyz"},
+			{token: "ASTERISK", value: "*"},
+			{token: "REGEXP", value: "abc"},
+			{token: "STR", value: "abc"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+	});
 });
