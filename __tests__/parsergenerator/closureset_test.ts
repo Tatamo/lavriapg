@@ -1,8 +1,8 @@
-import {SyntaxDB} from "../../../src/parsergenerator/syntaxdb";
-import {test_empty_grammar, test_sample_grammar} from "../../data/sample_grammar";
-import {ClosureItem} from "../../../src/parsergenerator/closureitem";
-import {SYMBOL_EOF} from "../../../src/def/token";
-import {ClosureSet} from "../../../src/parsergenerator/closureset";
+import {SyntaxDB} from "../../src/parsergenerator/syntaxdb";
+import {test_empty_grammar, test_sample_grammar} from "../data/sample_grammar";
+import {ClosureItem} from "../../src/parsergenerator/closureitem";
+import {SYMBOL_EOF} from "../../src/def/token";
+import {ClosureSet} from "../../src/parsergenerator/closureset";
 
 describe("ClosureSet test", () => {
 	describe("Closure{S' -> . S [$]}", () => {

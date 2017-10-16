@@ -1,6 +1,6 @@
-import {test_sample_grammar} from "../../data/sample_grammar";
-import {SyntaxDB} from "../../../src/parsergenerator/syntaxdb";
-import {SYMBOL_SYNTAX} from "../../../src/def/token";
+import {test_sample_grammar} from "../data/sample_grammar";
+import {SyntaxDB} from "../../src/parsergenerator/syntaxdb";
+import {SYMBOL_SYNTAX} from "../../src/def/token";
 
 describe("SyntaxDB test", () => {
 	const syntaxdb = new SyntaxDB(test_sample_grammar);

@@ -1,6 +1,6 @@
-import {Lexer} from "../../../src/lexer/lexer";
-import {test_sample_lex, test_empty_grammar} from "../../data/sample_grammar";
-import {SYMBOL_EOF} from "../../../src/def/token";
+import {Lexer} from "../../src/lexer/lexer";
+import {test_sample_lex, test_empty_grammar} from "../data/sample_grammar";
+import {SYMBOL_EOF} from "../../src/def/token";
 
 describe("Lexer test", () => {
 	test("exec valid input", () => {

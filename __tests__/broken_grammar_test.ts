@@ -1,6 +1,6 @@
-import {ParserGenerator} from "../../src/parsergenerator/parsergenerator";
-import {test_broken_grammar} from "../data/broken_grammar";
-import {test_calc_solver} from "../data/sample_grammar";
+import {ParserGenerator} from "../src/parsergenerator/parsergenerator";
+import {test_broken_grammar} from "./data/broken_grammar";
+import {test_calc_solver} from "./data/sample_grammar";
 
 describe("Calculator test with broken grammar", () => {
 	// TODO: パーサが壊れていることを(コンソール出力以外で)知る方法

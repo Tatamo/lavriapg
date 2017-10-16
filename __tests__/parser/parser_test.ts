@@ -1,7 +1,7 @@
-import {Parser} from "../../../src/parser/parser";
-import {ParserFactory} from "../../../src/parser/factory";
-import {ParserGenerator} from "../../../src/parsergenerator/parsergenerator";
-import {test_calc_grammar, test_calc_solver} from "../../data/sample_grammar";
+import {Parser} from "../../src/parser/parser";
+import {ParserFactory} from "../../src/parser/factory";
+import {ParserGenerator} from "../../src/parsergenerator/parsergenerator";
+import {test_calc_grammar, test_calc_solver} from "../data/sample_grammar";
 
 describe("parser test", () => {
 	const parsingtable = new ParserGenerator(test_calc_grammar).getParsingTable();

@@ -1,5 +1,5 @@
-import {constructGrammar, grammar_grammar} from "../../src/precompiler/ruleparser";
-import {ParserGenerator} from "../../src/parsergenerator/parsergenerator";
+import {constructGrammar, grammar_grammar} from "../src/precompiler/ruleparser";
+import {ParserGenerator} from "../src/parsergenerator/parsergenerator";
 
 const input = require("fs").readFileSync("grammar", "utf8");
 
