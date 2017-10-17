@@ -21,11 +21,11 @@ export class ParserGenerator {
 			this.parsing_table = lalr_result.table;
 		}
 		else {
-			console.log("LALR parsing conflict found. return LR(1) table.");
+			console.error("LALR parsing conflict found. return LR(1) table.");
 			const lr_result = this.generateParsingTable(this.dfa_generator.getLR1DFA());
 			this.parsing_table = lr_result.table;
 			if (!lr_result.success) {
-				console.log("LR(1) parsing conflict found. return LR(1) conflicted table.");
+				console.error("LR(1) parsing conflict found. return LR(1) conflicted table.");
 			}
 		}
 	}

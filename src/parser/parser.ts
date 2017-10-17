@@ -77,7 +77,7 @@ export class Parser {
 			let state: number = state_stack[state_stack.length - 1];
 			if (!this.parsingtable[state].has(token)) {
 				// 未定義
-				console.log("parse failed: unexpected token:", token);
+				console.error("parse failed: unexpected token:", token);
 				flg_error = true;
 				break;
 			}
@@ -110,14 +110,14 @@ export class Parser {
 				token = syntax_item.ltoken;
 				if (!this.parsingtable[state].has(token)) {
 					// 未定義
-					console.log("parse failed: unexpected token:", token);
+					console.error("parse failed: unexpected token:", token);
 					flg_error = true;
 					break;
 				}
 				action = this.parsingtable[state].get(token)!;
 				if (action.type != "goto") {
 					// gotoアクションでなければおかしい
-					console.log("parse failed: goto operation expected after reduce operation");
+					console.error("parse failed: goto operation expected after reduce operation");
 					flg_error = true;
 					break;
 				}
@@ -128,25 +128,25 @@ export class Parser {
 				break;
 			}
 			else if (action.type == "conflict") {
-				console.log("conflict found:");
-				console.log("current state " + state + ":", JSON.stringify(this.parsingtable[state]));
-				console.log("shift:", action.shift_to, ",reduce:", action.reduce_syntax);
+				console.error("conflict found:");
+				console.error("current state " + state + ":", JSON.stringify(this.parsingtable[state]));
+				console.error("shift:", action.shift_to, ",reduce:", action.reduce_syntax);
 				action.shift_to.forEach((to: number) => {
-					console.log("shift to " + to.toString() + ":", JSON.stringify(this.parsingtable[to]));
+					console.error("shift to " + to.toString() + ":", JSON.stringify(this.parsingtable[to]));
 				});
 				action.reduce_syntax.forEach((syntax: number) => {
-					console.log("reduce syntax " + syntax.toString() + ":", JSON.stringify(this.parsingtable[syntax]));
+					console.error("reduce syntax " + syntax.toString() + ":", JSON.stringify(this.parsingtable[syntax]));
 				});
-				console.log("parser cannot parse conflicted syntax");
+				console.error("parser cannot parse conflicted syntax");
 				flg_error = true;
 				break;
 			}
 		}
 		if (flg_error) {
-			console.log("parse failed.");
+			console.error("parse failed.");
 		}
 		if (result_stack.length != 1) {
-			console.log("failed to construct tree.");
+			console.error("failed to construct tree.");
 		}
 		return result_stack[0];
 	}
