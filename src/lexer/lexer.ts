@@ -6,7 +6,11 @@ export interface ILexer {
 }
 
 export class Lexer implements ILexer {
-	constructor(private def: LexDefinitions) {
+	private match_priority: "length" | "order";
+	constructor(private def: LexDefinitions, option?: { priority?: "length" | "order" }) {
+		if (option === undefined) option = {};
+		if (option.priority === undefined) option.priority = "length";
+		this.match_priority = option.priority;
 		const formatted_def: LexDefinitions = [];
 		// 正しいトークン定義が与えられているかチェック
 		for (const def_sect of def) {
@@ -43,38 +47,61 @@ export class Lexer implements ILexer {
 	}
 	exec(str: string): TokenList {
 		const result: TokenList = [];
-		let lastindex = 0;
-		top:
-			while (lastindex < str.length) {
-				for (let i = 0; i < this.def.length; i++) {
-					const token: Token | null = this.def[i].token;
-					const token_pattern = this.def[i].pattern;
-					let match: string;
-					if (typeof token_pattern == "string") {
-						const last_tmp = lastindex + token_pattern.length;
-						if (str.substring(lastindex, last_tmp) != token_pattern) continue;
-						if (last_tmp < str.length && /\w/.test(token_pattern.slice(-1)) && /\w/.test(str[last_tmp])) continue; // ヒットした文字の末尾が\wで、そのすぐ後ろが\wの場合はスキップ
-						match = token_pattern;
-						lastindex += token_pattern.length;
-					}
-					else {
-						// token_pattern: RegExp
-						token_pattern.lastIndex = lastindex;
-						const m = token_pattern.exec(str);
-						if (m === null) continue; // マッチ失敗
-						match = m[0];
-						lastindex = token_pattern.lastIndex; // lastindexを進める
-					}
-					// tokenがnullなら処理を飛ばします
-					if (token != null) {
-						// 結果に追加
-						result.push({token, value: match});
-					}
-					continue top;
+		let last_index = 0;
+		while (last_index < str.length) {
+			let flg_matched = false;
+			let result_token: Token | null = null;
+			let result_match: string = "";
+			let next_index: number;
+			for (const {token, pattern} of this.def) {
+				let match: string;
+				let tmp_next_index: number;
+				if (typeof pattern === "string") {
+					match = pattern;
+					tmp_next_index = last_index + pattern.length;
+					if (str.substring(last_index, tmp_next_index) != pattern) continue; // マッチしない
+					if (tmp_next_index < str.length && /\w/.test(pattern.slice(-1)) && /\w/.test(str[tmp_next_index])) continue; // マッチした文字列の末尾が\wで、その直後の文字が\wの場合はスキップ
+					flg_matched = true;
 				}
+				else {
+					// pattern: RegExp
+					pattern.lastIndex = last_index;
+					const m = pattern.exec(str);
+					if (m === null) continue; // マッチ失敗
+					flg_matched = true;
+					match = m[0];
+					tmp_next_index = pattern.lastIndex;
+				}
+				if (this.match_priority === "order") {
+					// マッチ優先度がリスト出現順
+					result_token = token;
+					result_match = match;
+					next_index = tmp_next_index;
+					break;
+				}
+				else {
+					// 最長マッチ優先
+					if (match.length > result_match.length) { // 同じ長さの場合はリスト順
+						result_token = token;
+						result_match = match;
+						next_index = tmp_next_index;
+					}
+				}
+			}
+			if (flg_matched) {
+				// tokenがnullなら処理を飛ばす
+				if (result_token !== null) {
+					// 結果に追加
+					result.push({token: result_token, value: result_match});
+				}
+				// 読む位置を進める
+				last_index = next_index!;
+			}
+			else {
 				// マッチする規則がなかった
 				throw new Error("no pattern matched");
 			}
+		}
 		// 最後にEOFトークンを付与
 		result.push({token: SYMBOL_EOF, value: ""});
 		return result;

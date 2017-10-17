@@ -72,4 +72,34 @@ describe("Lexer test", () => {
 			{token: SYMBOL_EOF, value: ""}
 		]);
 	});
+	const def = [
+		{token: "PM", pattern: "+-"},
+		{token: "PMA", pattern: "+-*"},
+		{token: "ASTERISK", pattern: "*"},
+		{token: "ABC", pattern: /abc/},
+		{token: "ABCD", pattern: /abcd/},
+		{token: "ABCD2", pattern: /abcd/},
+		{token: "D", pattern: /d/},
+		{token: null, pattern: " "}
+	];
+	test("priority: longest match", () => {
+		const lexer = new Lexer(def);
+		expect(lexer.exec(" +-+-*abcd ")).toEqual([
+			{token: "PM", value: "+-"},
+			{token: "PMA", value: "+-*"},
+			{token: "ABCD", value: "abcd"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+	});
+	test("priority: order match", () => {
+		const lexer = new Lexer(def, {priority: "order"});
+		expect(lexer.exec(" +-+-*abcd ")).toEqual([
+			{token: "PM", value: "+-"},
+			{token: "PM", value: "+-"},
+			{token: "ASTERISK", value: "*"},
+			{token: "ABC", value: "abc"},
+			{token: "D", value: "d"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+	});
 });
