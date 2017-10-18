@@ -7,17 +7,9 @@ export interface ILexer {
 
 export class Lexer implements ILexer {
 	private _rule_id: number;
-	private def: Array<{ id: number, rule: LexDefinitionSection }>;
+	private _def: Array<{ id: number, rule: LexDefinitionSection }>;
+	private _reset: { def: Array<{ id: number, rule: LexDefinitionSection }>, id: number, flg_modified: boolean };
 	private _input: string;
-	constructor(def: LexDefinitions, input?: string) {
-		this.def = [];
-		this._rule_id = 0;
-		for (const rule of def) {
-			this.add(rule);
-		}
-		this._status = "uninitialized";
-		if (input !== undefined) this.init(input);
-	}
 	private _last_index: number;
 	get last_index(): number {
 		return this._last_index;
@@ -26,11 +18,38 @@ export class Lexer implements ILexer {
 	get status(): "uninitialized" | "ready" | "finished" {
 		return this._status;
 	}
+	constructor(def: LexDefinitions, input?: string) {
+		this._def = [];
+		this._rule_id = 0;
+		this._reset = {def: [], id: 0, flg_modified: false}; // add()を呼ぶためのダミー
+		for (const rule of def) {
+			this.add(rule);
+		}
+		this._reset = {
+			def: this._def.slice(),
+			id: this._rule_id,
+			flg_modified: false
+		};
+		this.reset(input);
+	}
+	// Lexerの内部状態をコンストラクタ呼び出し直後まで戻す
+	reset(input?: string) {
+		if (this._reset.flg_modified) {
+			this._def = this._reset.def.slice();
+			this._rule_id = this._reset.id;
+			this._reset.flg_modified = false;
+		}
+		this._last_index = 0;
+		this._status = "uninitialized";
+		if (input !== undefined) this.init(input);
+	}
+	// 入力を与えて解析可能(step()を呼び出し可能)な状態にする
 	init(input: string) {
 		this._input = input;
 		this._last_index = 0;
 		this._status = "ready";
 	}
+	// 入力からトークン1つ分読み込む
 	step(): { token: Token, value: string } {
 		if (this.status !== "ready") {
 			throw new Error("Lexer is not ready");
@@ -48,7 +67,7 @@ export class Lexer implements ILexer {
 			let result_match: string = "";
 			let result_priority: number | null = null;
 			let next_index: number;
-			for (const {rule} of this.def) {
+			for (const {rule} of this._def) {
 				const {token, pattern, priority} = rule;
 				let match: string;
 				let tmp_next_index: number;
@@ -94,7 +113,10 @@ export class Lexer implements ILexer {
 		}
 	}
 	exec(input?: string): Array<{ token: Token, value: string }> {
-		if (input !== undefined) {
+		if (this.status === "finished" || this.status === "ready" && this.last_index > 0) {
+			this.reset(input);
+		}
+		else if (input !== undefined) {
 			this.init(input);
 		}
 		const result: Array<{ token: Token, value: string }> = [];
@@ -109,7 +131,7 @@ export class Lexer implements ILexer {
 		const token_pattern = rule.pattern;
 		// 正しいトークン定義が与えられているかチェック
 		if (typeof token_pattern === "string") {
-			this.def.push({id, rule});
+			this._def.push({id, rule});
 		}
 		else if (token_pattern instanceof RegExp) {
 			// フラグを整形する
@@ -127,7 +149,7 @@ export class Lexer implements ILexer {
 			}
 			// yフラグは必ずつける
 			flags += "y";
-			this.def.push({
+			this._def.push({
 				id: id,
 				rule: {
 					token: rule.token,
@@ -139,14 +161,16 @@ export class Lexer implements ILexer {
 		else {
 			throw new Error("invalid token definition: neither string nor RegExp object");
 		}
+		this._reset.flg_modified = true;
 		return id;
 	}
 	// 字句規則を削除する
 	// TODO: もっとましな実装にする
 	del(id: number): LexDefinitionSection {
-		for (let i = 0; i < this.def.length; i++) {
-			if (this.def[i].id === id) {
-				return this.def.splice(i, 1)[0].rule;
+		for (let i = 0; i < this._def.length; i++) {
+			if (this._def[i].id === id) {
+				this._reset.flg_modified = true;
+				return this._def.splice(i, 1)[0].rule;
 			}
 		}
 		throw new Error("definition not found");

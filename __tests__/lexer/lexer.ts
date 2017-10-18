@@ -113,4 +113,25 @@ describe("Lexer test", () => {
 			{token: SYMBOL_EOF, value: ""}
 		]);
 	});
+	test("add rule and exec again after reset", () => {
+		// TODO: このテストで規定される挙動は直観的でない可能性がある
+		const lexer = new Lexer([
+			{token: "ASTERISK", pattern: "*"},
+			{token: "ABC", pattern: /abc/},
+			{token: null, pattern: " "}
+		]);
+		lexer.add({token: "ABCAST", pattern: /abc\*/, priority: 1});
+		expect(lexer.exec(" *abc* ")).toEqual([
+			{token: "ASTERISK", value: "*"},
+			{token: "ABCAST", value: "abc*"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+		// reset add
+		expect(lexer.exec(" *abc* ")).toEqual([
+			{token: "ASTERISK", value: "*"},
+			{token: "ABC", value: "abc"},
+			{token: "ASTERISK", value: "*"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+	});
 });
