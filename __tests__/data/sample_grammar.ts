@@ -108,7 +108,7 @@ ASTERISK	"*"
 LPAREN		 "("
 RPAREN		")"
 !ENDLINE	/(\\r\\n|\\r|\\n)+/
-!WHITESPACE	/[ \\f\\t\\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/
+!WHITESPACE	/[ \\f\\t\\v\\u00a0\\u1680\\u180e\\u2000-\\u200a\\u202f\\u205f\\u3000\\ufeff]+/
 INVALID		/./
 
 $EXP : EXP PLUS TERM | TERM;
