@@ -6,11 +6,7 @@ export interface ILexer {
 }
 
 export class Lexer implements ILexer {
-	private match_priority: "length" | "order";
-	constructor(private def: LexDefinitions, option?: { priority?: "length" | "order" }) {
-		if (option === undefined) option = {};
-		if (option.priority === undefined) option.priority = "length";
-		this.match_priority = option.priority;
+	constructor(private def: LexDefinitions) {
 		const formatted_def: LexDefinitions = [];
 		// 正しいトークン定義が与えられているかチェック
 		for (const def_sect of def) {
@@ -78,7 +74,7 @@ export class Lexer implements ILexer {
 				const _priority = priority !== undefined ? priority : 0;
 				if (result_priority === null ||
 					_priority > result_priority ||
-					this.match_priority === "length" && _priority == result_priority && match.length > result_match.length) {
+					_priority == result_priority && match.length > result_match.length) {
 					result_token = token;
 					result_match = match;
 					result_priority = _priority;
