@@ -36,7 +36,8 @@ export class Lexer implements ILexer {
 				flags += "y";
 				formatted_def.push({
 					token: def_sect.token,
-					pattern: new RegExp(token_pattern, flags)
+					pattern: new RegExp(token_pattern, flags),
+					priority: def_sect.priority
 				});
 			}
 			else {
@@ -52,8 +53,9 @@ export class Lexer implements ILexer {
 			let flg_matched = false;
 			let result_token: Token | null = null;
 			let result_match: string = "";
+			let result_priority: number | null = null;
 			let next_index: number;
-			for (const {token, pattern} of this.def) {
+			for (const {token, pattern, priority} of this.def) {
 				let match: string;
 				let tmp_next_index: number;
 				if (typeof pattern === "string") {
@@ -72,20 +74,15 @@ export class Lexer implements ILexer {
 					match = m[0];
 					tmp_next_index = pattern.lastIndex;
 				}
-				if (this.match_priority === "order") {
-					// マッチ優先度がリスト出現順
+				// 同じ優先度の場合、最長マッチまたは出現順(match_priorityで設定)
+				const _priority = priority !== undefined ? priority : 0;
+				if (result_priority === null ||
+					_priority > result_priority ||
+					this.match_priority === "length" && _priority == result_priority && match.length > result_match.length) {
 					result_token = token;
 					result_match = match;
+					result_priority = _priority;
 					next_index = tmp_next_index;
-					break;
-				}
-				else {
-					// 最長マッチ優先
-					if (match.length > result_match.length) { // 同じ長さの場合はリスト順
-						result_token = token;
-						result_match = match;
-						next_index = tmp_next_index;
-					}
 				}
 			}
 			if (flg_matched) {

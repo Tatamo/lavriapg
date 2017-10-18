@@ -3,6 +3,7 @@ import {Token} from "./token";
 export interface LexDefinitionSection {
 	token: Token | null;
 	pattern: string | RegExp;
+	priority?: number;
 }
 
 export type LexDefinitions = Array<LexDefinitionSection>;

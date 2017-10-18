@@ -72,6 +72,29 @@ describe("Lexer test", () => {
 			{token: SYMBOL_EOF, value: ""}
 		]);
 	});
+	test("rule priority", () => {
+		const lexer = new Lexer([
+			{token: "PM", pattern: "+-"},
+			{token: "PMA", pattern: "+-*"},
+			{token: "ASTERISK", pattern: "*", priority: 1},
+			{token: "ABC", pattern: /abc/},
+			{token: "ABCD", pattern: /abcd/},
+			{token: "ABCD2", pattern: /abcd/, priority: 2},
+			{token: "D", pattern: /d/},
+			{token: "XYZ", pattern: /xyz/},
+			{token: "XYZW", pattern: /xyzw/, priority: -1},
+			{token: "W", pattern: /w/},
+			{token: null, pattern: " "}
+		]);
+		expect(lexer.exec(" +-+-*abcd xyzw")).toEqual([
+			{token: "PM", value: "+-"},
+			{token: "PMA", value: "+-*"},
+			{token: "ABCD2", value: "abcd"},
+			{token: "XYZ", value: "xyz"},
+			{token: "W", value: "w"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+	});
 	const def = [
 		{token: "PM", pattern: "+-"},
 		{token: "PMA", pattern: "+-*"},
