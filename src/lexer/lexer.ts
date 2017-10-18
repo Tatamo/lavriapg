@@ -1,4 +1,4 @@
-import {LexDefinitions} from "../def/grammar";
+import {LexDefinitions, LexDefinitionSection} from "../def/grammar";
 import {SYMBOL_EOF, Token, TokenList} from "../def/token";
 
 export interface ILexer {
@@ -6,41 +6,14 @@ export interface ILexer {
 }
 
 export class Lexer implements ILexer {
-	constructor(private def: LexDefinitions) {
-		const formatted_def: LexDefinitions = [];
-		// 正しいトークン定義が与えられているかチェック
-		for (const def_sect of def) {
-			const token_pattern = def_sect.pattern;
-			if (typeof token_pattern == "string") {
-				formatted_def.push(def_sect);
-			}
-			else if (token_pattern instanceof RegExp) {
-				// フラグを整形する
-				let flags: string = "";
-				// gフラグは邪魔なので取り除く
-				// i,m,uフラグがあれば維持する
-				if (token_pattern.ignoreCase) {
-					flags += "i";
-				}
-				if (token_pattern.multiline) {
-					flags += "m";
-				}
-				if (token_pattern.unicode) {
-					flags += "u";
-				}
-				// yフラグは必ずつける
-				flags += "y";
-				formatted_def.push({
-					token: def_sect.token,
-					pattern: new RegExp(token_pattern, flags),
-					priority: def_sect.priority
-				});
-			}
-			else {
-				throw new Error("invalid token definition: neither string nor RegExp object");
-			}
+	private _rule_id: number;
+	private def: Array<{ id: number, rule: LexDefinitionSection }>;
+	constructor(def: LexDefinitions) {
+		this.def = [];
+		this._rule_id = 0;
+		for (const rule of def) {
+			this.add(rule);
 		}
-		this.def = formatted_def;
 	}
 	exec(str: string): TokenList {
 		const result: TokenList = [];
@@ -51,7 +24,8 @@ export class Lexer implements ILexer {
 			let result_match: string = "";
 			let result_priority: number | null = null;
 			let next_index: number;
-			for (const {token, pattern, priority} of this.def) {
+			for (const {rule} of this.def) {
+				const {token, pattern, priority} = rule;
 				let match: string;
 				let tmp_next_index: number;
 				if (typeof pattern === "string") {
@@ -98,5 +72,52 @@ export class Lexer implements ILexer {
 		// 最後にEOFトークンを付与
 		result.push({token: SYMBOL_EOF, value: ""});
 		return result;
+	}
+	// 字句規則を追加し、そのidを返す
+	add(rule: LexDefinitionSection): number {
+		const id = this._rule_id++;
+		const token_pattern = rule.pattern;
+		// 正しいトークン定義が与えられているかチェック
+		if (typeof token_pattern === "string") {
+			this.def.push({id, rule});
+		}
+		else if (token_pattern instanceof RegExp) {
+			// フラグを整形する
+			let flags: string = "";
+			// gフラグは邪魔なので取り除く
+			// i,m,uフラグがあれば維持する
+			if (token_pattern.ignoreCase) {
+				flags += "i";
+			}
+			if (token_pattern.multiline) {
+				flags += "m";
+			}
+			if (token_pattern.unicode) {
+				flags += "u";
+			}
+			// yフラグは必ずつける
+			flags += "y";
+			this.def.push({
+				id: id,
+				rule: {
+					token: rule.token,
+					pattern: new RegExp(token_pattern, flags),
+					priority: rule.priority
+				}
+			});
+		}
+		else {
+			throw new Error("invalid token definition: neither string nor RegExp object");
+		}
+		return id;
+	}
+	// 字句規則を削除する
+	del(id: number): LexDefinitionSection {
+		for (let i = 0; i < this.def.length; i++) {
+			if (this.def[i].id === id) {
+				return this.def.splice(i, 1)[0].rule;
+			}
+		}
+		throw new Error("definition not found");
 	}
 }
