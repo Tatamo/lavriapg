@@ -1,24 +1,48 @@
 import {LexDefinitions, LexDefinitionSection} from "../def/grammar";
-import {SYMBOL_EOF, Token, TokenList} from "../def/token";
+import {SYMBOL_EOF, Token} from "../def/token";
 
 export interface ILexer {
-	exec(str: string): TokenList;
+	exec(str: string): Array<{ token: Token, value: string }>;
 }
 
 export class Lexer implements ILexer {
 	private _rule_id: number;
 	private def: Array<{ id: number, rule: LexDefinitionSection }>;
-	constructor(def: LexDefinitions) {
+	private _input: string;
+	constructor(def: LexDefinitions, input?: string) {
 		this.def = [];
 		this._rule_id = 0;
 		for (const rule of def) {
 			this.add(rule);
 		}
+		this._status = "uninitialized";
+		if (input !== undefined) this.init(input);
 	}
-	exec(str: string): TokenList {
-		const result: TokenList = [];
-		let last_index = 0;
-		while (last_index < str.length) {
+	private _last_index: number;
+	get last_index(): number {
+		return this._last_index;
+	}
+	private _status: "uninitialized" | "ready" | "finished";
+	get status(): "uninitialized" | "ready" | "finished" {
+		return this._status;
+	}
+	init(input: string) {
+		this._input = input;
+		this._last_index = 0;
+		this._status = "ready";
+	}
+	step(): { token: Token, value: string } {
+		if (this.status !== "ready") {
+			throw new Error("Lexer is not ready");
+		}
+		while (true) {
+			if (this._last_index >= this._input.length) {
+				// 解析終了
+				this._last_index = this._input.length;
+				this._status = "finished";
+				// 最後にEOFトークンを付与
+				return {token: SYMBOL_EOF, value: ""};
+			}
 			let flg_matched = false;
 			let result_token: Token | null = null;
 			let result_match: string = "";
@@ -30,15 +54,15 @@ export class Lexer implements ILexer {
 				let tmp_next_index: number;
 				if (typeof pattern === "string") {
 					match = pattern;
-					tmp_next_index = last_index + pattern.length;
-					if (str.substring(last_index, tmp_next_index) != pattern) continue; // マッチしない
-					if (tmp_next_index < str.length && /\w/.test(pattern.slice(-1)) && /\w/.test(str[tmp_next_index])) continue; // マッチした文字列の末尾が\wで、その直後の文字が\wの場合はスキップ
+					tmp_next_index = this._last_index + pattern.length;
+					if (this._input.substring(this._last_index, tmp_next_index) != pattern) continue; // マッチしない
+					if (tmp_next_index < this._input.length && /\w/.test(pattern.slice(-1)) && /\w/.test(this._input[tmp_next_index])) continue; // マッチした文字列の末尾が\wで、その直後の文字が\wの場合はスキップ
 					flg_matched = true;
 				}
 				else {
 					// pattern: RegExp
-					pattern.lastIndex = last_index;
-					const m = pattern.exec(str);
+					pattern.lastIndex = this._last_index;
+					const m = pattern.exec(this._input);
 					if (m === null) continue; // マッチ失敗
 					flg_matched = true;
 					match = m[0];
@@ -56,21 +80,27 @@ export class Lexer implements ILexer {
 				}
 			}
 			if (flg_matched) {
+				// 読む位置を進める
+				this._last_index = next_index!;
 				// tokenがnullなら処理を飛ばす
 				if (result_token !== null) {
-					// 結果に追加
-					result.push({token: result_token, value: result_match});
+					return {token: result_token, value: result_match};
 				}
-				// 読む位置を進める
-				last_index = next_index!;
 			}
 			else {
 				// マッチする規則がなかった
 				throw new Error("no pattern matched");
 			}
 		}
-		// 最後にEOFトークンを付与
-		result.push({token: SYMBOL_EOF, value: ""});
+	}
+	exec(input?: string): Array<{ token: Token, value: string }> {
+		if (input !== undefined) {
+			this.init(input);
+		}
+		const result: Array<{ token: Token, value: string }> = [];
+		while (this.status !== "finished") {
+			result.push(this.step());
+		}
 		return result;
 	}
 	// 字句規則を追加し、そのidを返す
@@ -112,6 +142,7 @@ export class Lexer implements ILexer {
 		return id;
 	}
 	// 字句規則を削除する
+	// TODO: もっとましな実装にする
 	del(id: number): LexDefinitionSection {
 		for (let i = 0; i < this.def.length; i++) {
 			if (this.def[i].id === id) {
