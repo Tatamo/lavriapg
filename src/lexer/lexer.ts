@@ -25,12 +25,16 @@ export class Lexer implements ILexer {
 		for (const rule of def) {
 			this.add(rule);
 		}
+		this.setCurrentDefinitionAsDefault();
+		this.reset(input);
+	}
+	// リセット時に現在の字句規則になるようにする
+	setCurrentDefinitionAsDefault() {
 		this._reset = {
 			def: this._def.slice(),
 			id: this._rule_id,
 			flg_modified: false
 		};
-		this.reset(input);
 	}
 	// Lexerの内部状態をコンストラクタ呼び出し直後まで戻す
 	reset(input?: string) {

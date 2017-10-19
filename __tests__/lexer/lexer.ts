@@ -133,5 +133,17 @@ describe("Lexer test", () => {
 			{token: "ASTERISK", value: "*"},
 			{token: SYMBOL_EOF, value: ""}
 		]);
+		lexer.add({token: "ABCAST", pattern: /abc\*/, priority: 1});
+		lexer.setCurrentDefinitionAsDefault();
+		expect(lexer.exec(" *abc* ")).toEqual([
+			{token: "ASTERISK", value: "*"},
+			{token: "ABCAST", value: "abc*"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+		expect(lexer.exec(" *abc* ")).toEqual([
+			{token: "ASTERISK", value: "*"},
+			{token: "ABCAST", value: "abc*"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
 	});
 });
