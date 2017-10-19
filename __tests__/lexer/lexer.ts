@@ -146,4 +146,16 @@ describe("Lexer test", () => {
 			{token: SYMBOL_EOF, value: ""}
 		]);
 	});
+	test("callback", () => {
+		const lexer = new Lexer([
+			{
+				token: "ERROR", pattern: "x",
+				callback: () => {
+					throw new Error("custom callback");
+				}
+			},
+			{token: null, pattern: " "}
+		]);
+		expect(() => lexer.exec(" x ")).toThrow(/custom callback/);
+	});
 });
