@@ -47,8 +47,13 @@
 			"js",
 			"json"
 		],
-		"watchPathIgnorePatterns": ["<rootDir>/__tests__/data/tmp/"],
-		"coveragePathIgnorePatterns": ["<rootDir>/__tests__/data/", "<rootDir>/dist/"],
+		"watchPathIgnorePatterns": [
+			"<rootDir>/__tests__/data/tmp/"
+		],
+		"coveragePathIgnorePatterns": [
+			"<rootDir>/__tests__/data/",
+			"<rootDir>/dist/"
+		],
 		"globals": {
 			"ts-jest": {
 				"tsConfigFile": "__tests__/tsconfig.json"

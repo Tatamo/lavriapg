@@ -1,5 +1,5 @@
 import {Token} from "./token";
-import {ILexer} from "../../dist/lexer/lexer";
+import {ILexer} from "../lexer/lexer";
 
 export interface LexDefinitionSection {
 	token: Token | null;
