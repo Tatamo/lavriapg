@@ -42,7 +42,7 @@ const lex: LexDefinition = [
 ];
 const language: Language = {
 	lex: lex,
-	syntax: syntax,
+	grammar: syntax,
 	start_symbol: "EXP"
 };
 

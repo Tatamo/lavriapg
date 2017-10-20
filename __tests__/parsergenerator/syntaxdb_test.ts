@@ -19,19 +19,19 @@ describe("SyntaxDB test", () => {
 		});
 	});
 	describe("getRuleById test", () => {
-		test("rule of syntax 1 is: E -> LIST SEMICOLON", () => {
+		test("rule of grammar 1 is: E -> LIST SEMICOLON", () => {
 			expect(syntaxdb.getRuleById(1)).toEqual({ltoken: "E", pattern: ["LIST", "SEMICOLON"]});
 		});
-		test("rule of syntax -1 is: S' -> S", () => {
+		test("rule of grammar -1 is: S' -> S", () => {
 			expect(syntaxdb.getRuleById(-1)).toEqual({ltoken: SYMBOL_SYNTAX, pattern: ["S"]});
 		});
-		test("throw error by calling rule of syntax -2", () => {
+		test("throw error by calling rule of grammar -2", () => {
 			expect(() => syntaxdb.getRuleById(-2)).toThrow(/out of range/);
 		});
-		test("no error occurs in rule of syntax 7", () => {
+		test("no error occurs in rule of grammar 7", () => {
 			expect(() => syntaxdb.getRuleById(7)).not.toThrow();
 		});
-		test("throw error by calling rule of syntax 8", () => {
+		test("throw error by calling rule of grammar 8", () => {
 			expect(() => syntaxdb.getRuleById(8)).toThrow(/out of range/);
 		});
 	});

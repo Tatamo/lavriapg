@@ -12,7 +12,7 @@ export class SyntaxDB {
 	private tokenid_counter: number;
 	private rulemap: Map<Token, Array<{ id: number, rule: GrammarRule }>>;
 	constructor(language: Language) {
-		this.syntax = language.syntax;
+		this.syntax = language.grammar;
 		this._start_symbol = language.start_symbol;
 		this._symbols = new SymbolDiscriminator(this.syntax);
 		this._first = new FirstSet(this.syntax, this.symbols);
@@ -48,7 +48,7 @@ export class SyntaxDB {
 			}
 		}
 	}
-	// Token-> [{id,syntax}]の対応を生成
+	// Token-> [{id,grammar}]の対応を生成
 	private initDefMap() {
 		this.rulemap = new Map<Token, Array<{ id: number, rule: GrammarRule }>>();
 		for (let i = 0; i < this.syntax.length; i++) {
@@ -95,7 +95,7 @@ export class SyntaxDB {
 			// return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF]};
 		}
 		else if (id >= 0 && id < this.syntax.length) return this.syntax[id];
-		throw new Error("syntax id out of range");
+		throw new Error("grammar id out of range");
 	}
 	// Tokenを与えると一意なidを返す
 	public getTokenId(token: Token): number {

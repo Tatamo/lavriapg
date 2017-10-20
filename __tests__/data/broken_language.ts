@@ -40,6 +40,6 @@ export const test_broken_lex: LexDefinition = [
 
 export const test_broken_language: Language = {
 	lex: test_broken_lex,
-	syntax: test_broken_syntax,
+	grammar: test_broken_syntax,
 	start_symbol: "EXP"
 };

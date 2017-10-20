@@ -48,13 +48,13 @@ export const test_sample_lex: LexDefinition = [
 
 export const test_sample_language: Language = {
 	lex: test_sample_lex,
-	syntax: test_sample_syntax,
+	grammar: test_sample_syntax,
 	start_symbol: "S"
 };
 
 export const test_empty_language: Language = {
 	lex: [],
-	syntax: [{ltoken: "S", pattern: []}],
+	grammar: [{ltoken: "S", pattern: []}],
 	start_symbol: "S"
 };
 
@@ -98,7 +98,7 @@ export const test_calc_lex: LexDefinition = [
 
 export const test_calc_language: Language = {
 	lex: test_calc_lex,
-	syntax: test_calc_syntax,
+	grammar: test_calc_syntax,
 	start_symbol: "EXP"
 };
 

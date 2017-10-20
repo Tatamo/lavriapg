@@ -66,19 +66,19 @@ describe("ClosureSet test", () => {
 			expect(()=>cs.includes(new ClosureItem(syntaxdb, 0, 1, [SYMBOL_EOF]))).not.toThrow();
 			expect(()=>cs.includes(new ClosureItem(syntaxdb, 0, 2, [SYMBOL_EOF]))).toThrow(/out of range/);
 			expect(()=>cs.includes(new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF]))).toThrow(/out of range/);
-			expect(()=>cs.includes(new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF]))).toThrow(/invalid syntax id/);
-			expect(()=>cs.includes(new ClosureItem(syntaxdb, -8, 0, [SYMBOL_EOF]))).toThrow(/invalid syntax id/);
+			expect(()=>cs.includes(new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF]))).toThrow(/invalid grammar id/);
+			expect(()=>cs.includes(new ClosureItem(syntaxdb, -8, 0, [SYMBOL_EOF]))).toThrow(/invalid grammar id/);
 		});
 		describe("invalid ClosureSet", () => {
-			test("invalid syntax id", () => {
-				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF])])).toThrow(/invalid syntax id/);
+			test("invalid grammar id", () => {
+				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF])])).toThrow(/invalid grammar id/);
 			});
 			test("invalid dot position", () => {
 				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF])])).toThrow(/out of range/);
 			});
 		});
 	});
-	describe("empty syntax", () => {
+	describe("empty grammar", () => {
 		const syntaxdb = new SyntaxDB(test_empty_language);
 		const cs = new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF])]);
 		const expanded = [

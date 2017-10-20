@@ -135,9 +135,9 @@ export class Parser {
 					console.error("shift to " + to.toString() + ":", JSON.stringify(this.parsingtable[to]));
 				});
 				action.reduce_syntax.forEach((syntax: number) => {
-					console.error("reduce syntax " + syntax.toString() + ":", JSON.stringify(this.parsingtable[syntax]));
+					console.error("reduce grammar " + syntax.toString() + ":", JSON.stringify(this.parsingtable[syntax]));
 				});
-				console.error("parser cannot parse conflicted syntax");
+				console.error("parser cannot parse conflicted grammar");
 				flg_error = true;
 				break;
 			}

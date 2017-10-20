@@ -43,7 +43,7 @@ describe("ClosureItem test", () => {
 		});
 	});
 	describe("invalid ClosureItem", () => {
-		test("invalid syntax id", () => {
+		test("invalid grammar id", () => {
 			expect(()=>new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF])).toThrow();
 		});
 		test("invalid dot position", () => {

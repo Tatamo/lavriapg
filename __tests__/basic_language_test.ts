@@ -1,11 +1,12 @@
 import {constructLanguage, language_language} from "../src/precompiler/ruleparser";
 import {ParserGenerator} from "../src/parsergenerator/parsergenerator";
+import {Language} from "../src/def/language";
 
 const input = require("fs").readFileSync("language", "utf8");
 
-const ideal_result_language = {
+const ideal_result_language: Language = {
 	lex: language_language.lex,
-	syntax: language_language.syntax,
+	grammar: language_language.grammar,
 	start_symbol: "LANGUAGE"
 };
 

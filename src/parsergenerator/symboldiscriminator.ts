@@ -4,18 +4,18 @@ import {Token} from "../def/token";
 export class SymbolDiscriminator {
 	private terminal_symbols: Set<Token>;
 	private nonterminal_symbols: Set<Token>;
-	constructor(syntaxdef: GrammarDefinition) {
+	constructor(grammar: GrammarDefinition) {
 		this.terminal_symbols = new Set<Token>();
 		this.nonterminal_symbols = new Set<Token>();
 
 		// 左辺値の登録
-		for (const rule of syntaxdef) {
+		for (const rule of grammar) {
 			const symbol = rule.ltoken;
 			// 構文規則の左辺に現れる記号は非終端記号
 			this.nonterminal_symbols.add(symbol);
 		}
 		// 右辺値の登録
-		for (const rule of syntaxdef) {
+		for (const rule of grammar) {
 			for (const symbol of rule.pattern) {
 				if (!this.nonterminal_symbols.has(symbol)) {
 					// 非終端記号でない(=左辺値に現れない)場合、終端記号である

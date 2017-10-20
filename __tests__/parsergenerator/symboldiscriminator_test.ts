@@ -41,7 +41,7 @@ describe("SymbolDiscriminator test", () => {
 			expect(symbols.isNonterminalSymbol("ID")).toBeFalsy();
 			expect(symbols.isTerminalSymbol("ID")).toBeTruthy();
 		});
-		test("INVALID (not appear in syntax) is neither Nonterminal nor Terminal", () => {
+		test("INVALID (not appear in grammar) is neither Nonterminal nor Terminal", () => {
 			expect(symbols.isNonterminalSymbol("INVALID")).toBeFalsy();
 			expect(symbols.isTerminalSymbol("INVALID")).toBeFalsy();
 		});
@@ -78,7 +78,7 @@ describe("SymbolDiscriminator test", () => {
 		});
 	});
 	describe("test empty language", () => {
-		const symbols = new SymbolDiscriminator(test_empty_language.syntax);
+		const symbols = new SymbolDiscriminator(test_empty_language.grammar);
 		test("Check nonterminal symbols set", () => {
 			const nt: Set<Token> = symbols.getNonterminalSymbols();
 			expect(nt).toContain("S");

@@ -19,6 +19,6 @@ export type GrammarDefinition = Array<GrammarRule>;
 
 export interface Language {
 	lex: LexDefinition;
-	syntax: GrammarDefinition;
+	grammar: GrammarDefinition;
 	start_symbol: Token;
 }

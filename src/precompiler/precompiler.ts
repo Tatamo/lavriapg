@@ -41,10 +41,10 @@ export class PreCompiler {
 			result += "\n";
 		}
 		result += "\t" + "],\n";
-		result += "\t" + "syntax: [\n";
-		for (let i = 0; i < language.syntax.length; i++) {
-			const ltoken = language.syntax[i].ltoken;
-			const pattern = language.syntax[i].pattern;
+		result += "\t" + "grammar: [\n";
+		for (let i = 0; i < language.grammar.length; i++) {
+			const ltoken = language.grammar[i].ltoken;
+			const pattern = language.grammar[i].pattern;
 			result += "\t\t" + "{\n";
 			result += "\t\t\t" + 'ltoken: "' + (ltoken as string) + '",\n';
 			result += "\t\t\t" + "pattern: [";
@@ -54,7 +54,7 @@ export class PreCompiler {
 			}
 			result += "]\n";
 			result += "\t\t" + "}";
-			if (i != language.syntax.length - 1) result += ",";
+			if (i != language.grammar.length - 1) result += ",";
 			result += "\n";
 		}
 		result += "\t" + "],\n";

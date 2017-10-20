@@ -102,7 +102,7 @@ const syntax: GrammarDefinition = [
 	}
 ];
 
-export const language_language: Language = {lex: lex, syntax: syntax, start_symbol: "LANGUAGE"};
+export const language_language: Language = {lex: lex, grammar: syntax, start_symbol: "LANGUAGE"};
 
 // ASTからLanguageを構築
 export let constructLanguage = (() => {
@@ -132,7 +132,7 @@ export let constructLanguage = (() => {
 						// 開始記号の指定がない場合、最初の規則に設定
 						start_symbol = children[1][0].ltoken;
 					}
-					return {lex: children[0], syntax: children[1], start_symbol: start_symbol};
+					return {lex: children[0], grammar: children[1], start_symbol: start_symbol};
 				case "LEXDEF":
 					return children[0];
 				case "LEXLABEL":

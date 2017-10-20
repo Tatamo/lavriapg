@@ -8,7 +8,7 @@ export class ClosureItem {
 	constructor(private syntax: SyntaxDB, private _syntax_id: number, private _dot_index: number, private _lookaheads: Array<Token>) {
 		// 有効な値かどうか調べる
 		if (!this.syntax.hasRuleId(this._syntax_id)) {
-			throw new Error("invalid syntax id");
+			throw new Error("invalid grammar id");
 		}
 		if (this._dot_index < 0 || this._dot_index > this.syntax.getRuleById(this._syntax_id).pattern.length) {
 			throw new Error("dot index out of range");

@@ -74,7 +74,7 @@ describe("FirstSet test", () => {
 });
 
 describe("FirstSet test(empty language)", () => {
-	const first = new FirstSet(test_empty_language.syntax, new SymbolDiscriminator(test_empty_language.syntax));
+	const first = new FirstSet(test_empty_language.grammar, new SymbolDiscriminator(test_empty_language.grammar));
 	test("First(S) is {}", () => {
 		expect(first.get("S").size).toBe(0);
 	});
