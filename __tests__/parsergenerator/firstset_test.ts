@@ -73,7 +73,7 @@ describe("FirstSet test", () => {
 	});
 });
 
-describe("FirstSet test(empty grammar)", () => {
+describe("FirstSet test(empty language)", () => {
 	const first = new FirstSet(test_empty_language.syntax, new SymbolDiscriminator(test_empty_language.syntax));
 	test("First(S) is {}", () => {
 		expect(first.get("S").size).toBe(0);

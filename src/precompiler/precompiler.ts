@@ -24,7 +24,7 @@ export class PreCompiler {
 		result += 'import {Token, SYMBOL_EOF, Language, ParsingOperation, ParsingTable, Parser, ParserFactory} from "' + this.import_path +'";\n\n';
 	   */
 
-		result += "export const grammar: Language = {\n";
+		result += "export const language: Language = {\n";
 		result += "\t" + "lex: [\n";
 		for (let i = 0; i < grammar.lex.length; i++) {
 			const token = grammar.lex[i].token;
@@ -71,7 +71,7 @@ export class PreCompiler {
 		}
 		result = result.slice(0, -2);
 		result += "\n];\n\n";
-		result += "export const parser:Parser = ParserFactory.create(grammar, parsing_table);\n";
+		result += "export const parser:Parser = ParserFactory.create(language, parsing_table);\n";
 		return result;
 	}
 }

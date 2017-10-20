@@ -3,7 +3,7 @@ import {SymbolDiscriminator} from "../../src/parsergenerator/symboldiscriminator
 import {Token} from "../../src/def/token";
 
 describe("SymbolDiscriminator test", () => {
-	describe("test sample grammar", () => {
+	describe("test sample language", () => {
 		const symbols = new SymbolDiscriminator(test_sample_syntax);
 		test("S is Nonterminal", () => {
 			expect(symbols.isNonterminalSymbol("S")).toBeTruthy();
@@ -60,7 +60,7 @@ describe("SymbolDiscriminator test", () => {
 			expect(t.size).toBe(4);
 		});
 	});
-	describe("test sample grammar", () => {
+	describe("test sample language", () => {
 		const symbols = new SymbolDiscriminator(test_calc_syntax);
 		test("Check nonterminal symbols set", () => {
 			const nt: Set<Token> = symbols.getNonterminalSymbols();
@@ -77,7 +77,7 @@ describe("SymbolDiscriminator test", () => {
 			expect(t.size).toBe(5);
 		});
 	});
-	describe("test empty grammar", () => {
+	describe("test empty language", () => {
 		const symbols = new SymbolDiscriminator(test_empty_language.syntax);
 		test("Check nonterminal symbols set", () => {
 			const nt: Set<Token> = symbols.getNonterminalSymbols();

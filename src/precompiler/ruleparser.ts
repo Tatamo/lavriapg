@@ -21,8 +21,8 @@ const lex: LexDefinition = [
 
 const syntax: GrammarDefinition = [
 	{
-		ltoken: "GRAMMAR",
-		pattern: ["LEX", "SYNTAX"]
+		ltoken: "LANGUAGE",
+		pattern: ["LEX", "GRAMMAR"]
 	},
 	{
 		ltoken: "LEX",
@@ -57,11 +57,11 @@ const syntax: GrammarDefinition = [
 		pattern: ["REGEXP"]
 	},
 	{
-		ltoken: "SYNTAX",
-		pattern: ["SECT", "SYNTAX"]
+		ltoken: "GRAMMAR",
+		pattern: ["SECT", "GRAMMAR"]
 	},
 	{
-		ltoken: "SYNTAX",
+		ltoken: "GRAMMAR",
 		pattern: ["SECT"]
 	},
 	{
@@ -102,7 +102,7 @@ const syntax: GrammarDefinition = [
 	}
 ];
 
-export const language_language: Language = {lex: lex, syntax: syntax, start_symbol: "GRAMMAR"};
+export const language_language: Language = {lex: lex, syntax: syntax, start_symbol: "LANGUAGE"};
 
 // ASTからLanguageを構築
 export let constructLanguage = (() => {
@@ -127,7 +127,7 @@ export let constructLanguage = (() => {
 			const children = arg.children;
 			const pattern = arg.pattern;
 			switch (token) {
-				case "GRAMMAR":
+				case "LANGUAGE":
 					if (start_symbol === null) {
 						// 開始記号の指定がない場合、最初の規則に設定
 						start_symbol = children[1][0].ltoken;
@@ -169,7 +169,7 @@ export let constructLanguage = (() => {
 						result.push({ltoken: children[0], pattern: pt});
 					}
 					return result;
-				case "SYNTAX":
+				case "GRAMMAR":
 					if (pattern.length == 2) return children[0].concat(children[1]);
 					else return children[0];
 			}
@@ -181,7 +181,7 @@ export let constructLanguage = (() => {
 
 export const language_parsing_table: ParsingTable = [
 	new Map<Token, ParsingOperation>([
-		["GRAMMAR", {type: "goto", to: 1}],
+		["LANGUAGE", {type: "goto", to: 1}],
 		["LEX", {type: "goto", to: 2}],
 		["LEXSECT", {type: "goto", to: 3}],
 		["LEXLABEL", {type: "goto", to: 4}],
@@ -190,7 +190,7 @@ export const language_parsing_table: ParsingTable = [
 	new Map<Token, ParsingOperation>([
 		[SYMBOL_EOF, {type: "accept"}]]),
 	new Map<Token, ParsingOperation>([
-		["SYNTAX", {type: "goto", to: 7}],
+		["GRAMMAR", {type: "goto", to: 7}],
 		["LEXSECT", {type: "goto", to: 8}],
 		["SECT", {type: "goto", to: 9}],
 		["SECTLABEL", {type: "goto", to: 10}],
@@ -224,7 +224,7 @@ export const language_parsing_table: ParsingTable = [
 		["SECTLABEL", {type: "goto", to: 10}],
 		["LABEL", {type: "shift", to: 17}],
 		["DOLLAR", {type: "shift", to: 12}],
-		["SYNTAX", {type: "goto", to: 18}],
+		["GRAMMAR", {type: "goto", to: 18}],
 		[SYMBOL_EOF, {type: "reduce", syntax: 10}]]),
 	new Map<Token, ParsingOperation>([
 		["COLON", {type: "shift", to: 19}]]),

@@ -9,7 +9,7 @@ describe("parser test", () => {
 	test("parser factory", () => {
 		expect(ParserFactory.create(test_calc_language, parsingtable)).toBeInstanceOf(Parser);
 	});
-	test("getting calc grammar ast", () => {
+	test("getting calc language ast", () => {
 		expect(parser.parse("1+1")).toEqual({
 			type: "EXP", value: null, children:
 				[
