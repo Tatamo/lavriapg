@@ -10,7 +10,7 @@ export class SyntaxDB {
 	private _symbols: SymbolDiscriminator;
 	private tokenmap: Map<Token, number>;
 	private tokenid_counter: number;
-	private defmap: Map<Token, Array<{ id: number, def: GrammarRule }>>;
+	private rulemap: Map<Token, Array<{ id: number, rule: GrammarRule }>>;
 	constructor(language: Language) {
 		this.syntax = language.syntax;
 		this._start_symbol = language.start_symbol;
@@ -31,16 +31,16 @@ export class SyntaxDB {
 		this.tokenmap.set(SYMBOL_SYNTAX, this.tokenid_counter++);
 
 		// 左辺値の登録
-		for (const sect of this.syntax) {
-			const ltoken = sect.ltoken;
+		for (const rule of this.syntax) {
+			const ltoken = rule.ltoken;
 			// 構文規則の左辺に現れる記号は非終端記号
 			if (!this.tokenmap.has(ltoken)) {
 				this.tokenmap.set(ltoken, this.tokenid_counter++);
 			}
 		}
 		// 右辺値の登録
-		for (const sect of this.syntax) {
-			for (const symbol of sect.pattern) {
+		for (const rule of this.syntax) {
+			for (const symbol of rule.pattern) {
 				if (!this.tokenmap.has(symbol)) {
 					// 非終端記号でない(=左辺値に現れない)場合、終端記号である
 					this.tokenmap.set(symbol, this.tokenid_counter++);
@@ -50,17 +50,17 @@ export class SyntaxDB {
 	}
 	// Token-> [{id,syntax}]の対応を生成
 	private initDefMap() {
-		this.defmap = new Map<Token, Array<{ id: number, def: GrammarRule }>>();
+		this.rulemap = new Map<Token, Array<{ id: number, rule: GrammarRule }>>();
 		for (let i = 0; i < this.syntax.length; i++) {
-			let tmp: Array<{ id: number, def: GrammarRule }>;
-			if (this.defmap.has(this.syntax[i].ltoken)) {
-				tmp = this.defmap.get(this.syntax[i].ltoken)!;
+			let tmp: Array<{ id: number, rule: GrammarRule }>;
+			if (this.rulemap.has(this.syntax[i].ltoken)) {
+				tmp = this.rulemap.get(this.syntax[i].ltoken)!;
 			}
 			else {
 				tmp = [];
 			}
-			tmp.push({id: i, def: this.syntax[i]});
-			this.defmap.set(this.syntax[i].ltoken, tmp);
+			tmp.push({id: i, rule: this.syntax[i]});
+			this.rulemap.set(this.syntax[i].ltoken, tmp);
 		}
 	}
 	get start_symbol(): Token {
@@ -73,23 +73,23 @@ export class SyntaxDB {
 		return this._symbols;
 	}
 	// 構文規則がいくつあるかを返す ただし-1番の規則は含めない
-	get def_size(): number {
+	get rule_size(): number {
 		return this.syntax.length;
 	}
 	// 与えられたidの規則が存在するかどうかを調べる
-	public hasDefinitionId(id: number): boolean {
-		return id >= -1 && id < this.def_size;
+	public hasRuleId(id: number): boolean {
+		return id >= -1 && id < this.rule_size;
 	}
 	// 非終端記号xに対し、それが左辺として対応する定義を返す
-	public findDefinition(x: Token): Array<{ id: number, def: GrammarRule }> {
-		if (this.defmap.has(x)) {
-			return this.defmap.get(x)!;
+	public findRules(x: Token): Array<{ id: number, rule: GrammarRule }> {
+		if (this.rulemap.has(x)) {
+			return this.rulemap.get(x)!;
 		}
 		return [];
 	}
 	// 規則idに対応した規則を返す
 	// -1が与えられた時は S' -> S $の規則を返す
-	public getDefinitionById(id: number): GrammarRule {
+	public getRuleById(id: number): GrammarRule {
 		if (id == -1) {
 			return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol]};
 			// return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF]};

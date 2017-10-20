@@ -62,8 +62,8 @@ export class ParserGenerator {
 			// Closureをもとにacceptとreduceオペレーションを追加していく
 			for (const item of node.closure.getArray()) {
 				// 規則末尾が.でないならスキップ
-				// if(item.pattern.getDefinitionById(item.pattern.size-1) != SYMBOL_DOT) return;
-				if (item.dot_index != this.syntax.getDefinitionById(item.syntax_id).pattern.length) continue;
+				// if(item.pattern.getRuleById(item.pattern.size-1) != SYMBOL_DOT) return;
+				if (item.dot_index != this.syntax.getRuleById(item.syntax_id).pattern.length) continue;
 				if (item.syntax_id == -1) {
 					// acceptオペレーション
 					// この規則を読み終わると解析終了

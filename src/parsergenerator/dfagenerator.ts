@@ -131,7 +131,7 @@ export class DFAGenerator {
 		const tmp: Map<Token, Array<ClosureItem>> = new Map<Token, Array<ClosureItem>>();
 		// 規則から新しい規則を生成し、対応する記号ごとにまとめる
 		for (const {syntax_id, dot_index, lookaheads} of closureset.getArray()) {
-			const pattern = this.syntax.getDefinitionById(syntax_id).pattern;
+			const pattern = this.syntax.getRuleById(syntax_id).pattern;
 			if (dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
 			const new_ci = new ClosureItem(this.syntax, syntax_id, dot_index + 1, lookaheads);
 			const edge_label: Token = pattern[dot_index];

@@ -99,7 +99,7 @@ export class ClosureSet {
 		let index = 0;
 		while (index < this.closureset.length) {
 			const ci = this.closureset[index++];
-			const pattern = this.syntax.getDefinitionById(ci.syntax_id).pattern;
+			const pattern = this.syntax.getRuleById(ci.syntax_id).pattern;
 
 			if (ci.dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
 			const follow = pattern[ci.dot_index];
@@ -115,8 +115,8 @@ export class ClosureSet {
 			});
 
 			// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
-			const definitions = this.syntax.findDefinition(follow);
-			for (const {id} of definitions) {
+			const rules = this.syntax.findRules(follow);
+			for (const {id} of rules) {
 				for (const la of lookaheads) {
 					const new_ci = new ClosureItem(this.syntax, id, 0, [la]);
 					// 重複がなければ新しいアイテムを追加する
