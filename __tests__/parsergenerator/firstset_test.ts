@@ -1,5 +1,5 @@
 import {FirstSet} from "../../src/parsergenerator/firstset";
-import {test_empty_grammar, test_sample_syntax} from "../data/sample_grammar";
+import {test_empty_language, test_sample_syntax} from "../data/sample_language";
 import {SymbolDiscriminator} from "../../src/parsergenerator/symboldiscriminator";
 
 describe("FirstSet test", () => {
@@ -74,7 +74,7 @@ describe("FirstSet test", () => {
 });
 
 describe("FirstSet test(empty grammar)", () => {
-	const first = new FirstSet(test_empty_grammar.syntax, new SymbolDiscriminator(test_empty_grammar.syntax));
+	const first = new FirstSet(test_empty_language.syntax, new SymbolDiscriminator(test_empty_language.syntax));
 	test("First(S) is {}", () => {
 		expect(first.get("S").size).toBe(0);
 	});

@@ -1,4 +1,4 @@
-import {Language, LexDefinition, GrammarDefinition} from "../../src/def/grammar";
+import {Language, LexDefinition, GrammarDefinition} from "../../src/def/language";
 import {ParserCallbackArg} from "../../src/parser/parser";
 
 export const test_sample_syntax: GrammarDefinition = [
@@ -46,13 +46,13 @@ export const test_sample_lex: LexDefinition = [
 	{token: "INVALID", pattern: /./}
 ];
 
-export const test_sample_grammar: Language = {
+export const test_sample_language: Language = {
 	lex: test_sample_lex,
 	syntax: test_sample_syntax,
 	start_symbol: "S"
 };
 
-export const test_empty_grammar: Language = {
+export const test_empty_language: Language = {
 	lex: [],
 	syntax: [{ltoken: "S", pattern: []}],
 	start_symbol: "S"
@@ -96,13 +96,13 @@ export const test_calc_lex: LexDefinition = [
 	{token: "INVALID", pattern: /./}
 ];
 
-export const test_calc_grammar: Language = {
+export const test_calc_language: Language = {
 	lex: test_calc_lex,
 	syntax: test_calc_syntax,
 	start_symbol: "EXP"
 };
 
-export const test_calc_grammar_raw_string = `DIGITS		/[1-9][0-9]*/
+export const test_calc_language_raw_string = `DIGITS		/[1-9][0-9]*/
 PLUS		"+"
 ASTERISK	"*"
 LPAREN		 "("

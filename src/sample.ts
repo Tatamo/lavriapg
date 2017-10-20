@@ -1,7 +1,6 @@
 import {readFileSync} from "fs";
-import {constructGrammar, grammar_grammar} from "./precompiler/ruleparser";
 import {ParserGenerator} from "./parsergenerator/parsergenerator";
-import {Language, LexDefinition, GrammarDefinition} from "./def/grammar";
+import {Language, LexDefinition, GrammarDefinition} from "./def/language";
 
 const input = readFileSync("/dev/stdin", "utf8");
 
@@ -41,12 +40,12 @@ const lex: LexDefinition = [
 	{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
 	{token: "INVALID", pattern: /./}
 ];
-const grammar: Language = {
+const language: Language = {
 	lex: lex,
 	syntax: syntax,
 	start_symbol: "EXP"
 };
 
 console.time("process");
-console.log(JSON.stringify(new ParserGenerator(grammar).getParser().parse(input), undefined, 2));
+console.log(JSON.stringify(new ParserGenerator(language).getParser().parse(input), undefined, 2));
 console.timeEnd("process");

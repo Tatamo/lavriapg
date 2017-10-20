@@ -1,4 +1,4 @@
-import {LexDefinition, Language, GrammarDefinition} from "../def/grammar";
+import {LexDefinition, Language, GrammarDefinition} from "../def/language";
 import {ParsingOperation, ParsingTable} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserFactory} from "../parser/factory";
@@ -102,10 +102,10 @@ const syntax: GrammarDefinition = [
 	}
 ];
 
-export const grammar_grammar: Language = {lex: lex, syntax: syntax, start_symbol: "GRAMMAR"};
+export const language_language: Language = {lex: lex, syntax: syntax, start_symbol: "GRAMMAR"};
 
-// ASTからGrramaDefinitionを構築
-export let constructGrammar = (() => {
+// ASTからLanguageを構築
+export let constructLanguage = (() => {
 	let start_symbol: Token | null = null;
 	return (arg: ParserCallbackArg) => {
 		const token = arg.token;
@@ -179,7 +179,7 @@ export let constructGrammar = (() => {
 })();
 
 
-export const grammar_parsing_table: ParsingTable = [
+export const language_parsing_table: ParsingTable = [
 	new Map<Token, ParsingOperation>([
 		["GRAMMAR", {type: "goto", to: 1}],
 		["LEX", {type: "goto", to: 2}],
@@ -294,6 +294,6 @@ export const grammar_parsing_table: ParsingTable = [
 ];
 
 // 予めParsingTableを用意しておくことで高速化
-// export const grammar_parser:Parser = new ParserGenerator(grammar_grammar).getParser(constructGrammar);
-export const grammar_parser: Parser = ParserFactory.create(grammar_grammar, grammar_parsing_table, constructGrammar);
+// export const language_parser:Parser = new ParserGenerator(language_language).getParser(constructLanguage);
+export const language_parser: Parser = ParserFactory.create(language_language, language_parsing_table, constructLanguage);
 

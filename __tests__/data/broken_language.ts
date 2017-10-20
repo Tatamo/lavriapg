@@ -1,4 +1,4 @@
-import {Language, LexDefinition, GrammarDefinition} from "../../src/def/grammar";
+import {Language, LexDefinition, GrammarDefinition} from "../../src/def/language";
 
 export const test_broken_syntax: GrammarDefinition = [
 	{
@@ -38,7 +38,7 @@ export const test_broken_lex: LexDefinition = [
 	{token: "INVALID", pattern: /./}
 ];
 
-export const test_broken_grammar: Language = {
+export const test_broken_language: Language = {
 	lex: test_broken_lex,
 	syntax: test_broken_syntax,
 	start_symbol: "EXP"

@@ -1,4 +1,4 @@
-import {test_calc_syntax, test_empty_grammar, test_sample_syntax} from "../data/sample_grammar";
+import {test_calc_syntax, test_empty_language, test_sample_syntax} from "../data/sample_language";
 import {SymbolDiscriminator} from "../../src/parsergenerator/symboldiscriminator";
 import {Token} from "../../src/def/token";
 
@@ -78,7 +78,7 @@ describe("SymbolDiscriminator test", () => {
 		});
 	});
 	describe("test empty grammar", () => {
-		const symbols = new SymbolDiscriminator(test_empty_grammar.syntax);
+		const symbols = new SymbolDiscriminator(test_empty_language.syntax);
 		test("Check nonterminal symbols set", () => {
 			const nt: Set<Token> = symbols.getNonterminalSymbols();
 			expect(nt).toContain("S");

@@ -1,4 +1,4 @@
-import {GrammarDefinition} from "../def/grammar";
+import {GrammarDefinition} from "../def/language";
 import {ParsingTable} from "../def/parsingtable";
 import {Token} from "../def/token";
 import {ILexer} from "../lexer/lexer";

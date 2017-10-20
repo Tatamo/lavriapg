@@ -1,4 +1,4 @@
-import {GrammarDefinition} from "../def/grammar";
+import {GrammarDefinition} from "../def/language";
 import {Token} from "../def/token";
 
 export class NullableSet {

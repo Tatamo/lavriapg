@@ -1,4 +1,4 @@
-import {Language, GrammarDefinition, GrammarRule} from "../def/grammar";
+import {Language, GrammarDefinition, GrammarRule} from "../def/language";
 import {SYMBOL_EOF, SYMBOL_SYNTAX, Token} from "../def/token";
 import {FirstSet} from "./firstset";
 import {SymbolDiscriminator} from "./symboldiscriminator";

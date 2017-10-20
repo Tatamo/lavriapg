@@ -1,13 +1,13 @@
 import {Parser} from "../../src/parser/parser";
 import {ParserFactory} from "../../src/parser/factory";
 import {ParserGenerator} from "../../src/parsergenerator/parsergenerator";
-import {test_calc_grammar, test_calc_solver} from "../data/sample_grammar";
+import {test_calc_language, test_calc_solver} from "../data/sample_language";
 
 describe("parser test", () => {
-	const parsingtable = new ParserGenerator(test_calc_grammar).getParsingTable();
-	const parser = ParserFactory.create(test_calc_grammar, new ParserGenerator(test_calc_grammar).getParsingTable());
+	const parsingtable = new ParserGenerator(test_calc_language).getParsingTable();
+	const parser = ParserFactory.create(test_calc_language, new ParserGenerator(test_calc_language).getParsingTable());
 	test("parser factory", () => {
-		expect(ParserFactory.create(test_calc_grammar, parsingtable)).toBeInstanceOf(Parser);
+		expect(ParserFactory.create(test_calc_language, parsingtable)).toBeInstanceOf(Parser);
 	});
 	test("getting calc grammar ast", () => {
 		expect(parser.parse("1+1")).toEqual({

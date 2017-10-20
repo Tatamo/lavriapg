@@ -1,4 +1,4 @@
-import {GrammarDefinition} from "../def/grammar";
+import {GrammarDefinition} from "../def/language";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {NullableSet} from "./nullableset";
 import {SymbolDiscriminator} from "./symboldiscriminator";

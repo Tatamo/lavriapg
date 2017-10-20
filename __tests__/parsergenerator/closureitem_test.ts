@@ -1,10 +1,10 @@
 import {ClosureItem} from "../../src/parsergenerator/closureitem";
-import {test_sample_grammar} from "../data/sample_grammar";
+import {test_sample_language} from "../data/sample_language";
 import {SyntaxDB} from "../../src/index";
 import {SYMBOL_EOF} from "../../src/def/token";
 
 describe("ClosureItem test", () => {
-	const syntaxdb = new SyntaxDB(test_sample_grammar);
+	const syntaxdb = new SyntaxDB(test_sample_language);
 	describe("{S' -> . S [$]}", () => {
 		const ci = new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF]);
 		test("getter", () => {

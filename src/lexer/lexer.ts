@@ -1,4 +1,4 @@
-import {LexDefinition, LexRule} from "../def/grammar";
+import {LexDefinition, LexRule} from "../def/language";
 import {SYMBOL_EOF, Token} from "../def/token";
 
 // TODO: 提供するAPIだけ見せる

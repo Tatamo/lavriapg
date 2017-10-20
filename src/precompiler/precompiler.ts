@@ -1,7 +1,7 @@
-import {Language} from "../def/grammar";
+import {Language} from "../def/language";
 import {SYMBOL_EOF} from "../def/token";
 import {ParserGenerator} from "../parsergenerator/parsergenerator";
-import {grammar_parser} from "./ruleparser";
+import {language_parser} from "./ruleparser";
 
 
 export class PreCompiler {
@@ -10,12 +10,12 @@ export class PreCompiler {
 	}
 	// 構文ファイルを受け取り、それを処理できるパーサを構築するためのソースコードを返す
 	public exec(input: string): string {
-		const grammar: Language = grammar_parser.parse(input);
+		const grammar: Language = language_parser.parse(input);
 		const parsing_table = new ParserGenerator(grammar).getParsingTable();
 		let result = "";
 
 		result += 'import {Token, SYMBOL_EOF} from "' + this.import_path + 'def/token";\n';
-		result += 'import {Language} from "' + this.import_path + 'def/grammar";\n';
+		result += 'import {Language} from "' + this.import_path + 'def/language";\n';
 		result += 'import {ParsingOperation, ParsingTable} from "' + this.import_path + 'def/parsingtable";\n';
 		result += 'import {Parser} from "' + this.import_path + 'parser/parser";\n';
 		result += 'import {ParserFactory} from "' + this.import_path + 'parser/factory";\n\n';

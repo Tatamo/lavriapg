@@ -1,9 +1,9 @@
-import {test_sample_grammar} from "../data/sample_grammar";
+import {test_sample_language} from "../data/sample_language";
 import {SyntaxDB} from "../../src/parsergenerator/syntaxdb";
 import {SYMBOL_SYNTAX} from "../../src/def/token";
 
 describe("SyntaxDB test", () => {
-	const syntaxdb = new SyntaxDB(test_sample_grammar);
+	const syntaxdb = new SyntaxDB(test_sample_language);
 
 	describe("findDefinition test", () => {
 		test("get definition of E", () => {

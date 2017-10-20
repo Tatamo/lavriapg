@@ -1,12 +1,12 @@
 import {SyntaxDB} from "../../src/parsergenerator/syntaxdb";
-import {test_empty_grammar, test_sample_grammar} from "../data/sample_grammar";
+import {test_empty_language, test_sample_language} from "../data/sample_language";
 import {ClosureItem} from "../../src/parsergenerator/closureitem";
 import {SYMBOL_EOF} from "../../src/def/token";
 import {ClosureSet} from "../../src/parsergenerator/closureset";
 
 describe("ClosureSet test", () => {
 	describe("Closure{S' -> . S [$]}", () => {
-		const syntaxdb = new SyntaxDB(test_sample_grammar);
+		const syntaxdb = new SyntaxDB(test_sample_language);
 		const cs = new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF])]);
 		/*
 		S' -> . S [$]
@@ -79,7 +79,7 @@ describe("ClosureSet test", () => {
 		});
 	});
 	describe("empty syntax", () => {
-		const syntaxdb = new SyntaxDB(test_empty_grammar);
+		const syntaxdb = new SyntaxDB(test_empty_language);
 		const cs = new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF])]);
 		const expanded = [
 			new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF]),
