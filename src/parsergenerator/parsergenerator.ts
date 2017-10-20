@@ -4,15 +4,15 @@ import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserFactory} from "../parser/factory";
 import {Parser, ParserCallback} from "../parser/parser";
 import {DFA, DFAGenerator} from "./dfagenerator";
-import {SyntaxDB} from "./syntaxdb";
+import {GrammarDB} from "./grammardb";
 
 export class ParserGenerator {
 	private parsing_table: ParsingTable;
-	private syntax: SyntaxDB;
+	private grammardb: GrammarDB;
 	private dfa_generator: DFAGenerator;
 	constructor(private language: Language) {
-		this.syntax = new SyntaxDB(this.language);
-		this.dfa_generator = new DFAGenerator(this.syntax);
+		this.grammardb = new GrammarDB(this.language);
+		this.dfa_generator = new DFAGenerator(this.grammardb);
 		this.init();
 	}
 	private init() {
@@ -45,13 +45,13 @@ export class ParserGenerator {
 			const table_row = new Map<Token, ParsingOperation>();
 			// 辺をもとにshiftとgotoオペレーションを追加
 			for (const [label, to] of node.edge) {
-				if (this.syntax.symbols.isTerminalSymbol(label)) {
+				if (this.grammardb.symbols.isTerminalSymbol(label)) {
 					// ラベルが終端記号の場合
 					// shiftオペレーションを追加
 					const operation: ShiftOperation = {type: "shift", to};
 					table_row.set(label, operation);
 				}
-				else if (this.syntax.symbols.isNonterminalSymbol(label)) {
+				else if (this.grammardb.symbols.isNonterminalSymbol(label)) {
 					// ラベルが非終端記号の場合
 					// gotoオペレーションを追加
 					const operation: GotoOperation = {type: "goto", to};
@@ -63,7 +63,7 @@ export class ParserGenerator {
 			for (const item of node.closure.getArray()) {
 				// 規則末尾が.でないならスキップ
 				// if(item.pattern.getRuleById(item.pattern.size-1) != SYMBOL_DOT) return;
-				if (item.dot_index != this.syntax.getRuleById(item.syntax_id).pattern.length) continue;
+				if (item.dot_index != this.grammardb.getRuleById(item.syntax_id).pattern.length) continue;
 				if (item.syntax_id == -1) {
 					// acceptオペレーション
 					// この規則を読み終わると解析終了

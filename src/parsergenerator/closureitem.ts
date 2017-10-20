@@ -1,16 +1,16 @@
 import {Token} from "../def/token";
-import {SyntaxDB} from "./syntaxdb";
+import {GrammarDB} from "./grammardb";
 
 export class ClosureItem {
 	// インスタンス生成後に内部状態が変化することはないものとする
 	private _lr0_hash: string;
 	private _lr1_hash: string;
-	constructor(private syntax: SyntaxDB, private _syntax_id: number, private _dot_index: number, private _lookaheads: Array<Token>) {
+	constructor(private grammardb: GrammarDB, private _rule_id: number, private _dot_index: number, private _lookaheads: Array<Token>) {
 		// 有効な値かどうか調べる
-		if (!this.syntax.hasRuleId(this._syntax_id)) {
+		if (!this.grammardb.hasRuleId(this._rule_id)) {
 			throw new Error("invalid grammar id");
 		}
-		if (this._dot_index < 0 || this._dot_index > this.syntax.getRuleById(this._syntax_id).pattern.length) {
+		if (this._dot_index < 0 || this._dot_index > this.grammardb.getRuleById(this._rule_id).pattern.length) {
 			throw new Error("dot index out of range");
 		}
 		if (this._lookaheads.length == 0) {
@@ -21,7 +21,7 @@ export class ClosureItem {
 		this.updateHash();
 	}
 	get syntax_id(): number {
-		return this._syntax_id;
+		return this._rule_id;
 	}
 	get dot_index(): number {
 		return this._dot_index;
@@ -31,7 +31,7 @@ export class ClosureItem {
 	}
 	private sortLA() {
 		this.lookaheads.sort((t1: Token, t2: Token) => {
-			return this.syntax.getTokenId(t1) - this.syntax.getTokenId(t2);
+			return this.grammardb.getTokenId(t1) - this.grammardb.getTokenId(t2);
 		});
 	}
 	// ハッシュ文字列を生成する
@@ -39,7 +39,7 @@ export class ClosureItem {
 		this._lr0_hash = this.syntax_id.toString() + "," + this.dot_index.toString();
 		let la_hash = "[";
 		for (let i = 0; i < this.lookaheads.length; i++) {
-			la_hash += this.syntax.getTokenId(this.lookaheads[i]).toString();
+			la_hash += this.grammardb.getTokenId(this.lookaheads[i]).toString();
 			if (i != this.lookaheads.length - 1) la_hash += ",";
 		}
 		la_hash += "]";
@@ -83,13 +83,13 @@ export class ClosureItem {
 				new_la.push(this.lookaheads[i1++]);
 				i2++;
 			}
-			else if (this.syntax.getTokenId(this.lookaheads[i1]) < this.syntax.getTokenId(c.lookaheads[i2])) {
+			else if (this.grammardb.getTokenId(this.lookaheads[i1]) < this.grammardb.getTokenId(c.lookaheads[i2])) {
 				new_la.push(this.lookaheads[i1++]);
 			}
 			else {
 				new_la.push(c.lookaheads[i2++]);
 			}
 		}
-		return new ClosureItem(this.syntax, this.syntax_id, this.dot_index, new_la);
+		return new ClosureItem(this.grammardb, this.syntax_id, this.dot_index, new_la);
 	}
 }

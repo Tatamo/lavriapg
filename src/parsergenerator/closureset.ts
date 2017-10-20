@@ -1,12 +1,12 @@
 import {Token} from "../def/token";
 import {ClosureItem} from "./closureitem";
-import {SyntaxDB} from "./syntaxdb";
+import {GrammarDB} from "./grammardb";
 
 export class ClosureSet {
 	// インスタンス生成後に内部状態が変化することはないものとする
 	private _lr0_hash: string;
 	private _lr1_hash: string;
-	constructor(private syntax: SyntaxDB, private closureset: Array<ClosureItem>) {
+	constructor(private syntax: GrammarDB, private closureset: Array<ClosureItem>) {
 		this.expandClosure();
 		this.sort();
 		this.updateHash();
