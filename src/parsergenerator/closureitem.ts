@@ -20,7 +20,7 @@ export class ClosureItem {
 		this.sortLA();
 		this.updateHash();
 	}
-	get syntax_id(): number {
+	get rule_id(): number {
 		return this._rule_id;
 	}
 	get dot_index(): number {
@@ -36,7 +36,7 @@ export class ClosureItem {
 	}
 	// ハッシュ文字列を生成する
 	private updateHash() {
-		this._lr0_hash = this.syntax_id.toString() + "," + this.dot_index.toString();
+		this._lr0_hash = this.rule_id.toString() + "," + this.dot_index.toString();
 		let la_hash = "[";
 		for (let i = 0; i < this.lookaheads.length; i++) {
 			la_hash += this.grammardb.getTokenId(this.lookaheads[i]).toString();
@@ -90,6 +90,6 @@ export class ClosureItem {
 				new_la.push(c.lookaheads[i2++]);
 			}
 		}
-		return new ClosureItem(this.grammardb, this.syntax_id, this.dot_index, new_la);
+		return new ClosureItem(this.grammardb, this.rule_id, this.dot_index, new_la);
 	}
 }

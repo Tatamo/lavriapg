@@ -1,10 +1,10 @@
-import {test_calc_syntax, test_empty_language, test_sample_syntax} from "../data/sample_language";
+import {test_calc_grammar, test_empty_language, test_sample_grammar} from "../data/sample_language";
 import {SymbolDiscriminator} from "../../src/parsergenerator/symboldiscriminator";
 import {Token} from "../../src/def/token";
 
 describe("SymbolDiscriminator test", () => {
 	describe("test sample language", () => {
-		const symbols = new SymbolDiscriminator(test_sample_syntax);
+		const symbols = new SymbolDiscriminator(test_sample_grammar);
 		test("S is Nonterminal", () => {
 			expect(symbols.isNonterminalSymbol("S")).toBeTruthy();
 			expect(symbols.isTerminalSymbol("S")).toBeFalsy();
@@ -61,7 +61,7 @@ describe("SymbolDiscriminator test", () => {
 		});
 	});
 	describe("test sample language", () => {
-		const symbols = new SymbolDiscriminator(test_calc_syntax);
+		const symbols = new SymbolDiscriminator(test_calc_grammar);
 		test("Check nonterminal symbols set", () => {
 			const nt: Set<Token> = symbols.getNonterminalSymbols();
 			for (const symbol of ["EXP", "TERM", "ATOM"]) {

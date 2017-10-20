@@ -1,7 +1,7 @@
 import {Language, LexDefinition, GrammarDefinition} from "../../src/def/language";
 import {ParserCallbackArg} from "../../src/parser/parser";
 
-export const test_sample_syntax: GrammarDefinition = [
+export const test_sample_grammar: GrammarDefinition = [
 	{
 		ltoken: "S",
 		pattern: ["E"]
@@ -48,7 +48,7 @@ export const test_sample_lex: LexDefinition = [
 
 export const test_sample_language: Language = {
 	lex: test_sample_lex,
-	grammar: test_sample_syntax,
+	grammar: test_sample_grammar,
 	start_symbol: "S"
 };
 
@@ -58,7 +58,7 @@ export const test_empty_language: Language = {
 	start_symbol: "S"
 };
 
-export const test_calc_syntax: GrammarDefinition = [
+export const test_calc_grammar: GrammarDefinition = [
 	{
 		ltoken: "EXP",
 		pattern: ["EXP", "PLUS", "TERM"]
@@ -98,7 +98,7 @@ export const test_calc_lex: LexDefinition = [
 
 export const test_calc_language: Language = {
 	lex: test_calc_lex,
-	grammar: test_calc_syntax,
+	grammar: test_calc_grammar,
 	start_symbol: "EXP"
 };
 

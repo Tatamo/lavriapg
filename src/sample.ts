@@ -4,7 +4,7 @@ import {Language, LexDefinition, GrammarDefinition} from "./def/language";
 
 const input = readFileSync("/dev/stdin", "utf8");
 
-const syntax: GrammarDefinition = [
+const grammar: GrammarDefinition = [
 	{
 		ltoken: "EXP",
 		pattern: ["EXP", "PLUS", "TERM"]
@@ -42,7 +42,7 @@ const lex: LexDefinition = [
 ];
 const language: Language = {
 	lex: lex,
-	grammar: syntax,
+	grammar: grammar,
 	start_symbol: "EXP"
 };
 

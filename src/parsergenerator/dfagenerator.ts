@@ -130,10 +130,10 @@ export class DFAGenerator {
 	private generateNewClosureSets(closureset: ClosureSet): Map<Token, ClosureSet> {
 		const tmp: Map<Token, Array<ClosureItem>> = new Map<Token, Array<ClosureItem>>();
 		// 規則から新しい規則を生成し、対応する記号ごとにまとめる
-		for (const {syntax_id, dot_index, lookaheads} of closureset.getArray()) {
-			const pattern = this.grammardb.getRuleById(syntax_id).pattern;
+		for (const {rule_id, dot_index, lookaheads} of closureset.getArray()) {
+			const pattern = this.grammardb.getRuleById(rule_id).pattern;
 			if (dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
-			const new_ci = new ClosureItem(this.grammardb, syntax_id, dot_index + 1, lookaheads);
+			const new_ci = new ClosureItem(this.grammardb, rule_id, dot_index + 1, lookaheads);
 			const edge_label: Token = pattern[dot_index];
 
 			let items: Array<ClosureItem>;

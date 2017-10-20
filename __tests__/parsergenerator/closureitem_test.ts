@@ -8,7 +8,7 @@ describe("ClosureItem test", () => {
 	describe("{S' -> . S [$]}", () => {
 		const ci = new ClosureItem(grammardb, -1, 0, [SYMBOL_EOF]);
 		test("getter", () => {
-			expect(ci.syntax_id).toBe(-1);
+			expect(ci.rule_id).toBe(-1);
 			expect(ci.dot_index).toBe(0);
 			expect(ci.lookaheads).toEqual([SYMBOL_EOF]);
 		});

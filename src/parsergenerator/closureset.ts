@@ -6,7 +6,7 @@ export class ClosureSet {
 	// インスタンス生成後に内部状態が変化することはないものとする
 	private _lr0_hash: string;
 	private _lr1_hash: string;
-	constructor(private syntax: GrammarDB, private closureset: Array<ClosureItem>) {
+	constructor(private grammardb: GrammarDB, private closureset: Array<ClosureItem>) {
 		this.expandClosure();
 		this.sort();
 		this.updateHash();
@@ -77,7 +77,7 @@ export class ClosureSet {
 			const new_item = a1[i].merge(a2[i]);
 			if (new_item != null) new_set.push(new_item);
 		}
-		return new ClosureSet(this.syntax, new_set);
+		return new ClosureSet(this.grammardb, new_set);
 	}
 
 	// クロージャー展開を行う
@@ -89,7 +89,7 @@ export class ClosureSet {
 		// ClosureItemをlookaheadsごとに分解する
 		for (const ci of this.closureset) {
 			for (const la of ci.lookaheads) {
-				set.push(new ClosureItem(this.syntax, ci.syntax_id, ci.dot_index, [la]));
+				set.push(new ClosureItem(this.grammardb, ci.rule_id, ci.dot_index, [la]));
 			}
 		}
 		this.closureset = set;
@@ -99,26 +99,26 @@ export class ClosureSet {
 		let index = 0;
 		while (index < this.closureset.length) {
 			const ci = this.closureset[index++];
-			const pattern = this.syntax.getRuleById(ci.syntax_id).pattern;
+			const pattern = this.grammardb.getRuleById(ci.rule_id).pattern;
 
 			if (ci.dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
 			const follow = pattern[ci.dot_index];
-			if (!this.syntax.symbols.isNonterminalSymbol(follow)) continue; // .の次の記号が非終端記号でないならばスキップ
+			if (!this.grammardb.symbols.isNonterminalSymbol(follow)) continue; // .の次の記号が非終端記号でないならばスキップ
 
 			// クロージャー展開を行う
 
 			// 先読み記号を導出
 			// ci.lookaheadsは要素数1のため、0番目のインデックスのみを参照すればよい
-			const lookaheads = [...this.syntax.first.get(pattern.slice(ci.dot_index + 1).concat(ci.lookaheads[0])).values()];
+			const lookaheads = [...this.grammardb.first.get(pattern.slice(ci.dot_index + 1).concat(ci.lookaheads[0])).values()];
 			lookaheads.sort((t1: Token, t2: Token) => {
-				return this.syntax.getTokenId(t1) - this.syntax.getTokenId(t2);
+				return this.grammardb.getTokenId(t1) - this.grammardb.getTokenId(t2);
 			});
 
 			// symbolを左辺にもつ全ての規則を、先読み記号を付与して追加
-			const rules = this.syntax.findRules(follow);
+			const rules = this.grammardb.findRules(follow);
 			for (const {id} of rules) {
 				for (const la of lookaheads) {
-					const new_ci = new ClosureItem(this.syntax, id, 0, [la]);
+					const new_ci = new ClosureItem(this.grammardb, id, 0, [la]);
 					// 重複がなければ新しいアイテムを追加する
 					let flg_duplicated = false;
 					for (const existing_item of this.closureset) {
@@ -142,7 +142,7 @@ export class ClosureSet {
 		for (let i = 0; i < tmp.length; i++) {
 			merged_lookaheads.push(tmp[i].lookaheads[0]);
 			if (i == tmp.length - 1 || !tmp[i].isSameLR0(tmp[i + 1])) {
-				this.closureset.push(new ClosureItem(this.syntax, tmp[i].syntax_id, tmp[i].dot_index, merged_lookaheads));
+				this.closureset.push(new ClosureItem(this.grammardb, tmp[i].rule_id, tmp[i].dot_index, merged_lookaheads));
 				merged_lookaheads = [];
 			}
 		}

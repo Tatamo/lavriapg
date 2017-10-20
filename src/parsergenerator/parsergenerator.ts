@@ -63,8 +63,8 @@ export class ParserGenerator {
 			for (const item of node.closure.getArray()) {
 				// 規則末尾が.でないならスキップ
 				// if(item.pattern.getRuleById(item.pattern.size-1) != SYMBOL_DOT) return;
-				if (item.dot_index != this.grammardb.getRuleById(item.syntax_id).pattern.length) continue;
-				if (item.syntax_id == -1) {
+				if (item.dot_index != this.grammardb.getRuleById(item.rule_id).pattern.length) continue;
+				if (item.rule_id == -1) {
 					// acceptオペレーション
 					// この規則を読み終わると解析終了
 					// $をラベルにacceptオペレーションを追加
@@ -73,28 +73,28 @@ export class ParserGenerator {
 					continue;
 				}
 				for (const label of item.lookaheads) {
-					const operation: ReduceOperation = {type: "reduce", syntax: item.syntax_id};
+					const operation: ReduceOperation = {type: "reduce", grammar_id: item.rule_id};
 					// 既に同じ記号でオペレーションが登録されていないか確認
 
 					if (table_row.has(label)) {
 						// コンフリクトが発生
 						flg_conflicted = true; // 構文解析に失敗
 						const existing_operation = table_row.get(label)!; // 上で.has(label)のチェックを行っているためnon-nullable
-						const conflicted_operation: ConflictedOperation = {type: "conflict", shift_to: [], reduce_syntax: []};
+						const conflicted_operation: ConflictedOperation = {type: "conflict", shift_to: [], reduce_grammar: []};
 						if (existing_operation.type == "shift") {
 							// shift/reduce コンフリクト
 							conflicted_operation.shift_to = [existing_operation.to];
-							conflicted_operation.reduce_syntax = [operation.syntax];
+							conflicted_operation.reduce_grammar = [operation.grammar_id];
 						}
 						else if (existing_operation.type == "reduce") {
 							// reduce/reduce コンフリクト
 							conflicted_operation.shift_to = [];
-							conflicted_operation.reduce_syntax = [existing_operation.syntax, operation.syntax];
+							conflicted_operation.reduce_grammar = [existing_operation.grammar_id, operation.grammar_id];
 						}
 						else if (existing_operation.type == "conflict") {
 							// もっとやばい衝突
 							conflicted_operation.shift_to = existing_operation.shift_to;
-							conflicted_operation.reduce_syntax = existing_operation.reduce_syntax.concat([operation.syntax]);
+							conflicted_operation.reduce_grammar = existing_operation.reduce_grammar.concat([operation.grammar_id]);
 						}
 						// とりあえず衝突したオペレーションを登録しておく
 						table_row.set(label, conflicted_operation);

@@ -1,6 +1,6 @@
 import {Language, LexDefinition, GrammarDefinition} from "../../src/def/language";
 
-export const test_broken_syntax: GrammarDefinition = [
+export const test_broken_grammar: GrammarDefinition = [
 	{
 		ltoken: "EXP",
 		pattern: ["EXP", "PLUS", "EXP"]
@@ -40,6 +40,6 @@ export const test_broken_lex: LexDefinition = [
 
 export const test_broken_language: Language = {
 	lex: test_broken_lex,
-	grammar: test_broken_syntax,
+	grammar: test_broken_grammar,
 	start_symbol: "EXP"
 };
