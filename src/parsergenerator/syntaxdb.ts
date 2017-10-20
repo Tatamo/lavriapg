@@ -11,9 +11,9 @@ export class SyntaxDB {
 	private tokenmap: Map<Token, number>;
 	private tokenid_counter: number;
 	private defmap: Map<Token, Array<{ id: number, def: GrammarRule }>>;
-	constructor(grammar: Language) {
-		this.syntax = grammar.syntax;
-		this._start_symbol = grammar.start_symbol;
+	constructor(language: Language) {
+		this.syntax = language.syntax;
+		this._start_symbol = language.start_symbol;
 		this._symbols = new SymbolDiscriminator(this.syntax);
 		this._first = new FirstSet(this.syntax, this.symbols);
 

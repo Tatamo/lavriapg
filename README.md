@@ -23,8 +23,8 @@ import {language_parser, ParserGenerator} from "@tatamo/parsergenerator";
 import {readFileSync} from "fs";
 
 const input = readFileSync("/dev/stdin", "utf8") as string;
-const grammar = language_parser.parse(readFileSync("./node_modules/@tatamo/parsergenerator/language", "utf8") as string); // set the grammar file path
-const parser = new ParserGenerator(grammar).getParser();
+const language = language_parser.parse(readFileSync("./node_modules/@tatamo/parsergenerator/language", "utf8") as string); // set the language file path
+const parser = new ParserGenerator(language).getParser();
 console.log(parser.parse(input));
 ```
 
@@ -33,8 +33,8 @@ console.log(parser.parse(input));
 const pg = require("@tatamo/parsergenerator");
 const fs = require("fs");
 const input = fs.readFileSync("/dev/stdin", "utf8");
-const grammar = pg.grammar_parser.parse(fs.readFileSync("./node_modules/@tatamo/parsergenerator/language", "utf8")); // set the grammar file path
-const parser = new pg.ParserGenerator(grammar).getParser();
+const language = pg.language_parser.parse(fs.readFileSync("./node_modules/@tatamo/parsergenerator/language", "utf8")); // set the language file path
+const parser = new pg.ParserGenerator(language).getParser();
 console.log(parser.parse(input));
 ```
 this program parses input (from stdin) that has the lex and grammar rules defined by [language](/language) and shows its AST.

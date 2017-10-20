@@ -10,8 +10,8 @@ export class PreCompiler {
 	}
 	// 構文ファイルを受け取り、それを処理できるパーサを構築するためのソースコードを返す
 	public exec(input: string): string {
-		const grammar: Language = language_parser.parse(input);
-		const parsing_table = new ParserGenerator(grammar).getParsingTable();
+		const language: Language = language_parser.parse(input);
+		const parsing_table = new ParserGenerator(language).getParsingTable();
 		let result = "";
 
 		result += 'import {Token, SYMBOL_EOF} from "' + this.import_path + 'def/token";\n';
@@ -26,9 +26,9 @@ export class PreCompiler {
 
 		result += "export const language: Language = {\n";
 		result += "\t" + "lex: [\n";
-		for (let i = 0; i < grammar.lex.length; i++) {
-			const token = grammar.lex[i].token;
-			const pattern = grammar.lex[i].pattern;
+		for (let i = 0; i < language.lex.length; i++) {
+			const token = language.lex[i].token;
+			const pattern = language.lex[i].pattern;
 			result += "\t\t" + "{token: " + (token === null ? "null" : ('"' + (token as string)) + '"') + ", pattern: ";
 			if (pattern instanceof RegExp) {
 				result += pattern.toString();
@@ -37,14 +37,14 @@ export class PreCompiler {
 				result += '"' + pattern + '"';
 			}
 			result += "}";
-			if (i != grammar.lex.length - 1) result += ",";
+			if (i != language.lex.length - 1) result += ",";
 			result += "\n";
 		}
 		result += "\t" + "],\n";
 		result += "\t" + "syntax: [\n";
-		for (let i = 0; i < grammar.syntax.length; i++) {
-			const ltoken = grammar.syntax[i].ltoken;
-			const pattern = grammar.syntax[i].pattern;
+		for (let i = 0; i < language.syntax.length; i++) {
+			const ltoken = language.syntax[i].ltoken;
+			const pattern = language.syntax[i].pattern;
 			result += "\t\t" + "{\n";
 			result += "\t\t\t" + 'ltoken: "' + (ltoken as string) + '",\n';
 			result += "\t\t\t" + "pattern: [";
@@ -54,11 +54,11 @@ export class PreCompiler {
 			}
 			result += "]\n";
 			result += "\t\t" + "}";
-			if (i != grammar.syntax.length - 1) result += ",";
+			if (i != language.syntax.length - 1) result += ",";
 			result += "\n";
 		}
 		result += "\t" + "],\n";
-		result += "\t" + 'start_symbol: "' + (grammar.start_symbol as string) + '"\n';
+		result += "\t" + 'start_symbol: "' + (language.start_symbol as string) + '"\n';
 		result += "};\n\n";
 		result += "export const parsing_table:ParsingTable = [\n";
 		for (let i = 0; i < parsing_table.length; i++) {
