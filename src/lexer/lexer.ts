@@ -1,9 +1,9 @@
 import {LexDefinition, LexRule} from "../def/language";
-import {SYMBOL_EOF, Token} from "../def/token";
+import {SYMBOL_EOF, Token, TokenizedInput} from "../def/token";
 
 // TODO: 提供するAPIだけ見せる
 export interface ILexer {
-	exec(str: string): Array<{ token: Token, value: string }>;
+	exec(str: string): Array<TokenizedInput>;
 }
 
 export class Lexer implements ILexer {
@@ -55,7 +55,7 @@ export class Lexer implements ILexer {
 		this._status = "ready";
 	}
 	// 入力からトークン1つ分読み込む
-	step(): { token: Token, value: string } {
+	step(): TokenizedInput {
 		if (this.status !== "ready") {
 			throw new Error("Lexer is not ready");
 		}
@@ -123,14 +123,14 @@ export class Lexer implements ILexer {
 			}
 		}
 	}
-	exec(input?: string): Array<{ token: Token, value: string }> {
+	exec(input?: string): Array<TokenizedInput> {
 		if (this.status === "finished" || this.status === "ready" && this.last_index > 0) {
 			this.reset(input);
 		}
 		else if (input !== undefined) {
 			this.init(input);
 		}
-		const result: Array<{ token: Token, value: string }> = [];
+		const result: Array<TokenizedInput> = [];
 		while (this.status !== "finished") {
 			result.push(this.step());
 		}

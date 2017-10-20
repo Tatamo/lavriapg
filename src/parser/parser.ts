@@ -1,6 +1,6 @@
 import {GrammarDefinition} from "../def/language";
 import {ParsingTable} from "../def/parsingtable";
-import {Token} from "../def/token";
+import {Token, TokenizedInput} from "../def/token";
 import {ILexer} from "../lexer/lexer";
 import {ASTNode} from "./ast";
 
@@ -40,7 +40,7 @@ export class Parser {
 	// parsingtableはconflictを含む以外は正しさが保証されているものと仮定する
 	// inputsは正しくないトークンが与えられる可能性を含む
 	// TODO: 詳細な例外処理、エラー検知
-	private _parse(inputs: Array<{ token: Token, value: string }>, cb?: ParserCallback): any {
+	private _parse(inputs: Array<TokenizedInput>, cb?: ParserCallback): any {
 		let read_index: number = 0; // 次に読むべき入力記号のインデックス
 		const inputs_length: number = inputs.length;
 		const state_stack: Array<number> = [0]; // 現在読んでいる構文解析表の状態番号を置くスタック
