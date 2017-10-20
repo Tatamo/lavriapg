@@ -1,17 +1,17 @@
-import {GrammarDefinition, SyntaxDefinitions, SyntaxDefinitionSection} from "../def/grammar";
+import {Language, GrammarDefinition, GrammarRule} from "../def/grammar";
 import {SYMBOL_EOF, SYMBOL_SYNTAX, Token} from "../def/token";
 import {FirstSet} from "./firstset";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 
 export class SyntaxDB {
-	private syntax: SyntaxDefinitions;
+	private syntax: GrammarDefinition;
 	private _start_symbol: Token;
 	private _first: FirstSet;
 	private _symbols: SymbolDiscriminator;
 	private tokenmap: Map<Token, number>;
 	private tokenid_counter: number;
-	private defmap: Map<Token, Array<{ id: number, def: SyntaxDefinitionSection }>>;
-	constructor(grammar: GrammarDefinition) {
+	private defmap: Map<Token, Array<{ id: number, def: GrammarRule }>>;
+	constructor(grammar: Language) {
 		this.syntax = grammar.syntax;
 		this._start_symbol = grammar.start_symbol;
 		this._symbols = new SymbolDiscriminator(this.syntax);
@@ -50,9 +50,9 @@ export class SyntaxDB {
 	}
 	// Token-> [{id,syntax}]の対応を生成
 	private initDefMap() {
-		this.defmap = new Map<Token, Array<{ id: number, def: SyntaxDefinitionSection }>>();
+		this.defmap = new Map<Token, Array<{ id: number, def: GrammarRule }>>();
 		for (let i = 0; i < this.syntax.length; i++) {
-			let tmp: Array<{ id: number, def: SyntaxDefinitionSection }>;
+			let tmp: Array<{ id: number, def: GrammarRule }>;
 			if (this.defmap.has(this.syntax[i].ltoken)) {
 				tmp = this.defmap.get(this.syntax[i].ltoken)!;
 			}
@@ -81,7 +81,7 @@ export class SyntaxDB {
 		return id >= -1 && id < this.def_size;
 	}
 	// 非終端記号xに対し、それが左辺として対応する定義を返す
-	public findDefinition(x: Token): Array<{ id: number, def: SyntaxDefinitionSection }> {
+	public findDefinition(x: Token): Array<{ id: number, def: GrammarRule }> {
 		if (this.defmap.has(x)) {
 			return this.defmap.get(x)!;
 		}
@@ -89,7 +89,7 @@ export class SyntaxDB {
 	}
 	// 規則idに対応した規則を返す
 	// -1が与えられた時は S' -> S $の規則を返す
-	public getDefinitionById(id: number): SyntaxDefinitionSection {
+	public getDefinitionById(id: number): GrammarRule {
 		if (id == -1) {
 			return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol]};
 			// return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF]};

@@ -1,10 +1,10 @@
-import {LexDefinitions, GrammarDefinition, SyntaxDefinitions} from "../def/grammar";
+import {LexDefinition, Language, GrammarDefinition} from "../def/grammar";
 import {ParsingOperation, ParsingTable} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserFactory} from "../parser/factory";
 import {Parser, ParserCallbackArg} from "../parser/parser";
 
-const lex: LexDefinitions = [
+const lex: LexDefinition = [
 	{token: "EXCLAMATION", pattern: "!"},
 	{token: "VBAR", pattern: "|"},
 	{token: "DOLLAR", pattern: "$"},
@@ -19,7 +19,7 @@ const lex: LexDefinitions = [
 	{token: "INVALID", pattern: /./}
 ];
 
-const syntax: SyntaxDefinitions = [
+const syntax: GrammarDefinition = [
 	{
 		ltoken: "GRAMMAR",
 		pattern: ["LEX", "SYNTAX"]
@@ -102,7 +102,7 @@ const syntax: SyntaxDefinitions = [
 	}
 ];
 
-export const grammar_grammar: GrammarDefinition = {lex: lex, syntax: syntax, start_symbol: "GRAMMAR"};
+export const grammar_grammar: Language = {lex: lex, syntax: syntax, start_symbol: "GRAMMAR"};
 
 // ASTからGrramaDefinitionを構築
 export let constructGrammar = (() => {
@@ -164,7 +164,7 @@ export let constructGrammar = (() => {
 					}
 					return children[0];
 				case "SECT":
-					const result: SyntaxDefinitions = [];
+					const result: GrammarDefinition = [];
 					for (const pt of children[2]) {
 						result.push({ltoken: children[0], pattern: pt});
 					}

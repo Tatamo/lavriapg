@@ -1,4 +1,4 @@
-import {GrammarDefinition} from "../def/grammar";
+import {Language} from "../def/grammar";
 import {ParsingTable, AcceptOperation, ConflictedOperation, GotoOperation, ParsingOperation, ReduceOperation, ShiftOperation} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserFactory} from "../parser/factory";
@@ -10,7 +10,7 @@ export class ParserGenerator {
 	private parsing_table: ParsingTable;
 	private syntax: SyntaxDB;
 	private dfa_generator: DFAGenerator;
-	constructor(private grammar: GrammarDefinition) {
+	constructor(private grammar: Language) {
 		this.syntax = new SyntaxDB(this.grammar);
 		this.dfa_generator = new DFAGenerator(this.syntax);
 		this.init();

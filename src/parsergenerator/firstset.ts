@@ -1,4 +1,4 @@
-import {SyntaxDefinitions} from "../def/grammar";
+import {GrammarDefinition} from "../def/grammar";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {NullableSet} from "./nullableset";
 import {SymbolDiscriminator} from "./symboldiscriminator";
@@ -9,7 +9,7 @@ export class FirstSet {
 	private first_map: Map<Token, Set<Token>>;
 	private nulls: NullableSet;
 
-	constructor(private syntax: SyntaxDefinitions, private symbols: SymbolDiscriminator) {
+	constructor(private syntax: GrammarDefinition, private symbols: SymbolDiscriminator) {
 		this.first_map = new Map<Token, Set<Token>>();
 		this.nulls = new NullableSet(this.syntax);
 		this.generateFirst();

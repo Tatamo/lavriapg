@@ -1,4 +1,4 @@
-import {GrammarDefinition} from "../def/grammar";
+import {Language} from "../def/grammar";
 import {SYMBOL_EOF} from "../def/token";
 import {ParserGenerator} from "../parsergenerator/parsergenerator";
 import {grammar_parser} from "./ruleparser";
@@ -10,21 +10,21 @@ export class PreCompiler {
 	}
 	// 構文ファイルを受け取り、それを処理できるパーサを構築するためのソースコードを返す
 	public exec(input: string): string {
-		const grammar: GrammarDefinition = grammar_parser.parse(input);
+		const grammar: Language = grammar_parser.parse(input);
 		const parsing_table = new ParserGenerator(grammar).getParsingTable();
 		let result = "";
 
 		result += 'import {Token, SYMBOL_EOF} from "' + this.import_path + 'def/token";\n';
-		result += 'import {GrammarDefinition} from "' + this.import_path + 'def/grammar";\n';
+		result += 'import {Language} from "' + this.import_path + 'def/grammar";\n';
 		result += 'import {ParsingOperation, ParsingTable} from "' + this.import_path + 'def/parsingtable";\n';
 		result += 'import {Parser} from "' + this.import_path + 'parser/parser";\n';
 		result += 'import {ParserFactory} from "' + this.import_path + 'parser/factory";\n\n';
 
 		/*
-		result += 'import {Token, SYMBOL_EOF, GrammarDefinition, ParsingOperation, ParsingTable, Parser, ParserFactory} from "' + this.import_path +'";\n\n';
+		result += 'import {Token, SYMBOL_EOF, Language, ParsingOperation, ParsingTable, Parser, ParserFactory} from "' + this.import_path +'";\n\n';
 	   */
 
-		result += "export const grammar: GrammarDefinition = {\n";
+		result += "export const grammar: Language = {\n";
 		result += "\t" + "lex: [\n";
 		for (let i = 0; i < grammar.lex.length; i++) {
 			const token = grammar.lex[i].token;

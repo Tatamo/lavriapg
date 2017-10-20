@@ -1,6 +1,6 @@
-import {GrammarDefinition, LexDefinitions, SyntaxDefinitions} from "../../src/def/grammar";
+import {Language, LexDefinition, GrammarDefinition} from "../../src/def/grammar";
 
-export const test_broken_syntax: SyntaxDefinitions = [
+export const test_broken_syntax: GrammarDefinition = [
 	{
 		ltoken: "EXP",
 		pattern: ["EXP", "PLUS", "EXP"]
@@ -27,7 +27,7 @@ export const test_broken_syntax: SyntaxDefinitions = [
 	}
 ];
 
-export const test_broken_lex: LexDefinitions = [
+export const test_broken_lex: LexDefinition = [
 	{token: "DIGITS", pattern: /[1-9][0-9]*/},
 	{token: "PLUS", pattern: "+"},
 	{token: "ASTERISK", pattern: "*"},
@@ -38,7 +38,7 @@ export const test_broken_lex: LexDefinitions = [
 	{token: "INVALID", pattern: /./}
 ];
 
-export const test_broken_grammar: GrammarDefinition = {
+export const test_broken_grammar: Language = {
 	lex: test_broken_lex,
 	syntax: test_broken_syntax,
 	start_symbol: "EXP"

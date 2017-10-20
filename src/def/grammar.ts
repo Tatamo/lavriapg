@@ -1,24 +1,24 @@
 import {Token} from "./token";
 import {ILexer} from "../lexer/lexer";
 
-export interface LexDefinitionSection {
+export interface LexRule {
 	token: Token | null;
 	pattern: string | RegExp;
 	priority?: number;
 	callback?: (lexer: ILexer, token: string | null, value: string, index: number) => any;
 }
 
-export type LexDefinitions = Array<LexDefinitionSection>;
+export type LexDefinition = Array<LexRule>;
 
-export interface SyntaxDefinitionSection {
+export interface GrammarRule {
 	ltoken: Token;
 	pattern: Array<Token>;
 }
 
-export type SyntaxDefinitions = Array<SyntaxDefinitionSection>;
+export type GrammarDefinition = Array<GrammarRule>;
 
-export interface GrammarDefinition {
-	lex: LexDefinitions;
-	syntax: SyntaxDefinitions;
+export interface Language {
+	lex: LexDefinition;
+	syntax: GrammarDefinition;
 	start_symbol: Token;
 }

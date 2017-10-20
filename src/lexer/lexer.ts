@@ -1,4 +1,4 @@
-import {LexDefinitions, LexDefinitionSection} from "../def/grammar";
+import {LexDefinition, LexRule} from "../def/grammar";
 import {SYMBOL_EOF, Token} from "../def/token";
 
 // TODO: 提供するAPIだけ見せる
@@ -8,8 +8,8 @@ export interface ILexer {
 
 export class Lexer implements ILexer {
 	private _rule_id: number;
-	private _def: Array<{ id: number, rule: LexDefinitionSection }>;
-	private _reset: { def: Array<{ id: number, rule: LexDefinitionSection }>, id: number, flg_modified: boolean };
+	private _def: Array<{ id: number, rule: LexRule }>;
+	private _reset: { def: Array<{ id: number, rule: LexRule }>, id: number, flg_modified: boolean };
 	private _input: string;
 	private _last_index: number;
 	get last_index(): number {
@@ -19,7 +19,7 @@ export class Lexer implements ILexer {
 	get status(): "uninitialized" | "ready" | "finished" {
 		return this._status;
 	}
-	constructor(def: LexDefinitions, input?: string) {
+	constructor(def: LexDefinition, input?: string) {
 		this._def = [];
 		this._rule_id = 0;
 		this._reset = {def: [], id: 0, flg_modified: false}; // add()を呼ぶためのダミー
@@ -137,7 +137,7 @@ export class Lexer implements ILexer {
 		return result;
 	}
 	// 字句規則を追加し、そのidを返す
-	add(rule: LexDefinitionSection): number {
+	add(rule: LexRule): number {
 		const id = this._rule_id++;
 		const token_pattern = rule.pattern;
 		// 正しいトークン定義が与えられているかチェック
@@ -178,7 +178,7 @@ export class Lexer implements ILexer {
 	}
 	// 字句規則を削除する
 	// TODO: もっとましな実装にする
-	del(id: number): LexDefinitionSection {
+	del(id: number): LexRule {
 		for (let i = 0; i < this._def.length; i++) {
 			if (this._def[i].id === id) {
 				this._reset.flg_modified = true;

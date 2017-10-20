@@ -1,4 +1,4 @@
-import {SyntaxDefinitions} from "../def/grammar";
+import {GrammarDefinition} from "../def/grammar";
 import {ParsingTable} from "../def/parsingtable";
 import {Token} from "../def/token";
 import {ILexer} from "../lexer/lexer";
@@ -23,7 +23,7 @@ export type ParserCallback = (arg: ParserCallbackArg) => any;
 
 export class Parser {
 	private default_callback: ParserCallback | null;
-	constructor(private lexer: ILexer, private syntax: SyntaxDefinitions, private parsingtable: ParsingTable, default_callback?: ParserCallback | null) {
+	constructor(private lexer: ILexer, private syntax: GrammarDefinition, private parsingtable: ParsingTable, default_callback?: ParserCallback | null) {
 		this.setDefaultCallback(default_callback);
 	}
 	public setDefaultCallback(default_callback?: ParserCallback | null) {

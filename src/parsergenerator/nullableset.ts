@@ -1,9 +1,9 @@
-import {SyntaxDefinitions} from "../def/grammar";
+import {GrammarDefinition} from "../def/grammar";
 import {Token} from "../def/token";
 
 export class NullableSet {
 	private nulls: Set<Token>;
-	constructor(private syntax: SyntaxDefinitions) {
+	constructor(private syntax: GrammarDefinition) {
 		this.generateNulls();
 	}
 	// nulls初期化

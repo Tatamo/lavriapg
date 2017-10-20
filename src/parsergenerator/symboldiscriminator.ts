@@ -1,10 +1,10 @@
-import {SyntaxDefinitions} from "../def/grammar";
+import {GrammarDefinition} from "../def/grammar";
 import {Token} from "../def/token";
 
 export class SymbolDiscriminator {
 	private terminal_symbols: Set<Token>;
 	private nonterminal_symbols: Set<Token>;
-	constructor(syntaxdef: SyntaxDefinitions) {
+	constructor(syntaxdef: GrammarDefinition) {
 		this.terminal_symbols = new Set<Token>();
 		this.nonterminal_symbols = new Set<Token>();
 
