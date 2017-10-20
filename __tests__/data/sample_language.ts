@@ -1,7 +1,7 @@
-import {GrammarDefinition, LexDefinitions, SyntaxDefinitions} from "../../src/def/grammar";
+import {Language, LexDefinition, GrammarDefinition} from "../../src/def/language";
 import {ParserCallbackArg} from "../../src/parser/parser";
 
-export const test_sample_syntax: SyntaxDefinitions = [
+export const test_sample_grammar: GrammarDefinition = [
 	{
 		ltoken: "S",
 		pattern: ["E"]
@@ -36,7 +36,7 @@ export const test_sample_syntax: SyntaxDefinitions = [
 	}
 ];
 
-export const test_sample_lex: LexDefinitions = [
+export const test_sample_lex: LexDefinition = [
 	{token: "ATOM", pattern: "x"},
 	{token: "ID", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
 	{token: "SEMICOLON", pattern: ";"},
@@ -46,19 +46,19 @@ export const test_sample_lex: LexDefinitions = [
 	{token: "INVALID", pattern: /./}
 ];
 
-export const test_sample_grammar: GrammarDefinition = {
+export const test_sample_language: Language = {
 	lex: test_sample_lex,
-	syntax: test_sample_syntax,
+	grammar: test_sample_grammar,
 	start_symbol: "S"
 };
 
-export const test_empty_grammar: GrammarDefinition = {
+export const test_empty_language: Language = {
 	lex: [],
-	syntax: [{ltoken: "S", pattern: []}],
+	grammar: [{ltoken: "S", pattern: []}],
 	start_symbol: "S"
 };
 
-export const test_calc_syntax: SyntaxDefinitions = [
+export const test_calc_grammar: GrammarDefinition = [
 	{
 		ltoken: "EXP",
 		pattern: ["EXP", "PLUS", "TERM"]
@@ -85,7 +85,7 @@ export const test_calc_syntax: SyntaxDefinitions = [
 	}
 ];
 
-export const test_calc_lex: LexDefinitions = [
+export const test_calc_lex: LexDefinition = [
 	{token: "DIGITS", pattern: /[1-9][0-9]*/},
 	{token: "PLUS", pattern: "+"},
 	{token: "ASTERISK", pattern: "*"},
@@ -96,13 +96,13 @@ export const test_calc_lex: LexDefinitions = [
 	{token: "INVALID", pattern: /./}
 ];
 
-export const test_calc_grammar: GrammarDefinition = {
+export const test_calc_language: Language = {
 	lex: test_calc_lex,
-	syntax: test_calc_syntax,
+	grammar: test_calc_grammar,
 	start_symbol: "EXP"
 };
 
-export const test_calc_grammar_raw_string = `DIGITS		/[1-9][0-9]*/
+export const test_calc_language_raw_string = `DIGITS		/[1-9][0-9]*/
 PLUS		"+"
 ASTERISK	"*"
 LPAREN		 "("

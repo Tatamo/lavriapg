@@ -1,10 +1,10 @@
-import {LexDefinitions, GrammarDefinition, SyntaxDefinitions} from "../def/grammar";
+import {LexDefinition, Language, GrammarDefinition} from "../def/language";
 import {ParsingOperation, ParsingTable} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserFactory} from "../parser/factory";
 import {Parser, ParserCallbackArg} from "../parser/parser";
 
-const lex: LexDefinitions = [
+const lex: LexDefinition = [
 	{token: "EXCLAMATION", pattern: "!"},
 	{token: "VBAR", pattern: "|"},
 	{token: "DOLLAR", pattern: "$"},
@@ -19,10 +19,10 @@ const lex: LexDefinitions = [
 	{token: "INVALID", pattern: /./}
 ];
 
-const syntax: SyntaxDefinitions = [
+const grammar: GrammarDefinition = [
 	{
-		ltoken: "GRAMMAR",
-		pattern: ["LEX", "SYNTAX"]
+		ltoken: "LANGUAGE",
+		pattern: ["LEX", "GRAMMAR"]
 	},
 	{
 		ltoken: "LEX",
@@ -57,11 +57,11 @@ const syntax: SyntaxDefinitions = [
 		pattern: ["REGEXP"]
 	},
 	{
-		ltoken: "SYNTAX",
-		pattern: ["SECT", "SYNTAX"]
+		ltoken: "GRAMMAR",
+		pattern: ["SECT", "GRAMMAR"]
 	},
 	{
-		ltoken: "SYNTAX",
+		ltoken: "GRAMMAR",
 		pattern: ["SECT"]
 	},
 	{
@@ -102,10 +102,10 @@ const syntax: SyntaxDefinitions = [
 	}
 ];
 
-export const grammar_grammar: GrammarDefinition = {lex: lex, syntax: syntax, start_symbol: "GRAMMAR"};
+export const language_language: Language = {lex: lex, grammar: grammar, start_symbol: "LANGUAGE"};
 
-// ASTからGrramaDefinitionを構築
-export let constructGrammar = (() => {
+// ASTからLanguageを構築
+export let constructLanguage = (() => {
 	let start_symbol: Token | null = null;
 	return (arg: ParserCallbackArg) => {
 		const token = arg.token;
@@ -127,12 +127,12 @@ export let constructGrammar = (() => {
 			const children = arg.children;
 			const pattern = arg.pattern;
 			switch (token) {
-				case "GRAMMAR":
+				case "LANGUAGE":
 					if (start_symbol === null) {
 						// 開始記号の指定がない場合、最初の規則に設定
 						start_symbol = children[1][0].ltoken;
 					}
-					return {lex: children[0], syntax: children[1], start_symbol: start_symbol};
+					return {lex: children[0], grammar: children[1], start_symbol: start_symbol};
 				case "LEXDEF":
 					return children[0];
 				case "LEXLABEL":
@@ -164,12 +164,12 @@ export let constructGrammar = (() => {
 					}
 					return children[0];
 				case "SECT":
-					const result: SyntaxDefinitions = [];
+					const result: GrammarDefinition = [];
 					for (const pt of children[2]) {
 						result.push({ltoken: children[0], pattern: pt});
 					}
 					return result;
-				case "SYNTAX":
+				case "GRAMMAR":
 					if (pattern.length == 2) return children[0].concat(children[1]);
 					else return children[0];
 			}
@@ -179,9 +179,9 @@ export let constructGrammar = (() => {
 })();
 
 
-export const grammar_parsing_table: ParsingTable = [
+export const language_parsing_table: ParsingTable = [
 	new Map<Token, ParsingOperation>([
-		["GRAMMAR", {type: "goto", to: 1}],
+		["LANGUAGE", {type: "goto", to: 1}],
 		["LEX", {type: "goto", to: 2}],
 		["LEXSECT", {type: "goto", to: 3}],
 		["LEXLABEL", {type: "goto", to: 4}],
@@ -190,7 +190,7 @@ export const grammar_parsing_table: ParsingTable = [
 	new Map<Token, ParsingOperation>([
 		[SYMBOL_EOF, {type: "accept"}]]),
 	new Map<Token, ParsingOperation>([
-		["SYNTAX", {type: "goto", to: 7}],
+		["GRAMMAR", {type: "goto", to: 7}],
 		["LEXSECT", {type: "goto", to: 8}],
 		["SECT", {type: "goto", to: 9}],
 		["SECTLABEL", {type: "goto", to: 10}],
@@ -199,101 +199,101 @@ export const grammar_parsing_table: ParsingTable = [
 		["LEXLABEL", {type: "goto", to: 4}],
 		["EXCLAMATION", {type: "shift", to: 6}]]),
 	new Map<Token, ParsingOperation>([
-		["LABEL", {type: "reduce", syntax: 2}],
-		["DOLLAR", {type: "reduce", syntax: 2}],
-		["EXCLAMATION", {type: "reduce", syntax: 2}]]),
+		["LABEL", {type: "reduce", grammar_id: 2}],
+		["DOLLAR", {type: "reduce", grammar_id: 2}],
+		["EXCLAMATION", {type: "reduce", grammar_id: 2}]]),
 	new Map<Token, ParsingOperation>([
 		["LEXDEF", {type: "goto", to: 13}],
 		["STRING", {type: "shift", to: 14}],
 		["REGEXP", {type: "shift", to: 15}]]),
 	new Map<Token, ParsingOperation>([
-		["STRING", {type: "reduce", syntax: 4}],
-		["REGEXP", {type: "reduce", syntax: 4}]]),
+		["STRING", {type: "reduce", grammar_id: 4}],
+		["REGEXP", {type: "reduce", grammar_id: 4}]]),
 	new Map<Token, ParsingOperation>([
 		["LABEL", {type: "shift", to: 16}],
-		["STRING", {type: "reduce", syntax: 5}],
-		["REGEXP", {type: "reduce", syntax: 5}]]),
+		["STRING", {type: "reduce", grammar_id: 5}],
+		["REGEXP", {type: "reduce", grammar_id: 5}]]),
 	new Map<Token, ParsingOperation>([
-		[SYMBOL_EOF, {type: "reduce", syntax: 0}]]),
+		[SYMBOL_EOF, {type: "reduce", grammar_id: 0}]]),
 	new Map<Token, ParsingOperation>([
-		["LABEL", {type: "reduce", syntax: 1}],
-		["DOLLAR", {type: "reduce", syntax: 1}],
-		["EXCLAMATION", {type: "reduce", syntax: 1}]]),
+		["LABEL", {type: "reduce", grammar_id: 1}],
+		["DOLLAR", {type: "reduce", grammar_id: 1}],
+		["EXCLAMATION", {type: "reduce", grammar_id: 1}]]),
 	new Map<Token, ParsingOperation>([
 		["SECT", {type: "goto", to: 9}],
 		["SECTLABEL", {type: "goto", to: 10}],
 		["LABEL", {type: "shift", to: 17}],
 		["DOLLAR", {type: "shift", to: 12}],
-		["SYNTAX", {type: "goto", to: 18}],
-		[SYMBOL_EOF, {type: "reduce", syntax: 10}]]),
+		["GRAMMAR", {type: "goto", to: 18}],
+		[SYMBOL_EOF, {type: "reduce", grammar_id: 10}]]),
 	new Map<Token, ParsingOperation>([
 		["COLON", {type: "shift", to: 19}]]),
 	new Map<Token, ParsingOperation>([
-		["COLON", {type: "reduce", syntax: 12}],
-		["STRING", {type: "reduce", syntax: 4}],
-		["REGEXP", {type: "reduce", syntax: 4}]]),
+		["COLON", {type: "reduce", grammar_id: 12}],
+		["STRING", {type: "reduce", grammar_id: 4}],
+		["REGEXP", {type: "reduce", grammar_id: 4}]]),
 	new Map<Token, ParsingOperation>([
 		["LABEL", {type: "shift", to: 20}]]),
 	new Map<Token, ParsingOperation>([
-		["LABEL", {type: "reduce", syntax: 3}],
-		["DOLLAR", {type: "reduce", syntax: 3}],
-		["EXCLAMATION", {type: "reduce", syntax: 3}]]),
+		["LABEL", {type: "reduce", grammar_id: 3}],
+		["DOLLAR", {type: "reduce", grammar_id: 3}],
+		["EXCLAMATION", {type: "reduce", grammar_id: 3}]]),
 	new Map<Token, ParsingOperation>([
-		["LABEL", {type: "reduce", syntax: 7}],
-		["DOLLAR", {type: "reduce", syntax: 7}],
-		["EXCLAMATION", {type: "reduce", syntax: 7}]]),
+		["LABEL", {type: "reduce", grammar_id: 7}],
+		["DOLLAR", {type: "reduce", grammar_id: 7}],
+		["EXCLAMATION", {type: "reduce", grammar_id: 7}]]),
 	new Map<Token, ParsingOperation>([
-		["LABEL", {type: "reduce", syntax: 8}],
-		["DOLLAR", {type: "reduce", syntax: 8}],
-		["EXCLAMATION", {type: "reduce", syntax: 8}]]),
+		["LABEL", {type: "reduce", grammar_id: 8}],
+		["DOLLAR", {type: "reduce", grammar_id: 8}],
+		["EXCLAMATION", {type: "reduce", grammar_id: 8}]]),
 	new Map<Token, ParsingOperation>([
-		["STRING", {type: "reduce", syntax: 6}],
-		["REGEXP", {type: "reduce", syntax: 6}]]),
+		["STRING", {type: "reduce", grammar_id: 6}],
+		["REGEXP", {type: "reduce", grammar_id: 6}]]),
 	new Map<Token, ParsingOperation>([
-		["COLON", {type: "reduce", syntax: 12}]]),
+		["COLON", {type: "reduce", grammar_id: 12}]]),
 	new Map<Token, ParsingOperation>([
-		[SYMBOL_EOF, {type: "reduce", syntax: 9}]]),
+		[SYMBOL_EOF, {type: "reduce", grammar_id: 9}]]),
 	new Map<Token, ParsingOperation>([
 		["DEF", {type: "goto", to: 21}],
 		["PATTERN", {type: "goto", to: 22}],
 		["SYMBOLLIST", {type: "goto", to: 23}],
 		["LABEL", {type: "shift", to: 24}],
-		["SEMICOLON", {type: "reduce", syntax: 17}],
-		["VBAR", {type: "reduce", syntax: 17}]]),
+		["SEMICOLON", {type: "reduce", grammar_id: 17}],
+		["VBAR", {type: "reduce", grammar_id: 17}]]),
 	new Map<Token, ParsingOperation>([
-		["COLON", {type: "reduce", syntax: 13}]]),
+		["COLON", {type: "reduce", grammar_id: 13}]]),
 	new Map<Token, ParsingOperation>([
 		["SEMICOLON", {type: "shift", to: 25}]]),
 	new Map<Token, ParsingOperation>([
 		["VBAR", {type: "shift", to: 26}],
-		["SEMICOLON", {type: "reduce", syntax: 15}]]),
+		["SEMICOLON", {type: "reduce", grammar_id: 15}]]),
 	new Map<Token, ParsingOperation>([
-		["SEMICOLON", {type: "reduce", syntax: 16}],
-		["VBAR", {type: "reduce", syntax: 16}]]),
+		["SEMICOLON", {type: "reduce", grammar_id: 16}],
+		["VBAR", {type: "reduce", grammar_id: 16}]]),
 	new Map<Token, ParsingOperation>([
 		["LABEL", {type: "shift", to: 24}],
 		["SYMBOLLIST", {type: "goto", to: 27}],
-		["SEMICOLON", {type: "reduce", syntax: 19}],
-		["VBAR", {type: "reduce", syntax: 19}]]),
+		["SEMICOLON", {type: "reduce", grammar_id: 19}],
+		["VBAR", {type: "reduce", grammar_id: 19}]]),
 	new Map<Token, ParsingOperation>([
-		[SYMBOL_EOF, {type: "reduce", syntax: 11}],
-		["LABEL", {type: "reduce", syntax: 11}],
-		["DOLLAR", {type: "reduce", syntax: 11}]]),
+		[SYMBOL_EOF, {type: "reduce", grammar_id: 11}],
+		["LABEL", {type: "reduce", grammar_id: 11}],
+		["DOLLAR", {type: "reduce", grammar_id: 11}]]),
 	new Map<Token, ParsingOperation>([
 		["PATTERN", {type: "goto", to: 22}],
 		["DEF", {type: "goto", to: 28}],
 		["SYMBOLLIST", {type: "goto", to: 23}],
 		["LABEL", {type: "shift", to: 24}],
-		["SEMICOLON", {type: "reduce", syntax: 17}],
-		["VBAR", {type: "reduce", syntax: 17}]]),
+		["SEMICOLON", {type: "reduce", grammar_id: 17}],
+		["VBAR", {type: "reduce", grammar_id: 17}]]),
 	new Map<Token, ParsingOperation>([
-		["SEMICOLON", {type: "reduce", syntax: 18}],
-		["VBAR", {type: "reduce", syntax: 18}]]),
+		["SEMICOLON", {type: "reduce", grammar_id: 18}],
+		["VBAR", {type: "reduce", grammar_id: 18}]]),
 	new Map<Token, ParsingOperation>([
-		["SEMICOLON", {type: "reduce", syntax: 14}]])
+		["SEMICOLON", {type: "reduce", grammar_id: 14}]])
 ];
 
 // 予めParsingTableを用意しておくことで高速化
-// export const grammar_parser:Parser = new ParserGenerator(grammar_grammar).getParser(constructGrammar);
-export const grammar_parser: Parser = ParserFactory.create(grammar_grammar, grammar_parsing_table, constructGrammar);
+// export const language_parser:Parser = new ParserGenerator(language_language).getParser(constructLanguage);
+export const language_parser: Parser = ParserFactory.create(language_language, language_parsing_table, constructLanguage);
 

@@ -1,7 +1,7 @@
 import {SYMBOL_EOF, Token} from "../def/token";
 import {ClosureItem} from "./closureitem";
 import {ClosureSet} from "./closureset";
-import {SyntaxDB} from "./syntaxdb";
+import {GrammarDB} from "./grammardb";
 
 export type DFAEdge = Map<Token, number>;
 export type DFANode = { closure: ClosureSet, edge: DFAEdge };
@@ -10,7 +10,7 @@ export type DFA = Array<DFANode>;
 export class DFAGenerator {
 	private lr_dfa: DFA;
 	private lalr_dfa: DFA;
-	constructor(private syntax: SyntaxDB) {
+	constructor(private grammardb: GrammarDB) {
 		this.generateDFA();
 	}
 	public getLR1DFA(): DFA {
@@ -21,8 +21,8 @@ export class DFAGenerator {
 	}
 	// DFAの生成
 	private generateDFA() {
-		const initial_item: ClosureItem = new ClosureItem(this.syntax, -1, 0, [SYMBOL_EOF]);
-		const initial_set: ClosureSet = new ClosureSet(this.syntax, [initial_item]);
+		const initial_item: ClosureItem = new ClosureItem(this.grammardb, -1, 0, [SYMBOL_EOF]);
+		const initial_set: ClosureSet = new ClosureSet(this.grammardb, [initial_item]);
 		const dfa: DFA = [{closure: initial_set, edge: new Map<Token, number>()}];
 
 		// 変更がなくなるまでループ
@@ -130,10 +130,10 @@ export class DFAGenerator {
 	private generateNewClosureSets(closureset: ClosureSet): Map<Token, ClosureSet> {
 		const tmp: Map<Token, Array<ClosureItem>> = new Map<Token, Array<ClosureItem>>();
 		// 規則から新しい規則を生成し、対応する記号ごとにまとめる
-		for (const {syntax_id, dot_index, lookaheads} of closureset.getArray()) {
-			const pattern = this.syntax.getDefinitionById(syntax_id).pattern;
+		for (const {rule_id, dot_index, lookaheads} of closureset.getArray()) {
+			const pattern = this.grammardb.getRuleById(rule_id).pattern;
 			if (dot_index == pattern.length) continue; // .が末尾にある場合はスキップ
-			const new_ci = new ClosureItem(this.syntax, syntax_id, dot_index + 1, lookaheads);
+			const new_ci = new ClosureItem(this.grammardb, rule_id, dot_index + 1, lookaheads);
 			const edge_label: Token = pattern[dot_index];
 
 			let items: Array<ClosureItem>;
@@ -151,7 +151,7 @@ export class DFAGenerator {
 		// ClosureItemの配列からClosureSetに変換
 		const result: Map<Token, ClosureSet> = new Map<Token, ClosureSet>();
 		for (const [edge_label, items] of tmp) {
-			result.set(edge_label, new ClosureSet(this.syntax, items));
+			result.set(edge_label, new ClosureSet(this.grammardb, items));
 		}
 		return result;
 	}

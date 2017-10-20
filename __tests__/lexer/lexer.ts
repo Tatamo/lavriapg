@@ -1,5 +1,5 @@
 import {Lexer} from "../../src/lexer/lexer";
-import {test_sample_lex, test_empty_grammar} from "../data/sample_grammar";
+import {test_sample_lex, test_empty_language} from "../data/sample_language";
 import {SYMBOL_EOF} from "../../src/def/token";
 
 describe("Lexer test", () => {
@@ -20,7 +20,7 @@ describe("Lexer test", () => {
 		]);
 	});
 	test("exec invalid input", () => {
-		const lexer = new Lexer(test_empty_grammar.lex);
+		const lexer = new Lexer(test_empty_language.lex);
 		expect(() => {
 			lexer.exec("xabc;x|&0ax x z;");
 		}).toThrow(/no pattern matched/);
@@ -30,7 +30,7 @@ describe("Lexer test", () => {
 		expect(lexer.exec("")).toEqual([
 			{token: SYMBOL_EOF, value: ""}
 		]);
-		const lexer2 = new Lexer(test_empty_grammar.lex);
+		const lexer2 = new Lexer(test_empty_language.lex);
 		expect(lexer2.exec("")).toEqual([
 			{token: SYMBOL_EOF, value: ""}
 		]);

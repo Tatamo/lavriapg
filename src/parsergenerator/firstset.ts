@@ -1,4 +1,4 @@
-import {SyntaxDefinitions} from "../def/grammar";
+import {GrammarDefinition} from "../def/language";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {NullableSet} from "./nullableset";
 import {SymbolDiscriminator} from "./symboldiscriminator";
@@ -9,9 +9,9 @@ export class FirstSet {
 	private first_map: Map<Token, Set<Token>>;
 	private nulls: NullableSet;
 
-	constructor(private syntax: SyntaxDefinitions, private symbols: SymbolDiscriminator) {
+	constructor(private grammar: GrammarDefinition, private symbols: SymbolDiscriminator) {
 		this.first_map = new Map<Token, Set<Token>>();
-		this.nulls = new NullableSet(this.syntax);
+		this.nulls = new NullableSet(this.grammar);
 		this.generateFirst();
 	}
 
@@ -34,7 +34,7 @@ export class FirstSet {
 
 		// 包含についての制約を生成
 		const constraint: Constraint = [];
-		for (const rule of this.syntax) {
+		for (const rule of this.grammar) {
 			const sup: Token = rule.ltoken;
 			// 右辺の左から順に、non-nullableな記号が現れるまで制約に追加
 			// 最初のnon-nullableな記号は制約に含める

@@ -1,10 +1,10 @@
-import {test_calc_syntax, test_empty_grammar, test_sample_syntax} from "../data/sample_grammar";
+import {test_calc_grammar, test_empty_language, test_sample_grammar} from "../data/sample_language";
 import {SymbolDiscriminator} from "../../src/parsergenerator/symboldiscriminator";
 import {Token} from "../../src/def/token";
 
 describe("SymbolDiscriminator test", () => {
-	describe("test sample grammar", () => {
-		const symbols = new SymbolDiscriminator(test_sample_syntax);
+	describe("test sample language", () => {
+		const symbols = new SymbolDiscriminator(test_sample_grammar);
 		test("S is Nonterminal", () => {
 			expect(symbols.isNonterminalSymbol("S")).toBeTruthy();
 			expect(symbols.isTerminalSymbol("S")).toBeFalsy();
@@ -41,7 +41,7 @@ describe("SymbolDiscriminator test", () => {
 			expect(symbols.isNonterminalSymbol("ID")).toBeFalsy();
 			expect(symbols.isTerminalSymbol("ID")).toBeTruthy();
 		});
-		test("INVALID (not appear in syntax) is neither Nonterminal nor Terminal", () => {
+		test("INVALID (not appear in grammar) is neither Nonterminal nor Terminal", () => {
 			expect(symbols.isNonterminalSymbol("INVALID")).toBeFalsy();
 			expect(symbols.isTerminalSymbol("INVALID")).toBeFalsy();
 		});
@@ -60,8 +60,8 @@ describe("SymbolDiscriminator test", () => {
 			expect(t.size).toBe(4);
 		});
 	});
-	describe("test sample grammar", () => {
-		const symbols = new SymbolDiscriminator(test_calc_syntax);
+	describe("test sample language", () => {
+		const symbols = new SymbolDiscriminator(test_calc_grammar);
 		test("Check nonterminal symbols set", () => {
 			const nt: Set<Token> = symbols.getNonterminalSymbols();
 			for (const symbol of ["EXP", "TERM", "ATOM"]) {
@@ -77,8 +77,8 @@ describe("SymbolDiscriminator test", () => {
 			expect(t.size).toBe(5);
 		});
 	});
-	describe("test empty grammar", () => {
-		const symbols = new SymbolDiscriminator(test_empty_grammar.syntax);
+	describe("test empty language", () => {
+		const symbols = new SymbolDiscriminator(test_empty_language.grammar);
 		test("Check nonterminal symbols set", () => {
 			const nt: Set<Token> = symbols.getNonterminalSymbols();
 			expect(nt).toContain("S");

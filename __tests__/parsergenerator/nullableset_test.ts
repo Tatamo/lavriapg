@@ -1,8 +1,8 @@
 import {NullableSet} from "../../src/parsergenerator/nullableset";
-import {test_sample_syntax} from "../data/sample_grammar";
+import {test_sample_grammar} from "../data/sample_language";
 
 describe("NullableSet test", () => {
-	const nulls = new NullableSet(test_sample_syntax);
+	const nulls = new NullableSet(test_sample_grammar);
 	test("T is Nullable", () => {
 		expect(nulls.isNullable("T")).toBeTruthy();
 	});

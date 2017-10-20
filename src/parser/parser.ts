@@ -1,6 +1,6 @@
-import {SyntaxDefinitions} from "../def/grammar";
+import {GrammarDefinition} from "../def/language";
 import {ParsingTable} from "../def/parsingtable";
-import {Token} from "../def/token";
+import {Token, TokenizedInput} from "../def/token";
 import {ILexer} from "../lexer/lexer";
 import {ASTNode} from "./ast";
 
@@ -23,7 +23,7 @@ export type ParserCallback = (arg: ParserCallbackArg) => any;
 
 export class Parser {
 	private default_callback: ParserCallback | null;
-	constructor(private lexer: ILexer, private syntax: SyntaxDefinitions, private parsingtable: ParsingTable, default_callback?: ParserCallback | null) {
+	constructor(private lexer: ILexer, private grammar: GrammarDefinition, private parsingtable: ParsingTable, default_callback?: ParserCallback | null) {
 		this.setDefaultCallback(default_callback);
 	}
 	public setDefaultCallback(default_callback?: ParserCallback | null) {
@@ -40,7 +40,7 @@ export class Parser {
 	// parsingtableはconflictを含む以外は正しさが保証されているものと仮定する
 	// inputsは正しくないトークンが与えられる可能性を含む
 	// TODO: 詳細な例外処理、エラー検知
-	private _parse(inputs: Array<{ token: Token, value: string }>, cb?: ParserCallback): any {
+	private _parse(inputs: Array<TokenizedInput>, cb?: ParserCallback): any {
 		let read_index: number = 0; // 次に読むべき入力記号のインデックス
 		const inputs_length: number = inputs.length;
 		const state_stack: Array<number> = [0]; // 現在読んでいる構文解析表の状態番号を置くスタック
@@ -94,8 +94,8 @@ export class Parser {
 			}
 			else if (action.type == "reduce") {
 				// reduceオペレーション
-				const syntax_item = this.syntax[action.syntax];
-				const rnum = syntax_item.pattern.length;
+				const grammar_rule = this.grammar[action.grammar_id];
+				const rnum = grammar_rule.pattern.length;
 				// 対応する規則の右辺の記号の数だけスタックからポップする
 				for (let i = 0; i < rnum; i++) state_stack.pop();
 
@@ -103,11 +103,11 @@ export class Parser {
 				const children = [];
 				for (let i = 0; i < rnum; i++) children[rnum - 1 - i] = result_stack.pop();
 
-				result_stack.push(callback({token: syntax_item.ltoken as string, children, pattern: syntax_item.pattern as Array<string>, terminal: false}));
+				result_stack.push(callback({token: grammar_rule.ltoken as string, children, pattern: grammar_rule.pattern as Array<string>, terminal: false}));
 
 				// このままgotoオペレーションを行う
 				state = state_stack[state_stack.length - 1];
-				token = syntax_item.ltoken;
+				token = grammar_rule.ltoken;
 				if (!this.parsingtable[state].has(token)) {
 					// 未定義
 					console.error("parse failed: unexpected token:", token);
@@ -130,14 +130,14 @@ export class Parser {
 			else if (action.type == "conflict") {
 				console.error("conflict found:");
 				console.error("current state " + state + ":", JSON.stringify(this.parsingtable[state]));
-				console.error("shift:", action.shift_to, ",reduce:", action.reduce_syntax);
+				console.error("shift:", action.shift_to, ",reduce:", action.reduce_grammar);
 				action.shift_to.forEach((to: number) => {
 					console.error("shift to " + to.toString() + ":", JSON.stringify(this.parsingtable[to]));
 				});
-				action.reduce_syntax.forEach((syntax: number) => {
-					console.error("reduce syntax " + syntax.toString() + ":", JSON.stringify(this.parsingtable[syntax]));
+				action.reduce_grammar.forEach((grammar_id: number) => {
+					console.error("reduce grammar " + grammar_id.toString() + ":", JSON.stringify(this.parsingtable[grammar_id]));
 				});
-				console.error("parser cannot parse conflicted syntax");
+				console.error("parser cannot parse conflicted grammar");
 				flg_error = true;
 				break;
 			}

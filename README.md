@@ -16,15 +16,15 @@ $ echo 1+1 | node ./node_modules/@tatamo/parsergenerator/dist/sample.js
 ```
 
 ## usage
-edit [grammar](/grammar) and run the following code:
+edit [language](/language) and run the following code:
 ```TypeScript
 // TypeScript
-import {grammar_parser, ParserGenerator} from "@tatamo/parsergenerator";
+import {language_parser, ParserGenerator} from "@tatamo/parsergenerator";
 import {readFileSync} from "fs";
 
 const input = readFileSync("/dev/stdin", "utf8") as string;
-const grammar = grammar_parser.parse(readFileSync("./node_modules/@tatamo/parsergenerator/grammar", "utf8") as string); // set the grammar file path
-const parser = new ParserGenerator(grammar).getParser();
+const language = language_parser.parse(readFileSync("./node_modules/@tatamo/parsergenerator/language", "utf8") as string); // set the language file path
+const parser = new ParserGenerator(language).getParser();
 console.log(parser.parse(input));
 ```
 
@@ -33,10 +33,10 @@ console.log(parser.parse(input));
 const pg = require("@tatamo/parsergenerator");
 const fs = require("fs");
 const input = fs.readFileSync("/dev/stdin", "utf8");
-const grammar = pg.grammar_parser.parse(fs.readFileSync("./node_modules/@tatamo/parsergenerator/grammar", "utf8")); // set the grammar file path
-const parser = new pg.ParserGenerator(grammar).getParser();
+const language = pg.language_parser.parse(fs.readFileSync("./node_modules/@tatamo/parsergenerator/language", "utf8")); // set the language file path
+const parser = new pg.ParserGenerator(language).getParser();
 console.log(parser.parse(input));
 ```
-this program parses input (from stdin) that has the grammar rule defined by [grammar](/grammar) and shows its AST.
+this program parses input (from stdin) that has the lex and grammar rules defined by [language](/language) and shows its AST.
 
-[grammar](/grammar) is grammar file and it expresses the grammar of itself.
+[language](/language) is language file and it expresses itself.

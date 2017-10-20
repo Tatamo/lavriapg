@@ -1,13 +1,13 @@
-import {SyntaxDB} from "../../src/parsergenerator/syntaxdb";
-import {test_empty_grammar, test_sample_grammar} from "../data/sample_grammar";
+import {GrammarDB} from "../../src/parsergenerator/grammardb";
+import {test_empty_language, test_sample_language} from "../data/sample_language";
 import {ClosureItem} from "../../src/parsergenerator/closureitem";
 import {SYMBOL_EOF} from "../../src/def/token";
 import {ClosureSet} from "../../src/parsergenerator/closureset";
 
 describe("ClosureSet test", () => {
 	describe("Closure{S' -> . S [$]}", () => {
-		const syntaxdb = new SyntaxDB(test_sample_grammar);
-		const cs = new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF])]);
+		const grammardb = new GrammarDB(test_sample_language);
+		const cs = new ClosureSet(grammardb, [new ClosureItem(grammardb, -1, 0, [SYMBOL_EOF])]);
 		/*
 		S' -> . S [$]
 		S -> . E [$]
@@ -20,26 +20,26 @@ describe("ClosureSet test", () => {
 		HOGE -> . ID [$]
 		 */
 		const expanded = [
-			new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, 0, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, 1, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, 2, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, 3, 0, ["SEMICOLON", "SEPARATE"]),
-			new ClosureItem(syntaxdb, 4, 0, ["SEPARATE", "SEMICOLON"]), // test changing lookaheads order
-			new ClosureItem(syntaxdb, 5, 0, ["SEMICOLON", "SEPARATE"]),
-			new ClosureItem(syntaxdb, 6, 0, ["SEMICOLON", "SEPARATE"]),
-			new ClosureItem(syntaxdb, 7, 0, [SYMBOL_EOF])
+			new ClosureItem(grammardb, -1, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, 0, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, 1, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, 2, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, 3, 0, ["SEMICOLON", "SEPARATE"]),
+			new ClosureItem(grammardb, 4, 0, ["SEPARATE", "SEMICOLON"]), // test changing lookaheads order
+			new ClosureItem(grammardb, 5, 0, ["SEMICOLON", "SEPARATE"]),
+			new ClosureItem(grammardb, 6, 0, ["SEMICOLON", "SEPARATE"]),
+			new ClosureItem(grammardb, 7, 0, [SYMBOL_EOF])
 		];
 		const expanded_shuffled = [
-			new ClosureItem(syntaxdb, 5, 0, ["SEMICOLON", "SEPARATE"]),
-			new ClosureItem(syntaxdb, 2, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, 1, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, 0, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, 4, 0, ["SEPARATE", "SEMICOLON"]),
-			new ClosureItem(syntaxdb, 7, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, 3, 0, ["SEMICOLON", "SEPARATE"]),
-			new ClosureItem(syntaxdb, 6, 0, ["SEPARATE", "SEMICOLON"])
+			new ClosureItem(grammardb, 5, 0, ["SEMICOLON", "SEPARATE"]),
+			new ClosureItem(grammardb, 2, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, 1, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, 0, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, 4, 0, ["SEPARATE", "SEMICOLON"]),
+			new ClosureItem(grammardb, 7, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, -1, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, 3, 0, ["SEMICOLON", "SEPARATE"]),
+			new ClosureItem(grammardb, 6, 0, ["SEPARATE", "SEMICOLON"])
 		];
 		test("ClosureSet size", () => {
 			expect(cs.size).toBe(9);
@@ -53,8 +53,8 @@ describe("ClosureSet test", () => {
 				expect(cs.isSameLR1(cs)).toBeTruthy();
 			});
 			test("compare closureset that is given expanded items to constructor", () => {
-				expect(cs.isSameLR0(new ClosureSet(syntaxdb, expanded_shuffled))).toBeTruthy();
-				expect(cs.isSameLR1(new ClosureSet(syntaxdb, expanded_shuffled))).toBeTruthy();
+				expect(cs.isSameLR0(new ClosureSet(grammardb, expanded_shuffled))).toBeTruthy();
+				expect(cs.isSameLR1(new ClosureSet(grammardb, expanded_shuffled))).toBeTruthy();
 			});
 		});
 		test("ClosureSet#include", () => {
@@ -63,27 +63,27 @@ describe("ClosureSet test", () => {
 			}
 		});
 		test("ClosureSet#include invalid inputs", () => {
-			expect(()=>cs.includes(new ClosureItem(syntaxdb, 0, 1, [SYMBOL_EOF]))).not.toThrow();
-			expect(()=>cs.includes(new ClosureItem(syntaxdb, 0, 2, [SYMBOL_EOF]))).toThrow(/out of range/);
-			expect(()=>cs.includes(new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF]))).toThrow(/out of range/);
-			expect(()=>cs.includes(new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF]))).toThrow(/invalid syntax id/);
-			expect(()=>cs.includes(new ClosureItem(syntaxdb, -8, 0, [SYMBOL_EOF]))).toThrow(/invalid syntax id/);
+			expect(()=>cs.includes(new ClosureItem(grammardb, 0, 1, [SYMBOL_EOF]))).not.toThrow();
+			expect(()=>cs.includes(new ClosureItem(grammardb, 0, 2, [SYMBOL_EOF]))).toThrow(/out of range/);
+			expect(()=>cs.includes(new ClosureItem(grammardb, 0, -1, [SYMBOL_EOF]))).toThrow(/out of range/);
+			expect(()=>cs.includes(new ClosureItem(grammardb, -2, 0, [SYMBOL_EOF]))).toThrow(/invalid grammar id/);
+			expect(()=>cs.includes(new ClosureItem(grammardb, -8, 0, [SYMBOL_EOF]))).toThrow(/invalid grammar id/);
 		});
 		describe("invalid ClosureSet", () => {
-			test("invalid syntax id", () => {
-				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -2, 0, [SYMBOL_EOF])])).toThrow(/invalid syntax id/);
+			test("invalid grammar id", () => {
+				expect(()=>new ClosureSet(grammardb, [new ClosureItem(grammardb, -2, 0, [SYMBOL_EOF])])).toThrow(/invalid grammar id/);
 			});
 			test("invalid dot position", () => {
-				expect(()=>new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, 0, -1, [SYMBOL_EOF])])).toThrow(/out of range/);
+				expect(()=>new ClosureSet(grammardb, [new ClosureItem(grammardb, 0, -1, [SYMBOL_EOF])])).toThrow(/out of range/);
 			});
 		});
 	});
-	describe("empty syntax", () => {
-		const syntaxdb = new SyntaxDB(test_empty_grammar);
-		const cs = new ClosureSet(syntaxdb, [new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF])]);
+	describe("empty grammar", () => {
+		const grammardb = new GrammarDB(test_empty_language);
+		const cs = new ClosureSet(grammardb, [new ClosureItem(grammardb, -1, 0, [SYMBOL_EOF])]);
 		const expanded = [
-			new ClosureItem(syntaxdb, -1, 0, [SYMBOL_EOF]),
-			new ClosureItem(syntaxdb, 0, 0, [SYMBOL_EOF])
+			new ClosureItem(grammardb, -1, 0, [SYMBOL_EOF]),
+			new ClosureItem(grammardb, 0, 0, [SYMBOL_EOF])
 		];
 		test("ClosureSet size", () => {
 			expect(cs.size).toBe(2);
