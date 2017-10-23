@@ -13,6 +13,7 @@ export type LexDefinition = Array<LexRule>;
 export interface GrammarRule {
 	ltoken: Token;
 	pattern: Array<Token>;
+	callback?: (lexer: ILexer, token: string, pattern: Array<string>) => any; // TODO: 引数をましにする
 }
 
 export type GrammarDefinition = Array<GrammarRule>;

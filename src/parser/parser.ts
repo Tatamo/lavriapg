@@ -23,9 +23,14 @@ export type ParserCallback = (arg: ParserCallbackArg) => any;
 
 export class Parser {
 	private default_callback: ParserCallback | null;
-	constructor(private lexer: ILexer, private grammar: GrammarDefinition, private parsingtable: ParsingTable, default_callback?: ParserCallback | null) {
+
+	// TODO: 全体的にましにする
+	constructor(lexer: ILexer, grammar: GrammarDefinition, parsingtable: ParsingTable, callback_mode: "grammar");
+	constructor(lexer: ILexer, grammar: GrammarDefinition, parsingtable: ParsingTable, callback_mode: "default", default_callback?: ParserCallback | null);
+	constructor(private lexer: ILexer, private grammar: GrammarDefinition, private parsingtable: ParsingTable, private callback_mode: "grammar" | "default", default_callback?: ParserCallback | null) {
 		this.setDefaultCallback(default_callback);
 	}
+
 	public setDefaultCallback(default_callback?: ParserCallback | null) {
 		if (default_callback === null || default_callback === undefined) {
 			this.default_callback = null;
@@ -34,9 +39,11 @@ export class Parser {
 			this.default_callback = default_callback;
 		}
 	}
+
 	public parse(input: string, cb?: ParserCallback): any {
 		return this._parse(this.lexer.exec(input), cb);
 	}
+
 	// parsingtableはconflictを含む以外は正しさが保証されているものと仮定する
 	// inputsは正しくないトークンが与えられる可能性を含む
 	// TODO: 詳細な例外処理、エラー検知
@@ -54,7 +61,7 @@ export class Parser {
 		else {
 			// デフォルトコールバックも設定されていない場合は抽象構文木を構築する
 			callback = (arg: ParserCallbackArg): ASTNode => {
-				if (arg.terminal == true) {
+				if (arg.terminal === true) {
 					return {
 						type: arg.token,
 						value: arg.value,
@@ -103,7 +110,19 @@ export class Parser {
 				const children = [];
 				for (let i = 0; i < rnum; i++) children[rnum - 1 - i] = result_stack.pop();
 
-				result_stack.push(callback({token: grammar_rule.ltoken as string, children, pattern: grammar_rule.pattern as Array<string>, terminal: false}));
+				if (this.callback_mode === "grammar") {
+					if (grammar_rule.callback !== undefined) {
+						grammar_rule.callback(this.lexer, grammar_rule.ltoken as string, grammar_rule.pattern as Array<string>);
+					}
+				}
+				else {
+					result_stack.push(callback({
+						token: grammar_rule.ltoken as string,
+						children,
+						pattern: grammar_rule.pattern as Array<string>,
+						terminal: false as false
+					}));
+				}
 
 				// このままgotoオペレーションを行う
 				state = state_stack[state_stack.length - 1];
