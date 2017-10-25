@@ -112,7 +112,7 @@ export class Parser {
 
 				if (this.callback_mode === "grammar") {
 					if (grammar_rule.callback !== undefined) {
-						grammar_rule.callback(this.lexer, grammar_rule.ltoken as string, grammar_rule.pattern as Array<string>);
+						grammar_rule.callback(children, grammar_rule.ltoken as string, this.lexer);
 					}
 				}
 				else {

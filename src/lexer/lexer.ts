@@ -1,4 +1,4 @@
-import {LexDefinition, LexRule} from "../def/language";
+import {LexCallback, LexDefinition, LexRule} from "../def/language";
 import {SYMBOL_EOF, Token, TokenizedInput} from "../def/token";
 
 // TODO: 提供するAPIだけ見せる
@@ -72,7 +72,7 @@ export class Lexer implements ILexer {
 			let result_match: string = "";
 			let result_priority: number | null = null;
 			let next_index: number;
-			let result_callback: ((lexer: ILexer, token: string | null, value: string, index: number) => any) | undefined;
+			let result_callback: LexCallback | undefined;
 			for (const {rule} of this._def) {
 				const {token, pattern, priority, callback} = rule;
 				let match: string;
@@ -110,7 +110,7 @@ export class Lexer implements ILexer {
 				this._last_index = next_index!;
 				// コールバック呼び出し
 				if (result_callback !== undefined && typeof result_token !== "symbol") {
-					result_callback(this, result_token, result_match, this._last_index);
+					result_callback(result_match, this._last_index, result_token, this);
 				}
 				// tokenがnullなら処理を飛ばす
 				if (result_token !== null) {
