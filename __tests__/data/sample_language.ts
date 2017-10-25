@@ -150,3 +150,41 @@ export const test_calc_solver = (arg: ParserCallbackArg) => {
 		}
 	}
 };
+export const test_calc_grammar_with_solver: GrammarDefinition = [
+	{
+		ltoken: "EXP",
+		pattern: ["EXP", "PLUS", "TERM"],
+		callback: (c) => c[0] + c[2]
+	},
+	{
+		ltoken: "EXP",
+		pattern: ["TERM"],
+		callback: (c) => c[0]
+	},
+	{
+		ltoken: "TERM",
+		pattern: ["TERM", "ASTERISK", "ATOM"],
+		callback: (c) => c[0] * c[2]
+	},
+	{
+		ltoken: "TERM",
+		pattern: ["ATOM"],
+		callback: (c) => c[0]
+	},
+	{
+		ltoken: "ATOM",
+		pattern: ["DIGITS"],
+		callback: (c) => +(c[0].value)
+	},
+	{
+		ltoken: "ATOM",
+		pattern: ["LPAREN", "EXP", "RPAREN"],
+		callback: (c) => c[1]
+	}
+];
+
+export const test_calc_language_with_solver: Language = {
+	lex: test_calc_lex,
+	grammar: test_calc_grammar_with_solver,
+	start_symbol: "EXP"
+};
