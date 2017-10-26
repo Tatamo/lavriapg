@@ -61,27 +61,33 @@ export const test_empty_language: Language = {
 export const test_calc_grammar: GrammarDefinition = [
 	{
 		ltoken: "EXP",
-		pattern: ["EXP", "PLUS", "TERM"]
+		pattern: ["EXP", "PLUS", "TERM"],
+		callback: (c) => c[0] + c[2]
 	},
 	{
 		ltoken: "EXP",
-		pattern: ["TERM"]
+		pattern: ["TERM"],
+		callback: (c) => c[0]
 	},
 	{
 		ltoken: "TERM",
-		pattern: ["TERM", "ASTERISK", "ATOM"]
+		pattern: ["TERM", "ASTERISK", "ATOM"],
+		callback: (c) => c[0] * c[2]
 	},
 	{
 		ltoken: "TERM",
-		pattern: ["ATOM"]
+		pattern: ["ATOM"],
+		callback: (c) => c[0]
 	},
 	{
 		ltoken: "ATOM",
-		pattern: ["DIGITS"]
+		pattern: ["DIGITS"],
+		callback: (c) => +(c[0])
 	},
 	{
 		ltoken: "ATOM",
-		pattern: ["LPAREN", "EXP", "RPAREN"]
+		pattern: ["LPAREN", "EXP", "RPAREN"],
+		callback: (c) => c[1]
 	}
 ];
 
@@ -115,76 +121,3 @@ $EXP : EXP PLUS TERM | TERM;
 TERM : TERM ASTERISK ATOM | ATOM;
 ATOM : DIGITS | LPAREN EXP RPAREN;
 `;
-
-export const test_calc_solver = (arg: ParserCallbackArg) => {
-	if (arg.terminal) {
-		if (arg.token == "DIGITS") {
-			return +arg.value;
-		}
-		return null;
-	}
-	else if (arg.terminal == false) {
-		if (arg.token == "ATOM") {
-			if (arg.children.length == 1) {
-				return arg.children[0];
-			}
-			else {
-				return arg.children[1];
-			}
-		}
-		else if (arg.token == "TERM") {
-			if (arg.children.length == 1) {
-				return arg.children[0];
-			}
-			else {
-				return arg.children[0] * arg.children[2];
-			}
-		}
-		else if (arg.token == "EXP") {
-			if (arg.children.length == 1) {
-				return arg.children[0];
-			}
-			else {
-				return arg.children[0] + arg.children[2];
-			}
-		}
-	}
-};
-export const test_calc_grammar_with_solver: GrammarDefinition = [
-	{
-		ltoken: "EXP",
-		pattern: ["EXP", "PLUS", "TERM"],
-		callback: (c) => c[0] + c[2]
-	},
-	{
-		ltoken: "EXP",
-		pattern: ["TERM"],
-		callback: (c) => c[0]
-	},
-	{
-		ltoken: "TERM",
-		pattern: ["TERM", "ASTERISK", "ATOM"],
-		callback: (c) => c[0] * c[2]
-	},
-	{
-		ltoken: "TERM",
-		pattern: ["ATOM"],
-		callback: (c) => c[0]
-	},
-	{
-		ltoken: "ATOM",
-		pattern: ["DIGITS"],
-		callback: (c) => +(c[0])
-	},
-	{
-		ltoken: "ATOM",
-		pattern: ["LPAREN", "EXP", "RPAREN"],
-		callback: (c) => c[1]
-	}
-];
-
-export const test_calc_language_with_solver: Language = {
-	lex: test_calc_lex,
-	grammar: test_calc_grammar_with_solver,
-	start_symbol: "EXP"
-};

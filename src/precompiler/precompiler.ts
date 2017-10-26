@@ -11,6 +11,7 @@ export class PreCompiler {
 	// 構文ファイルを受け取り、それを処理できるパーサを構築するためのソースコードを返す
 	public exec(input: string): string {
 		const language: Language = language_parser.parse(input);
+		console.error(language);
 		const parsing_table = new ParserGenerator(language).getParsingTable();
 		let result = "";
 

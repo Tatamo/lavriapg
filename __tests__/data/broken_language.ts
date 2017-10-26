@@ -3,27 +3,33 @@ import {Language, LexDefinition, GrammarDefinition} from "../../src/def/language
 export const test_broken_grammar: GrammarDefinition = [
 	{
 		ltoken: "EXP",
-		pattern: ["EXP", "PLUS", "EXP"]
+		pattern: ["EXP", "PLUS", "EXP"],
+		callback: (c) => c[0] + c[2]
 	},
 	{
 		ltoken: "EXP",
-		pattern: ["TERM"]
+		pattern: ["TERM"],
+		callback: (c) => c[0]
 	},
 	{
 		ltoken: "TERM",
-		pattern: ["TERM", "ASTERISK", "ATOM"]
+		pattern: ["TERM", "ASTERISK", "ATOM"],
+		callback: (c) => c[0] * c[2]
 	},
 	{
 		ltoken: "TERM",
-		pattern: ["ATOM"]
+		pattern: ["ATOM"],
+		callback: (c) => c[0]
 	},
 	{
 		ltoken: "ATOM",
-		pattern: ["DIGITS"]
+		pattern: ["DIGITS"],
+		callback: (c) => +c[0]
 	},
 	{
 		ltoken: "ATOM",
-		pattern: ["LPAREN", "EXP", "RPAREN"]
+		pattern: ["LPAREN", "EXP", "RPAREN"],
+		callback: (c) => c[1]
 	}
 ];
 

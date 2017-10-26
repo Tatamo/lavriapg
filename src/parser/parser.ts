@@ -119,6 +119,9 @@ export class Parser {
 					if (grammar_rule.callback !== undefined) {
 						result_stack.push(grammar_rule.callback(children, grammar_rule.ltoken as string, this.lexer));
 					}
+					else {
+						result_stack.push(children[0]);
+					}
 				}
 				else {
 					result_stack.push(callback({

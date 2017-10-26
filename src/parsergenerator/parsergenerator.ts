@@ -29,8 +29,8 @@ export class ParserGenerator {
 			}
 		}
 	}
-	public getParser(default_callback?: ParserCallback): Parser {
-		return ParserFactory.create(this.language, this.parsing_table, default_callback);
+	public getParser(): Parser {
+		return ParserFactory.create(this.language, this.parsing_table);
 	}
 	public getParsingTable(): ParsingTable {
 		return this.parsing_table;

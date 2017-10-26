@@ -4,8 +4,12 @@ import {Lexer} from "../lexer/lexer";
 import {Parser, ParserCallback} from "./parser";
 
 export class ParserFactory {
-	public static create(language: Language, parsing_table: ParsingTable, default_fallback?: ParserCallback): Parser {
+	public static create(language: Language, parsing_table: ParsingTable): Parser {
 		const lexer = new Lexer(language.lex);
-		return new Parser(lexer, language.grammar, parsing_table, "default", default_fallback);
+		return new Parser(lexer, language.grammar, parsing_table, "grammar");
+	}
+	public static createAST(language: Language, parsing_table: ParsingTable): Parser {
+		const lexer = new Lexer(language.lex);
+		return new Parser(lexer, language.grammar, parsing_table, "default");
 	}
 }
