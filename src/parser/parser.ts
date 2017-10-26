@@ -22,61 +22,40 @@ export type ParserCallbackArg = TerminalCallbackArg | NonterminalCallbackArg;
 export type ParserCallback = (arg: ParserCallbackArg) => any;
 
 export class Parser {
-	private default_callback: ParserCallback | null;
-
 	// TODO: 全体的にましにする
-	constructor(lexer: ILexer, grammar: GrammarDefinition, parsingtable: ParsingTable, callback_mode: "grammar");
-	constructor(lexer: ILexer, grammar: GrammarDefinition, parsingtable: ParsingTable, callback_mode: "default", default_callback?: ParserCallback | null);
-	constructor(private lexer: ILexer, private grammar: GrammarDefinition, private parsingtable: ParsingTable, private callback_mode: "grammar" | "default", default_callback?: ParserCallback | null) {
-		this.setDefaultCallback(default_callback);
-	}
+	constructor(private lexer: ILexer, private grammar: GrammarDefinition, private parsingtable: ParsingTable, private callback_mode: "grammar" | "default") {}
 
-	public setDefaultCallback(default_callback?: ParserCallback | null) {
-		if (default_callback === null || default_callback === undefined) {
-			this.default_callback = null;
-		}
-		else {
-			this.default_callback = default_callback;
-		}
-	}
-
-	public parse(input: string, cb?: ParserCallback): any {
-		return this._parse(this.lexer.exec(input), cb);
+	public parse(input: string): any {
+		return this._parse(this.lexer.exec(input));
 	}
 
 	// parsingtableはconflictを含む以外は正しさが保証されているものと仮定する
 	// inputsは正しくないトークンが与えられる可能性を含む
 	// TODO: 詳細な例外処理、エラー検知
-	private _parse(inputs: Array<TokenizedInput>, cb?: ParserCallback): any {
+	private _parse(inputs: Array<TokenizedInput>): any {
 		let read_index: number = 0; // 次に読むべき入力記号のインデックス
 		const inputs_length: number = inputs.length;
 		const state_stack: Array<number> = [0]; // 現在読んでいる構文解析表の状態番号を置くスタック
 		const result_stack: Array<any> = []; // 解析中のASTノードを置くスタック
 		let flg_error: boolean = false;
 
-		let callback: ParserCallback;
-		if (cb !== null && cb !== undefined) callback = cb;
-		// コールバックが引数として与えられていない場合は設定されたデフォルトコールバックを使用
-		else if (this.default_callback !== null && this.default_callback !== undefined) callback = this.default_callback;
-		else {
-			// デフォルトコールバックも設定されていない場合は抽象構文木を構築する
-			callback = (arg: ParserCallbackArg): ASTNode => {
-				if (arg.terminal === true) {
-					return {
-						type: arg.token,
-						value: arg.value,
-						children: []
-					};
-				}
-				else {
-					return {
-						type: arg.token,
-						value: null,
-						children: arg.children
-					};
-				}
-			};
-		}
+		// 抽象構文木を構築する
+		const callback: ParserCallback = (arg: ParserCallbackArg): ASTNode => {
+			if (arg.terminal === true) {
+				return {
+					type: arg.token,
+					value: arg.value,
+					children: []
+				};
+			}
+			else {
+				return {
+					type: arg.token,
+					value: null,
+					children: arg.children
+				};
+			}
+		};
 
 		// 構文解析する
 		while (read_index < inputs_length) {
