@@ -110,7 +110,12 @@ export class Lexer implements ILexer {
 				this._last_index = next_index!;
 				// コールバック呼び出し
 				if (result_callback !== undefined && typeof result_token !== "symbol") {
-					result_callback(result_match, this._last_index, result_token, this);
+					if (result_token !== null) {
+						return {token: result_token, value: result_callback(result_match, this._last_index, result_token, this)};
+					}
+					else {
+						result_callback(result_match, this._last_index, result_token, this);
+					}
 				}
 				// tokenがnullなら処理を飛ばす
 				if (result_token !== null) {
