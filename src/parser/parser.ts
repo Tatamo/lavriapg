@@ -94,7 +94,12 @@ export class Parser {
 				// 次の状態をスタックに追加
 				state_stack.push(action.to);
 
-				result_stack.push(callback({token: token as string, value: inputs[read_index].value, terminal: true}));
+				if (this.callback_mode === "grammar") {
+					result_stack.push(inputs[read_index].value);
+				}
+				else {
+					result_stack.push(callback({token: token as string, value: inputs[read_index].value, terminal: true}));
+				}
 
 				// 入力を一つ消費
 				read_index += 1;

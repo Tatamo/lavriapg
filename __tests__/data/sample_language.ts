@@ -174,7 +174,7 @@ export const test_calc_grammar_with_solver: GrammarDefinition = [
 	{
 		ltoken: "ATOM",
 		pattern: ["DIGITS"],
-		callback: (c) => +(c[0].value)
+		callback: (c) => +(c[0])
 	},
 	{
 		ltoken: "ATOM",
