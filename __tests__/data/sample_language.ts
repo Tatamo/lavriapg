@@ -1,5 +1,4 @@
 import {Language, LexDefinition, GrammarDefinition} from "../../src/def/language";
-import {ParserCallbackArg} from "../../src/parser/parser";
 
 export const test_sample_grammar: GrammarDefinition = [
 	{

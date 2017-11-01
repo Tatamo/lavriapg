@@ -2,7 +2,7 @@ import {LexDefinition, Language, GrammarDefinition} from "../def/language";
 import {ParsingOperation, ParsingTable} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserFactory} from "../parser/factory";
-import {Parser, ParserCallbackArg} from "../parser/parser";
+import {Parser} from "../parser/parser";
 
 const lex: LexDefinition = [
 	{token: "EXCLAMATION", pattern: "!"},
