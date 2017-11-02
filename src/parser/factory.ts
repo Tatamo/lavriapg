@@ -1,7 +1,7 @@
 import {Language} from "../def/language";
 import {ParsingTable} from "../def/parsingtable";
 import {Lexer} from "../lexer/lexer";
-import {Parser, ParserCallback} from "./parser";
+import {Parser} from "./parser";
 
 export class ParserFactory {
 	public static create(language: Language, parsing_table: ParsingTable): Parser {
