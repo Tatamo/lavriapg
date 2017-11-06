@@ -2,29 +2,16 @@ import {GrammarDefinition} from "../def/language";
 import {ParsingTable} from "../def/parsingtable";
 import {Token, TokenizedInput} from "../def/token";
 import {ILexer} from "../lexer/lexer";
-import {ASTNode} from "./ast";
-
-export interface TerminalCallbackArg {
-	token: string;
-	value: string;
-	terminal: true;
-}
-
-export interface NonterminalCallbackArg {
-	token: string;
-	children: Array<any>;
-	pattern: Array<string>;
-	terminal: false;
-}
-
-export type ParserCallbackArg = TerminalCallbackArg | NonterminalCallbackArg;
-
-export type ParserCallback = (arg: ParserCallbackArg) => any;
+import {CallbackController} from "./callback";
 
 export class Parser {
-	// TODO: 全体的にましにする
-	constructor(private lexer: ILexer, private grammar: GrammarDefinition, private parsingtable: ParsingTable, private callback_mode: "grammar" | "default") {}
+	private callback_controller: CallbackController;
+	constructor(private lexer: ILexer, private grammar: GrammarDefinition, private parsingtable: ParsingTable) {
+	}
 
+	public setCallbackController(cc: CallbackController) {
+		this.callback_controller = cc;
+	}
 	public parse(input: string): any {
 		return this._parse(this.lexer.exec(input));
 	}
@@ -38,24 +25,6 @@ export class Parser {
 		const state_stack: Array<number> = [0]; // 現在読んでいる構文解析表の状態番号を置くスタック
 		const result_stack: Array<any> = []; // 解析中のASTノードを置くスタック
 		let flg_error: boolean = false;
-
-		// 抽象構文木を構築する
-		const callback: ParserCallback = (arg: ParserCallbackArg): ASTNode => {
-			if (arg.terminal === true) {
-				return {
-					type: arg.token,
-					value: arg.value,
-					children: []
-				};
-			}
-			else {
-				return {
-					type: arg.token,
-					value: null,
-					children: arg.children
-				};
-			}
-		};
 
 		// 構文解析する
 		while (read_index < inputs_length) {
@@ -73,12 +42,7 @@ export class Parser {
 				// 次の状態をスタックに追加
 				state_stack.push(action.to);
 
-				if (this.callback_mode === "grammar") {
-					result_stack.push(inputs[read_index].value);
-				}
-				else {
-					result_stack.push(callback({token: token as string, value: inputs[read_index].value, terminal: true}));
-				}
+				result_stack.push(inputs[read_index].value);
 
 				// 入力を一つ消費
 				read_index += 1;
@@ -94,21 +58,11 @@ export class Parser {
 				const children = [];
 				for (let i = 0; i < rnum; i++) children[rnum - 1 - i] = result_stack.pop();
 
-				if (this.callback_mode === "grammar") {
-					if (grammar_rule.callback !== undefined) {
-						result_stack.push(grammar_rule.callback(children, grammar_rule.ltoken as string, this.lexer));
-					}
-					else {
-						result_stack.push(children[0]);
-					}
+				if (this.callback_controller !== undefined) {
+					result_stack.push(this.callback_controller.callGrammar(action.grammar_id, children, this.lexer));
 				}
 				else {
-					result_stack.push(callback({
-						token: grammar_rule.ltoken as string,
-						children,
-						pattern: grammar_rule.pattern as Array<string>,
-						terminal: false as false
-					}));
+					result_stack.push(children[0]);
 				}
 
 				// このままgotoオペレーションを行う

@@ -1,5 +1,6 @@
 import {LexCallback, LexDefinition, LexRule} from "../def/language";
 import {SYMBOL_EOF, Token, TokenizedInput} from "../def/token";
+import {CallbackController} from "../parser/callback";
 
 // TODO: 提供するAPIだけ見せる
 export interface ILexer {
@@ -19,6 +20,7 @@ export class Lexer implements ILexer {
 	get status(): "uninitialized" | "ready" | "finished" {
 		return this._status;
 	}
+	private callback_controller: CallbackController;
 	constructor(def: LexDefinition, input?: string) {
 		this._def = [];
 		this._rule_id = 0;
@@ -27,6 +29,9 @@ export class Lexer implements ILexer {
 		}
 		this.setCurrentDefinitionAsDefault();
 		this.reset(input);
+	}
+	public setCallbackController(cc: CallbackController) {
+		this.callback_controller = cc;
 	}
 	// リセット時に現在の字句規則になるようにする
 	setCurrentDefinitionAsDefault() {
@@ -72,7 +77,8 @@ export class Lexer implements ILexer {
 			let result_priority: number | null = null;
 			let next_index: number;
 			let result_callback: LexCallback | undefined;
-			for (const {rule} of this._def) {
+			let result_id: number = -1;
+			for (const {id, rule} of this._def) {
 				const {token, pattern, priority, callback} = rule;
 				let match: string;
 				let tmp_next_index: number;
@@ -102,18 +108,30 @@ export class Lexer implements ILexer {
 					result_priority = _priority;
 					next_index = tmp_next_index;
 					result_callback = callback;
+					result_id = id;
 				}
 			}
 			if (flg_matched) {
 				// 読む位置を進める
 				this._last_index = next_index!;
 				// コールバック呼び出し
-				if (result_callback !== undefined && typeof result_token !== "symbol") {
-					if (result_token !== null) {
-						return {token: result_token, value: result_callback(result_match, result_token, this)};
+				if (typeof result_token !== "symbol") {
+					if (this.callback_controller !== undefined) {
+						if (result_token !== null) {
+							return {token: result_token, value: this.callback_controller.callLex(result_id, result_match, this)};
+						}
+						else {
+							this.callback_controller.callLex(result_id, result_match, this);
+						}
 					}
-					else {
-						result_callback(result_match, result_token, this);
+					// CallbackControllerが定義されていないならそのままコールバックを呼び出す(暫定)
+					else if (result_callback !== undefined) {
+						if (result_token !== null) {
+							return {token: result_token, value: result_callback(result_match, result_token, this)};
+						}
+						else {
+							result_callback(result_match, result_token, this);
+						}
 					}
 				}
 				// tokenがnullなら処理を飛ばす

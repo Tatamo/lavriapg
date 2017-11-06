@@ -2,7 +2,6 @@ import {Parser} from "../../src/parser/parser";
 import {ParserFactory} from "../../src/parser/factory";
 import {ParserGenerator} from "../../src/parsergenerator/parsergenerator";
 import {test_calc_language} from "../data/sample_language";
-import {Lexer} from "../../src/lexer/lexer";
 
 describe("parser test", () => {
 	const parsingtable = new ParserGenerator(test_calc_language).getParsingTable();
