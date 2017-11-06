@@ -1,7 +1,7 @@
 import {Token} from "./token";
 import {ILexer} from "../lexer/lexer";
 
-export type LexCallback = (value: string, index: number, token: string | null, lexer: ILexer) => any;
+export type LexCallback = (value: string, token: string | null, lexer: ILexer) => any;
 
 export interface LexRule {
 	token: Token | null;
