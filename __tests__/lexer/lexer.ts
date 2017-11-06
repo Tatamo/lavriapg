@@ -1,6 +1,7 @@
 import {Lexer} from "../../src/lexer/lexer";
 import {test_sample_lex, test_empty_language} from "../data/sample_language";
 import {SYMBOL_EOF} from "../../src/def/token";
+import {DefaultCallbackController} from "../../src/parser/callback";
 
 describe("Lexer test", () => {
 	test("exec valid input", () => {
@@ -146,7 +147,8 @@ describe("Lexer test", () => {
 			{token: SYMBOL_EOF, value: ""}
 		]);
 	});
-	test("callback", () => {
+	test("custom callback (without CallbackController)", () => {
+		// デフォルトの挙動がこれでいいのか不明
 		const lexer = new Lexer([
 			{
 				token: "ERROR", pattern: "x",
@@ -156,6 +158,21 @@ describe("Lexer test", () => {
 			},
 			{token: null, pattern: " "}
 		]);
+		expect(() => lexer.exec(" x ")).toThrow(/custom callback/);
+	});
+	test("custom callback (set CallbackController)", () => {
+		const lex = [
+			{
+				token: "ERROR", pattern: "x",
+				callback: () => {
+					throw new Error("custom callback");
+				}
+			},
+			{token: null, pattern: " "}
+		];
+		const lang = {lex, grammar: [], start_symbol: ""}; // lex以外はダミー
+		const lexer = new Lexer(lex);
+		lexer.setCallbackController(new DefaultCallbackController(lang));
 		expect(() => lexer.exec(" x ")).toThrow(/custom callback/);
 	});
 });
