@@ -2,9 +2,10 @@ import {LexCallback, LexDefinition, LexRule} from "../def/language";
 import {SYMBOL_EOF, Token, TokenizedInput} from "../def/token";
 import {CallbackController} from "../parser/callback";
 
-// TODO: 提供するAPIだけ見せる
+// TODO: 要改善
 export interface ILexer {
 	exec(str: string): Array<TokenizedInput>;
+	setCallbackController(cc: CallbackController): void;
 }
 
 export class Lexer implements ILexer {

@@ -11,6 +11,7 @@ export class Parser {
 
 	public setCallbackController(cc: CallbackController) {
 		this.callback_controller = cc;
+		this.lexer.setCallbackController(cc);
 	}
 	public parse(input: string): any {
 		return this._parse(this.lexer.exec(input));

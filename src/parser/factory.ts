@@ -8,7 +8,6 @@ export class ParserFactory {
 	public static create(language: Language, parsing_table: ParsingTable): Parser {
 		const callback_controller = new DefaultCallbackController(language);
 		const lexer = new Lexer(language.lex);
-		lexer.setCallbackController(callback_controller);
 		const parser = new Parser(lexer, language.grammar, parsing_table);
 		parser.setCallbackController(callback_controller);
 		return parser;
@@ -16,7 +15,6 @@ export class ParserFactory {
 	public static createAST(language: Language, parsing_table: ParsingTable): Parser {
 		const callback_controller = new ASTConstructor(language);
 		const lexer = new Lexer(language.lex);
-		lexer.setCallbackController(callback_controller);
 		const parser = new Parser(lexer, language.grammar, parsing_table);
 		parser.setCallbackController(callback_controller);
 		return parser;
