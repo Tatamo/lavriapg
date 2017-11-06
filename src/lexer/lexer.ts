@@ -22,7 +22,6 @@ export class Lexer implements ILexer {
 	constructor(def: LexDefinition, input?: string) {
 		this._def = [];
 		this._rule_id = 0;
-		this._reset = {def: [], id: 0, flg_modified: false}; // add()を呼ぶためのダミー
 		for (const rule of def) {
 			this.add(rule);
 		}
@@ -178,7 +177,7 @@ export class Lexer implements ILexer {
 		else {
 			throw new Error("invalid token definition: neither string nor RegExp object");
 		}
-		this._reset.flg_modified = true;
+		if (this._reset !== undefined) this._reset.flg_modified = true;
 		return id;
 	}
 	// 字句規則を削除する
