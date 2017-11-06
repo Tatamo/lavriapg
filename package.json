@@ -24,17 +24,17 @@
 	"author": "Tatamo",
 	"license": "BSD-3-Clause",
 	"devDependencies": {
-		"@types/jest": "^21.1.2",
-		"@types/node": "^8.0.34",
+		"@types/jest": "^21.1.5",
+		"@types/node": "^8.0.48",
 		"gulp": "^3.9.1",
 		"gulp-sourcemaps": "^2.6.1",
 		"gulp-tslint": "^8.1.2",
-		"gulp-typescript": "^3.2.2",
+		"gulp-typescript": "^3.2.3",
 		"jest": "^21.2.1",
 		"merge2": "^1.2.0",
-		"ts-jest": "^21.1.2",
-		"tslint": "^5.7.0",
-		"typescript": "^2.5.3"
+		"ts-jest": "^21.1.4",
+		"tslint": "^5.8.0",
+		"typescript": "^2.6.1"
 	},
 	"dependencies": {},
 	"jest": {
