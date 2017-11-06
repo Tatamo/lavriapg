@@ -2,7 +2,7 @@ import {Language} from "../def/language";
 import {ParsingTable, AcceptOperation, ConflictedOperation, GotoOperation, ParsingOperation, ReduceOperation, ShiftOperation} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserFactory} from "../parser/factory";
-import {Parser, ParserCallback} from "../parser/parser";
+import {Parser} from "../parser/parser";
 import {DFA, DFAGenerator} from "./dfagenerator";
 import {GrammarDB} from "./grammardb";
 

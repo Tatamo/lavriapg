@@ -1,21 +1,6 @@
 import {ILexer} from "../lexer/lexer";
 import {Language} from "../def/language";
 
-export interface TerminalCallbackArg {
-	token: string;
-	value: string;
-	terminal: true;
-}
-
-export interface NonterminalCallbackArg {
-	token: string;
-	children: Array<any>;
-	pattern: Array<string>;
-	terminal: false;
-}
-
-export type ParserCallbackArg = TerminalCallbackArg | NonterminalCallbackArg;
-
 export interface CallbackController {
 	readonly language: Language;
 	init(): void;
