@@ -35,11 +35,23 @@ export class DFAGenerator {
 				const edge = dfa[i].edge;
 				const new_sets: Map<Token, ClosureSet> = this.generateNewClosureSets(closure);
 
+				// 与えられたDFANodeと全く同じDFANodeがある場合、そのindexを返す
+				// 見つからなければ-1を返す
+				const getIndexOfDuplicatedNode = (dfa: DFA, new_node: DFANode): number => {
+					let index = -1;
+					for (const [i, node] of dfa.entries()) {
+						if (new_node.closure.isSameLR1(node.closure)) {
+							index = i;
+							break;
+						}
+					}
+					return index;
+				};
 				// 新しいノードを生成する
 				for (const [edge_label, cs] of new_sets) {
 					const new_node: DFANode = {closure: cs, edge: new Map<Token, number>()};
 					// 既存のNodeのなかに同一のClosureSetを持つものがないか調べる
-					const duplicated_index = this.indexOfDuplicatedNode(dfa, new_node);
+					const duplicated_index = getIndexOfDuplicatedNode(dfa, new_node);
 					let index_to;
 					if (duplicated_index == -1) {
 						// 既存の状態と重複しない
@@ -154,17 +166,5 @@ export class DFAGenerator {
 			result.set(edge_label, new ClosureSet(this.grammardb, items));
 		}
 		return result;
-	}
-	// 与えられたDFANodeと全く同じDFANodeがある場合、そのindexを返す
-	// 見つからなければ-1を返す
-	private indexOfDuplicatedNode(dfa: DFA, new_node: DFANode): number {
-		let index = -1;
-		for (const [i, node] of dfa.entries()) {
-			if (new_node.closure.isSameLR1(node.closure)) {
-				index = i;
-				break;
-			}
-		}
-		return index;
 	}
 }
