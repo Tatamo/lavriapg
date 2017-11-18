@@ -275,6 +275,5 @@ export const language_parsing_table: ParsingTable = [
 ];
 
 // 予めParsingTableを用意しておくことで高速化
-// export const language_parser:Parser = new ParserGenerator(language_language).getParser(constructLanguage);
 export const language_parser: Parser = ParserFactory.create(language_language, language_parsing_table);
 
