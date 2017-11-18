@@ -68,24 +68,23 @@ export class DFAGenerator {
 		this.lr_dfa = dfa;
 		this.lalr_dfa = this.mergeLA(dfa);
 	}
-	// TODO: バグがないか確認
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
 	private mergeLA(dfa: DFA): DFA {
 		const array: Array<DFANode | null> = dfa.slice(); // nullを許容する
 		const merge_to: Map<number, number> = new Map<number, number>(); // マージ先への対応関係を保持する
 
 		for (let i = 0; i < array.length; i++) {
-			if (array[i] == null) continue;
+			if (array[i] === null) continue;
 			for (let ii = i + 1; ii < array.length; ii++) {
-				if (array[ii] == null) continue;
+				if (array[ii] === null) continue;
 				// LR(0)アイテムセット部分が重複
 				if (array[i]!.closure.isSameLR0(array[ii]!.closure)) {
 					// ii番目の先読み部分をi番目にマージする
 					// インデックス番号の大きい方が削除される
-					// 辺情報は、対象となる辺もいずれマージされて消えるため操作しなくてよい
+					// 辺情報は、削除された要素の持つ辺の対象もいずれマージされて消えるため操作しなくてよい
 
 					// 更新
-					// Nodeに変更をかけるとLR(1)DFAの中身まで変化してしまうため新しいオブジェクトとする
+					// Nodeに変更をかけるとLR(1)DFAの中身まで変化してしまうため新しいオブジェクトを生成する
 					array[i] = {closure: array[i]!.closure.mergeLA(array[ii]!.closure)!, edge: array[i]!.edge};
 					// ii番目を削除
 					array[ii] = null;
@@ -108,10 +107,11 @@ export class DFAGenerator {
 		for (const node of array) {
 			if (node !== null) shortened.push(node);
 		}
-		// fixのノードが削除された部分を埋める
+		// fixのうち、ノードが削除された部分を正しい対応で埋める
 		for (const [from, to] of merge_to) {
 			let index = to;
 			while (merge_to.has(index)) index = merge_to.get(index)!;
+			if (index !== to) merge_to.set(to, index); // 対応表を更新しておく
 			fix[from] = fix[index]; // toを繰り返し辿っているので未定義部分へのアクセスは発生しない
 		}
 
