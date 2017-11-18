@@ -1,5 +1,6 @@
 import {ILexer} from "../lexer/lexer";
 import {Language} from "../def/language";
+import {ASTNode} from "./ast";
 
 export interface CallbackController {
 	readonly language: Language;
@@ -43,14 +44,14 @@ export class DefaultCallbackController extends AbstractCallbackController {
 }
 
 export class ASTConstructor extends AbstractCallbackController {
-	callLex(id: number, value: any, lexer: ILexer): any {
+	callLex(id: number, value: any, lexer: ILexer): ASTNode {
 		return {
-			type: this.language.lex[id].token,
+			type: this.language.lex[id].token!,
 			value,
 			children: []
 		};
 	}
-	callGrammar(id: number, children: Array<any>, lexer: ILexer): any {
+	callGrammar(id: number, children: Array<any>, lexer: ILexer): ASTNode {
 		return {
 			type: this.language.grammar[id].ltoken,
 			value: null,
