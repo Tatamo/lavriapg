@@ -21,7 +21,7 @@ export class DFAGenerator {
 		return this.lalr_dfa;
 	}
 	// DFAの生成
-	private generateDFA() {
+	private generateDFA(): void {
 		const initial_item: ClosureItem = new ClosureItem(this.grammardb, -1, 0, [SYMBOL_EOF]);
 		const initial_set: ClosureSet = new ClosureSet(this.grammardb, [initial_item]);
 		const dfa: DFA = [{closure: initial_set, edge: new Map<Token, number>()}];
@@ -81,7 +81,7 @@ export class DFAGenerator {
 		this.lr_dfa = dfa;
 	}
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
-	private mergeLA() {
+	private mergeLA(): void {
 		if (this.lalr_dfa !== undefined || this.lr_dfa === undefined) return;
 		const base: Array<DFANode | null> = this.lr_dfa.slice(); // nullを許容する
 		const merge_to: Map<number, number> = new Map<number, number>(); // マージ先への対応関係を保持する
@@ -137,7 +137,7 @@ export class DFAGenerator {
 			}
 			result.push({closure: node.closure, edge: new_edge});
 		}
-		return result;
+		this.lalr_dfa = result;
 	}
 	// 既存のClosureSetから新しい規則を生成し、対応する記号ごとにまとめる
 	private generateNewClosureSets(closureset: ClosureSet): Map<Token, ClosureSet> {
