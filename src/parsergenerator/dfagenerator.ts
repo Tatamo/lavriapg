@@ -12,6 +12,7 @@ export class DFAGenerator {
 	private lalr_dfa: DFA;
 	constructor(private grammardb: GrammarDB) {
 		this.generateDFA();
+		this.mergeLA();
 	}
 	public getLR1DFA(): DFA {
 		return this.lr_dfa;
@@ -78,45 +79,45 @@ export class DFAGenerator {
 			i = 0;
 		}
 		this.lr_dfa = dfa;
-		this.lalr_dfa = this.mergeLA(dfa);
 	}
 	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
-	private mergeLA(dfa: DFA): DFA {
-		const array: Array<DFANode | null> = dfa.slice(); // nullを許容する
+	private mergeLA() {
+		if (this.lalr_dfa !== undefined || this.lr_dfa === undefined) return;
+		const base: Array<DFANode | null> = this.lr_dfa.slice(); // nullを許容する
 		const merge_to: Map<number, number> = new Map<number, number>(); // マージ先への対応関係を保持する
 
-		for (let i = 0; i < array.length; i++) {
-			if (array[i] === null) continue;
-			for (let ii = i + 1; ii < array.length; ii++) {
-				if (array[ii] === null) continue;
+		for (let i = 0; i < base.length; i++) {
+			if (base[i] === null) continue;
+			for (let ii = i + 1; ii < base.length; ii++) {
+				if (base[ii] === null) continue;
 				// LR(0)アイテムセット部分が重複
-				if (array[i]!.closure.isSameLR0(array[ii]!.closure)) {
+				if (base[i]!.closure.isSameLR0(base[ii]!.closure)) {
 					// ii番目の先読み部分をi番目にマージする
 					// インデックス番号の大きい方が削除される
 					// 辺情報は、削除された要素の持つ辺の対象もいずれマージされて消えるため操作しなくてよい
 
 					// 更新
 					// Nodeに変更をかけるとLR(1)DFAの中身まで変化してしまうため新しいオブジェクトを生成する
-					array[i] = {closure: array[i]!.closure.mergeLA(array[ii]!.closure)!, edge: array[i]!.edge};
+					base[i] = {closure: base[i]!.closure.mergeLA(base[ii]!.closure)!, edge: base[i]!.edge};
 					// ii番目を削除
-					array[ii] = null;
+					base[ii] = null;
 					// マージ元->マージ先への対応関係を保持
 					merge_to.set(ii, i);
 				}
 			}
 		}
 		// 削除した部分を配列から抜き取る
-		const prev_length = array.length; // ノードをマージする前のノード総数
+		const prev_length = base.length; // ノードをマージする前のノード総数
 		const fix = new Array(prev_length); // (元のindex->現在のindex)の対応表を作る
 		let d = 0; // ずれ
 		// nullで埋めた部分を消すことによるindexの変化
 		for (let i = 0; i < prev_length; i++) {
-			if (array[i] === null) d += 1; // ノードが削除されていた場合、以降のインデックスを1つずらす
+			if (base[i] === null) d += 1; // ノードが削除されていた場合、以降のインデックスを1つずらす
 			else fix[i] = i - d;
 		}
 		// 配列からnull埋めした部分を削除したものを作る
 		const shortened: Array<DFANode> = [];
-		for (const node of array) {
+		for (const node of base) {
 			if (node !== null) shortened.push(node);
 		}
 		// fixのうち、ノードが削除された部分を正しい対応で埋める
