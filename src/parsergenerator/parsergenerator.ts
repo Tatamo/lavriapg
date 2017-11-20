@@ -8,32 +8,50 @@ import {GrammarDB} from "./grammardb";
 
 export class ParserGenerator {
 	private parsing_table: ParsingTable;
+	private table_type: "LR1" | "LALR1" | "CONFLICTED";
 	private grammardb: GrammarDB;
 	private dfa_generator: DFAGenerator;
+
 	constructor(private language: Language) {
 		this.grammardb = new GrammarDB(this.language);
 		this.dfa_generator = new DFAGenerator(this.grammardb);
 		this.init();
 	}
+
 	private init() {
 		const lalr_result = this.generateParsingTable(this.dfa_generator.getLALR1DFA());
 		if (lalr_result.success) {
 			this.parsing_table = lalr_result.table;
+			this.table_type = "LALR1";
+			return;
 		}
-		else {
-			console.error("LALR parsing conflict found. return LR(1) table.");
-			const lr_result = this.generateParsingTable(this.dfa_generator.getLR1DFA());
-			this.parsing_table = lr_result.table;
-			if (!lr_result.success) {
-				console.error("LR(1) parsing conflict found. return LR(1) conflicted table.");
-			}
+		// LALR(1)構文解析表の生成に失敗
+		// LR(1)構文解析表の生成を試みる
+		console.error("LALR parsing conflict found. use LR(1) table.");
+		const lr_result = this.generateParsingTable(this.dfa_generator.getLR1DFA());
+		this.parsing_table = lr_result.table;
+		this.table_type = "LR1";
+		if (!lr_result.success) {
+			// LR(1)構文解析表の生成に失敗
+			this.table_type = "CONFLICTED";
+			console.error("LR(1) parsing conflict found. use LR(1) conflicted table.");
 		}
 	}
+
 	public getParser(): Parser {
 		return ParserFactory.create(this.language, this.parsing_table);
 	}
+
 	public getParsingTable(): ParsingTable {
 		return this.parsing_table;
+	}
+
+	public isConflicted(): boolean {
+		return this.table_type === "CONFLICTED";
+	}
+
+	public getTableType(): "LR1" | "LALR1" | "CONFLICTED" {
+		return this.table_type;
 	}
 
 	// 構文解析表を構築する
@@ -107,7 +125,7 @@ export class ParserGenerator {
 			}
 			parsing_table.push(table_row);
 		}
-		if (flg_conflicted) console.error("warn: some conflicts may be occured");
+		// if (flg_conflicted) console.error("warn: some conflicts may be occured");
 		return {table: parsing_table, success: !flg_conflicted};
 	}
 }
