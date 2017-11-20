@@ -5,6 +5,7 @@ const sourcemaps = require("gulp-sourcemaps");
 const typescript = require("gulp-typescript");
 
 const tslint = require("gulp-tslint");
+const typedoc = require("gulp-typedoc");
 
 // use tsconfig.json
 const tsProject = typescript.createProject("tsconfig.json");
@@ -29,9 +30,23 @@ gulp.task("tslint", () => {
 		.pipe(tslint.report());
 });
 
-gulp.task("watch-tslint", ["tslint"], ()=>{
+gulp.task("watch-tslint", ["tslint"], () => {
 	gulp.watch("src/**/*.ts", ["tslint"]);
 });
 
-gulp.task("default", ["tsc", "tslint"]);
-gulp.task("watch", ["watch-tsc", "watch-tslint"]);
+gulp.task("typedoc", () => {
+	return gulp.src("src/**/*.ts")
+		.pipe(typedoc({
+			module: "commonjs",
+			target: "es6",
+			out: "docs/",
+			name: "parsergenerator"
+		}))
+});
+
+gulp.task("watch-typedoc", ["typedoc"], () => {
+	gulp.watch("src/**/*.ts", ["typedoc"]);
+});
+
+gulp.task("default", ["tsc", "tslint", "typedoc"]);
+gulp.task("watch", ["watch-tsc", "watch-tslint", "watch-typedoc"]);
