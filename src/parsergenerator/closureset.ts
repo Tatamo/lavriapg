@@ -19,12 +19,15 @@ export class ClosureSet {
 			return 0;
 		});
 	}
+	/**
+	 * 保持しているLRアイテムの数
+	 */
 	get size() {
 		return this.closureset.length;
 	}
-	public getArray() {
-		// とりあえずコピーして返す(パフォーマンスは少し落ちる)
-		// return this.closureset;
+	public getArray(prevent_copy: boolean = false): Array<ClosureItem> {
+		if (prevent_copy) return this.closureset;
+		// デフォルトではコピーして返す(パフォーマンスは少し落ちる)
 		return this.closureset.concat();
 	}
 	// アイテムが含まれているかどうかを調べる
