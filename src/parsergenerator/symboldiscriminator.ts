@@ -1,6 +1,9 @@
 import {GrammarDefinition} from "../def/language";
 import {Token} from "../def/token";
 
+/**
+ * 終端/非終端記号の判別を行う
+ */
 export class SymbolDiscriminator {
 	private terminal_symbols: Set<Token>;
 	private nonterminal_symbols: Set<Token>;
@@ -24,19 +27,41 @@ export class SymbolDiscriminator {
 			}
 		}
 	}
+	/**
+	 * 終端記号の集合をSetで得る
+	 * @param {boolean} prevent_copy trueを与えるとSetをコピーせず返す
+	 * 結果に変更が加えられないと保証される場合に用いる
+	 * @returns {Set<Token>}
+	 */
 	public getTerminalSymbols(prevent_copy: boolean = false): Set<Token> {
 		if (prevent_copy) return this.terminal_symbols;
 		// コピーを返す
 		return new Set(this.terminal_symbols);
 	}
+	/**
+	 * 非終端記号の集合をSetで得る
+	 * @param {boolean} prevent_copy trueを与えるとSetをコピーせず返す
+	 * 結果に変更が加えられないと保証される場合に用いる
+	 * @returns {Set<Token>}
+	 */
 	public getNonterminalSymbols(prevent_copy: boolean = false): Set<Token> {
 		if (prevent_copy) return this.nonterminal_symbols;
 		// コピーを返す
 		return new Set(this.nonterminal_symbols);
 	}
+	/**
+	 * 与えられた記号が終端記号かどうかを調べる
+	 * @param {Token} symbol
+	 * @returns {boolean}
+	 */
 	public isTerminalSymbol(symbol: Token): boolean {
 		return this.terminal_symbols.has(symbol);
 	}
+	/**
+	 * 与えられた記号が非終端記号かどうかを調べる
+	 * @param {Token} symbol
+	 * @returns {boolean}
+	 */
 	public isNonterminalSymbol(symbol: Token): boolean {
 		return this.nonterminal_symbols.has(symbol);
 	}
