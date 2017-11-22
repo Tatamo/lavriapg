@@ -158,8 +158,17 @@ const grammar: GrammarDefinition = [
 	}
 ];
 
+/**
+ * 言語定義文法の言語定義
+ * @type Language
+ */
 export const language_language: Language = {lex: lex, grammar: grammar, start_symbol: "LANGUAGE"};
 
+// 予めParsingTableを用意しておくことで高速化
+/**
+ * 言語定義文法の言語定義、の構文解析表
+ * @type ParsingTable
+ */
 export const language_parsing_table: ParsingTable = [
 	new Map<Token, ParsingOperation>([
 		["LANGUAGE", {type: "goto", to: 1}],
@@ -274,6 +283,9 @@ export const language_parsing_table: ParsingTable = [
 		["SEMICOLON", {type: "reduce", grammar_id: 14}]])
 ];
 
-// 予めParsingTableを用意しておくことで高速化
+/**
+ * 言語定義ファイルを読み込むための構文解析器
+ * @type {Parser}
+ */
 export const language_parser: Parser = ParserFactory.create(language_language, language_parsing_table);
 

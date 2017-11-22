@@ -3,12 +3,21 @@ import {SYMBOL_EOF} from "../def/token";
 import {ParserGenerator} from "../parsergenerator/parsergenerator";
 import {language_parser} from "./ruleparser";
 
-
+/**
+ * 予め構文解析器を生成しておいて利用するためのソースコードを生成する
+ */
 export class PreCompiler {
+	/**
+	 * @param import_path パーサジェネレータをimportするためのディレクトリパス
+	 */
 	constructor(private import_path: string = "@tatamo/parsergenerator") {
 		if (import_path[import_path.length - 1] != "/") this.import_path += "/";
 	}
-	// 構文ファイルを受け取り、それを処理できるパーサを構築するためのソースコードを返す
+	/**
+	 * 構文ファイルを受け取り、それを処理できるパーサを構築するためのソースコードを返す
+	 * @param {string} input 言語定義文法によって記述された、解析対象となる言語
+	 * @returns {string} 生成されたパーサのソースコード
+	 */
 	public exec(input: string): string {
 		const language: Language = language_parser.parse(input);
 		console.error(language);
