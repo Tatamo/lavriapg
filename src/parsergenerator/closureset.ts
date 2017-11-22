@@ -53,13 +53,25 @@ export class ClosureSet {
 	/**
 	 * LRアイテムが集合に含まれているかどうかを調べる
 	 *
-	 * TODO: 二分探索を用いた高速化
 	 * @param {ClosureItem} item
 	 * @returns {boolean}
 	 */
 	public includes(item: ClosureItem): boolean {
-		for (const i of this.closureset) {
-			if (i.isSameLR1(item)) return true;
+		// 二分探索を用いて高速に探索する
+		let min = 0;
+		let max = this.closureset.length - 1;
+		while (min <= max) {
+			const mid = min + Math.floor((max - min) / 2);
+			if (item.getLR1Hash() < this.closureset[mid].getLR1Hash()) {
+				max = mid - 1;
+			}
+			else if (item.getLR1Hash() > this.closureset[mid].getLR1Hash()) {
+				min = mid + 1;
+			}
+			else {
+				// itemとclosureset[mid]が等しい
+				return true;
+			}
 		}
 		return false;
 	}
