@@ -2,26 +2,51 @@ import {LexCallback, LexDefinition, LexRule} from "../def/language";
 import {SYMBOL_EOF, Token, TokenizedInput} from "../def/token";
 import {CallbackController} from "../parser/callback";
 
-// TODO: 要改善
+/**
+ * 字句解析器用のinterface
+ *
+ * TODO: 要改善
+ */
 export interface ILexer {
 	exec(str: string): Array<TokenizedInput>;
+
 	setCallbackController(cc: CallbackController): void;
 }
 
+/**
+ * 字句解析器
+ * 入力を受け取ってトークン化する
+ */
 export class Lexer implements ILexer {
 	private _rule_id: number;
 	private _def: Array<{ id: number, rule: LexRule }>;
 	private _reset: { def: Array<{ id: number, rule: LexRule }>, id: number, flg_modified: boolean };
 	private _input: string;
 	private _last_index: number;
+	/**
+	 * 次に読み込む入力の位置
+	 *
+	 * TODO: next_indexのような名前のほうが良いのではないか？
+	 */
 	get last_index(): number {
 		return this._last_index;
 	}
+
 	private _status: "uninitialized" | "ready" | "finished";
+	/**
+	 * 字句解析器の内部状態を取得する
+	 * @returns {"uninitialized" | "ready" | "finished"}
+	 */
 	get status(): "uninitialized" | "ready" | "finished" {
 		return this._status;
 	}
+
 	private callback_controller: CallbackController;
+
+	/**
+	 * @param {LexDefinition} def 解析する入力の字句規則
+	 * @param {string} input 解析したい入力
+	 */
 	constructor(def: LexDefinition, input?: string) {
 		this._def = [];
 		this._rule_id = 0;
@@ -31,10 +56,18 @@ export class Lexer implements ILexer {
 		this.setCurrentDefinitionAsDefault();
 		this.reset(input);
 	}
+
+	/**
+	 * 入力を解析する際に呼び出すコールバックコントローラーを設定する
+	 * @param {CallbackController} cc 使用されるべきコールバックコントローラー
+	 */
 	public setCallbackController(cc: CallbackController) {
 		this.callback_controller = cc;
 	}
-	// リセット時に現在の字句規則になるようにする
+
+	/**
+	 * 字句解析機のリセット時に現在の字句規則になるようにする
+	 */
 	setCurrentDefinitionAsDefault() {
 		this._reset = {
 			def: this._def.slice(),
@@ -42,7 +75,10 @@ export class Lexer implements ILexer {
 			flg_modified: false
 		};
 	}
-	// Lexerの内部状態をコンストラクタ呼び出し直後まで戻す
+
+	/**
+	 * Lexerの内部状態をコンストラクタ呼び出し直後まで戻す
+	 */
 	reset(input?: string) {
 		if (this._reset.flg_modified) {
 			this._def = this._reset.def.slice();
@@ -53,13 +89,21 @@ export class Lexer implements ILexer {
 		this._status = "uninitialized";
 		if (input !== undefined) this.init(input);
 	}
-	// 入力を与えて解析可能(step()を呼び出し可能)な状態にする
+
+	/**
+	 * 入力を与えて解析可能(step()を呼び出し可能)な状態にする
+	 * @param {string} input 解析する入力
+	 */
 	init(input: string) {
 		this._input = input;
 		this._last_index = 0;
 		this._status = "ready";
 	}
-	// 入力からトークン1つ分読み込む
+
+	/**
+	 * 入力からトークン1つ分読み込む
+	 * @returns {TokenizedInput} トークン化された入力
+	 */
 	step(): TokenizedInput {
 		if (this.status !== "ready") {
 			throw new Error("Lexer is not ready");
@@ -146,6 +190,12 @@ export class Lexer implements ILexer {
 			}
 		}
 	}
+
+	/**
+	 * 与えられた入力をすべて解析し、トークン列を返す
+	 * @param {string} input 解析する入力
+	 * @returns {Array<TokenizedInput>} 入力から生成されたトークン列
+	 */
 	exec(input?: string): Array<TokenizedInput> {
 		if (this.status === "finished" || this.status === "ready" && this.last_index > 0) {
 			this.reset(input);
@@ -159,7 +209,12 @@ export class Lexer implements ILexer {
 		}
 		return result;
 	}
-	// 字句規則を追加し、そのidを返す
+
+	/**
+	 * 字句規則を追加し、そのidを返す
+	 * @param {LexRule} rule 新しく追加するルール
+	 * @returns {number} 追加されたルールの持つid
+	 */
 	add(rule: LexRule): number {
 		const id = this._rule_id++;
 		const token_pattern = rule.pattern;
@@ -199,8 +254,15 @@ export class Lexer implements ILexer {
 		if (this._reset !== undefined) this._reset.flg_modified = true;
 		return id;
 	}
-	// 字句規則を削除する
-	// TODO: もっとましな実装にする
+
+	/**
+	 * 字句規則を削除する
+	 * 削除に失敗した場合は例外をスローする
+	 *
+	 * TODO: もっとましな実装にする
+	 * @param {number} id 削除するルールのid
+	 * @returns {LexRule} 削除されたルール
+	 */
 	del(id: number): LexRule {
 		for (let i = 0; i < this._def.length; i++) {
 			if (this._def[i].id === id) {
