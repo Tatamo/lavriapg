@@ -34,6 +34,9 @@ gulp.task("watch-tslint", ["tslint"], () => {
 	gulp.watch("src/**/*.ts", ["tslint"]);
 });
 
+gulp.task("default", ["tsc", "tslint"]);
+gulp.task("watch", ["watch-tsc", "watch-tslint"]);
+
 gulp.task("typedoc", () => {
 	return gulp.src("src/**/*.ts")
 		.pipe(typedoc({
@@ -47,6 +50,3 @@ gulp.task("typedoc", () => {
 gulp.task("watch-typedoc", ["typedoc"], () => {
 	gulp.watch("src/**/*.ts", ["typedoc"]);
 });
-
-gulp.task("default", ["tsc", "tslint", "typedoc"]);
-gulp.task("watch", ["watch-tsc", "watch-tslint", "watch-typedoc"]);
