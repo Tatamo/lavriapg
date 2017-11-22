@@ -5,16 +5,26 @@ import {SymbolDiscriminator} from "./symboldiscriminator";
 
 type Constraint = Array<{ superset: Token, subset: Token }>;
 
+/**
+ * First集合
+ */
 export class FirstSet {
 	private first_map: Map<Token, Set<Token>>;
 	private nulls: NullableSet;
 
+	/**
+	 * @param {GrammarDefinition} grammar 構文規則
+	 * @param {SymbolDiscriminator} symbols 終端/非終端記号の判別に用いる分類器
+	 */
 	constructor(private grammar: GrammarDefinition, private symbols: SymbolDiscriminator) {
 		this.first_map = new Map<Token, Set<Token>>();
 		this.nulls = new NullableSet(this.grammar);
 		this.generateFirst();
 	}
 
+	/**
+	 * First集合を生成する
+	 */
 	private generateFirst() {
 		// Firstを導出
 		const first_result: Map<Token, Set<Token>> = new Map<Token, Set<Token>>();
@@ -72,7 +82,11 @@ export class FirstSet {
 		this.first_map = first_result;
 	}
 
-	// 記号または記号列を与えて、その記号から最初に導かれうる非終端記号の集合を返す
+	/**
+	 * 記号または記号列を与えて、その記号から最初に導かれうる非終端記号の集合を返す
+	 * @param {Token | Token[]} arg
+	 * @returns {Set<Token>}
+	 */
 	public get(arg: Token | Token[]): Set<Token> {
 		// 単一の記号の場合
 		if (!Array.isArray(arg)) {

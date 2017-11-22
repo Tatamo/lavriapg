@@ -3,6 +3,9 @@ import {SYMBOL_EOF, SYMBOL_SYNTAX, Token} from "../def/token";
 import {FirstSet} from "./firstset";
 import {SymbolDiscriminator} from "./symboldiscriminator";
 
+/**
+ * 言語定義から得られる、構文規則に関する情報を管理するクラス
+ */
 export class GrammarDB {
 	private grammar: GrammarDefinition;
 	private _start_symbol: Token;
@@ -11,6 +14,7 @@ export class GrammarDB {
 	private tokenmap: Map<Token, number>;
 	private tokenid_counter: number;
 	private rulemap: Map<Token, Array<{ id: number, rule: GrammarRule }>>;
+
 	constructor(language: Language) {
 		this.grammar = language.grammar;
 		this._start_symbol = language.start_symbol;
@@ -20,7 +24,10 @@ export class GrammarDB {
 		this.initTokenMap();
 		this.initDefMap();
 	}
-	// Token->numberの対応を生成
+
+	/**
+	 * それぞれの記号にidを割り振り、Token->numberの対応を生成
+	 */
 	private initTokenMap() {
 		this.tokenid_counter = 0;
 		this.tokenmap = new Map<Token, number>();
@@ -48,7 +55,10 @@ export class GrammarDB {
 			}
 		}
 	}
-	// Token-> [{id,grammar}]の対応を生成
+
+	/**
+	 * ある記号を左辺とするような構文ルールとそのidの対応を生成
+	 */
 	private initDefMap() {
 		this.rulemap = new Map<Token, Array<{ id: number, rule: GrammarRule }>>();
 		for (let i = 0; i < this.grammar.length; i++) {
@@ -63,32 +73,60 @@ export class GrammarDB {
 			this.rulemap.set(this.grammar[i].ltoken, tmp);
 		}
 	}
+
+	/**
+	 * 開始記号を得る
+	 */
 	get start_symbol(): Token {
 		return this._start_symbol;
 	}
+	/**
+	 * First集合を得る
+	 * @returns {FirstSet}
+	 */
 	get first(): FirstSet {
 		return this._first;
 	}
+	/**
+	 * 終端/非終端記号分類器を得る
+	 * @returns {SymbolDiscriminator}
+	 */
 	get symbols(): SymbolDiscriminator {
 		return this._symbols;
 	}
-	// 構文規則がいくつあるかを返す ただし-1番の規則は含めない
+	/**
+	 * 構文規則がいくつあるかを返す ただし-1番の規則は含めない
+	 */
 	get rule_size(): number {
 		return this.grammar.length;
 	}
-	// 与えられたidの規則が存在するかどうかを調べる
+
+	/**
+	 * 与えられたidの規則が存在するかどうかを調べる
+	 * @param {number} id
+	 * @returns {boolean}
+	 */
 	public hasRuleId(id: number): boolean {
 		return id >= -1 && id < this.rule_size;
 	}
-	// 非終端記号xに対し、それが左辺として対応する定義を返す
+	/**
+	 * 非終端記号xに対し、それが左辺として対応する定義を得る
+	 *
+	 * 対応する定義が存在しない場合は空の配列を返す
+	 * @param x
+	 */
 	public findRules(x: Token): Array<{ id: number, rule: GrammarRule }> {
 		if (this.rulemap.has(x)) {
 			return this.rulemap.get(x)!;
 		}
 		return [];
 	}
-	// 規則idに対応した規則を返す
-	// -1が与えられた時は S' -> S $の規則を返す
+	/**
+	 * 規則idに対応した規則を返す
+	 *
+	 * -1が与えられた時は S' -> S $の規則を返す
+	 * @param id
+	 */
 	public getRuleById(id: number): GrammarRule {
 		if (id == -1) {
 			return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol]};
@@ -97,7 +135,11 @@ export class GrammarDB {
 		else if (id >= 0 && id < this.grammar.length) return this.grammar[id];
 		throw new Error("grammar id out of range");
 	}
-	// Tokenを与えると一意なidを返す
+	/**
+	 * [[Token]]を与えると一意なidを返す
+	 * @param {Token} token
+	 * @returns {number}
+	 */
 	public getTokenId(token: Token): number {
 		if (!this.tokenmap.has(token)) {
 			// this.tokenmap.set(token, this.tokenid_counter++);

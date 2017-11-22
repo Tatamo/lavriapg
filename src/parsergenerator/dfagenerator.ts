@@ -7,20 +7,36 @@ export type DFAEdge = Map<Token, number>;
 export type DFANode = { closure: ClosureSet, edge: DFAEdge };
 export type DFA = Array<DFANode>;
 
+/**
+ * 構文規則からLR(1)DFAおよびLALR(1)DFAを生成する
+ */
 export class DFAGenerator {
 	private lr_dfa: DFA;
 	private lalr_dfa: DFA;
+	/**
+	 * @param {GrammarDB} grammardb 構文規則
+	 */
 	constructor(private grammardb: GrammarDB) {
 		this.generateDFA();
 		this.mergeLA();
 	}
+	/**
+	 * LR(1)DFAを得る
+	 * @returns {DFA}
+	 */
 	public getLR1DFA(): DFA {
 		return this.lr_dfa;
 	}
+	/**
+	 * LALR(1)DFAを得る
+	 * @returns {DFA}
+	 */
 	public getLALR1DFA(): DFA {
 		return this.lalr_dfa;
 	}
-	// DFAの生成
+	/**
+	 * DFAの生成
+	 */
 	private generateDFA(): void {
 		const initial_item: ClosureItem = new ClosureItem(this.grammardb, -1, 0, [SYMBOL_EOF]);
 		const initial_set: ClosureSet = new ClosureSet(this.grammardb, [initial_item]);
@@ -80,7 +96,9 @@ export class DFAGenerator {
 		}
 		this.lr_dfa = dfa;
 	}
-	// LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
+	/**
+	 * LR(1)オートマトンの先読み部分をマージして、LALR(1)オートマトンを作る
+	 */
 	private mergeLA(): void {
 		if (this.lalr_dfa !== undefined || this.lr_dfa === undefined) return;
 		const base: Array<DFANode | null> = this.lr_dfa.slice(); // nullを許容する
@@ -139,7 +157,10 @@ export class DFAGenerator {
 		}
 		this.lalr_dfa = result;
 	}
-	// 既存のClosureSetから新しい規則を生成し、対応する記号ごとにまとめる
+	/**
+	 * 既存のClosureSetから新しい規則を生成し、対応する記号ごとにまとめる
+	 * @param closureset
+	 */
 	private generateNewClosureSets(closureset: ClosureSet): Map<Token, ClosureSet> {
 		const tmp: Map<Token, Array<ClosureItem>> = new Map<Token, Array<ClosureItem>>();
 		// 規則から新しい規則を生成し、対応する記号ごとにまとめる

@@ -1,12 +1,17 @@
 import {GrammarDefinition} from "../def/language";
 import {Token} from "../def/token";
 
+/**
+ * ある非終端記号から空列が導かれうるかどうかを判定する
+ */
 export class NullableSet {
 	private nulls: Set<Token>;
+	/**
+	 * @param {GrammarDefinition} grammar 構文規則
+	 */
 	constructor(private grammar: GrammarDefinition) {
 		this.generateNulls();
 	}
-	// nulls初期化
 	private generateNulls() {
 		// 制約条件を導出するために、
 		// 空列になりうる記号の集合nullsを導出
@@ -42,6 +47,11 @@ export class NullableSet {
 			}
 		}
 	}
+	/**
+	 * 与えられた[[Token]]がNullableかどうかを調べる
+	 * @param {Token} token
+	 * @returns {boolean}
+	 */
 	public isNullable(token: Token) {
 		return this.nulls.has(token);
 	}

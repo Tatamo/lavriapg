@@ -6,18 +6,27 @@ import {Parser} from "../parser/parser";
 import {DFA, DFAGenerator} from "./dfagenerator";
 import {GrammarDB} from "./grammardb";
 
+/**
+ * 言語定義から構文解析表および構文解析器を生成するパーサジェネレータ
+ */
 export class ParserGenerator {
 	private parsing_table: ParsingTable;
 	private table_type: "LR1" | "LALR1" | "CONFLICTED";
 	private grammardb: GrammarDB;
 	private dfa_generator: DFAGenerator;
 
+	/**
+	 * @param {Language} language 言語定義
+	 */
 	constructor(private language: Language) {
 		this.grammardb = new GrammarDB(this.language);
 		this.dfa_generator = new DFAGenerator(this.grammardb);
 		this.init();
 	}
 
+	/**
+	 * 構文解析表の生成
+	 */
 	private init() {
 		const lalr_result = this.generateParsingTable(this.dfa_generator.getLALR1DFA());
 		if (lalr_result.success) {
@@ -38,24 +47,45 @@ export class ParserGenerator {
 		}
 	}
 
+	/**
+	 * 構文解析器を得る
+	 * @returns {Parser}
+	 */
 	public getParser(): Parser {
 		return ParserFactory.create(this.language, this.parsing_table);
 	}
 
+	/**
+	 * 構文解析表を得る
+	 * @returns {ParsingTable}
+	 */
 	public getParsingTable(): ParsingTable {
 		return this.parsing_table;
 	}
 
+	/**
+	 * 生成された構文解析表に衝突が発生しているかどうかを調べる
+	 * @returns {boolean}
+	 */
 	public isConflicted(): boolean {
 		return this.table_type === "CONFLICTED";
 	}
 
+	/**
+	 * 構文解析表の種類を得る
+	 *
+	 * パーサジェネレータはまずLALR(1)構文解析表を生成し、LALR(1)構文解析表にコンフリクトを検知した場合はLR(1)構文解析表を使用する
+	 * @returns {"LR1" | "LALR1" | "CONFLICTED"}
+	 */
 	public getTableType(): "LR1" | "LALR1" | "CONFLICTED" {
 		return this.table_type;
 	}
 
-	// 構文解析表を構築する
-	private generateParsingTable(dfa: DFA) {
+	/**
+	 * DFAから構文解析表を構築する
+	 * @param {DFA} dfa
+	 */
+	private generateParsingTable(dfa: DFA): { table: ParsingTable, success: boolean } {
 		const parsing_table: ParsingTable = [];
 		let flg_conflicted = false;
 
@@ -125,7 +155,6 @@ export class ParserGenerator {
 			}
 			parsing_table.push(table_row);
 		}
-		// if (flg_conflicted) console.error("warn: some conflicts may be occured");
 		return {table: parsing_table, success: !flg_conflicted};
 	}
 }
