@@ -32,7 +32,7 @@ export type GrammarCallback = (children: Array<any>, token: string, lexer: ILexe
 export interface GrammarRule {
 	ltoken: Token;
 	pattern: Array<Token>;
-	callback?: GrammarCallback; // TODO: 引数をましにする
+	callback?: GrammarCallback;
 }
 
 /**
