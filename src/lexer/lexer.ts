@@ -22,14 +22,12 @@ export class Lexer implements ILexer {
 	private _def: Array<{ id: number, rule: LexRule }>;
 	private _reset: { def: Array<{ id: number, rule: LexRule }>, id: number, flg_modified: boolean };
 	private _input: string;
-	private _last_index: number;
+	private _next_index: number;
 	/**
 	 * 次に読み込む入力の位置
-	 *
-	 * TODO: next_indexのような名前のほうが良いのではないか？
 	 */
-	get last_index(): number {
-		return this._last_index;
+	get next_index(): number {
+		return this._next_index;
 	}
 
 	private _status: "uninitialized" | "ready" | "finished";
@@ -85,7 +83,7 @@ export class Lexer implements ILexer {
 			this._rule_id = this._reset.id;
 			this._reset.flg_modified = false;
 		}
-		this._last_index = 0;
+		this._next_index = 0;
 		this._status = "uninitialized";
 		if (input !== undefined) this.init(input);
 	}
@@ -96,7 +94,7 @@ export class Lexer implements ILexer {
 	 */
 	init(input: string) {
 		this._input = input;
-		this._last_index = 0;
+		this._next_index = 0;
 		this._status = "ready";
 	}
 
@@ -109,9 +107,9 @@ export class Lexer implements ILexer {
 			throw new Error("Lexer is not ready");
 		}
 		while (true) {
-			if (this._last_index >= this._input.length) {
+			if (this._next_index >= this._input.length) {
 				// 解析終了
-				this._last_index = this._input.length;
+				this._next_index = this._input.length;
 				this._status = "finished";
 				// 最後にEOFトークンを付与
 				return {token: SYMBOL_EOF, value: ""};
@@ -129,14 +127,14 @@ export class Lexer implements ILexer {
 				let tmp_next_index: number;
 				if (typeof pattern === "string") {
 					match = pattern;
-					tmp_next_index = this._last_index + pattern.length;
-					if (this._input.substring(this._last_index, tmp_next_index) != pattern) continue; // マッチしない
+					tmp_next_index = this._next_index + pattern.length;
+					if (this._input.substring(this._next_index, tmp_next_index) != pattern) continue; // マッチしない
 					if (tmp_next_index < this._input.length && /\w/.test(pattern.slice(-1)) && /\w/.test(this._input[tmp_next_index])) continue; // マッチした文字列の末尾が\wで、その直後の文字が\wの場合はスキップ
 					flg_matched = true;
 				}
 				else {
 					// pattern: RegExp
-					pattern.lastIndex = this._last_index;
+					pattern.lastIndex = this._next_index;
 					const m = pattern.exec(this._input);
 					if (m === null) continue; // マッチ失敗
 					flg_matched = true;
@@ -158,7 +156,7 @@ export class Lexer implements ILexer {
 			}
 			if (flg_matched) {
 				// 読む位置を進める
-				this._last_index = next_index!;
+				this._next_index = next_index!;
 				// コールバック呼び出し
 				if (typeof result_token !== "symbol") {
 					if (this.callback_controller !== undefined) {
@@ -197,7 +195,7 @@ export class Lexer implements ILexer {
 	 * @returns {Array<TokenizedInput>} 入力から生成されたトークン列
 	 */
 	exec(input?: string): Array<TokenizedInput> {
-		if (this.status === "finished" || this.status === "ready" && this.last_index > 0) {
+		if (this.status === "finished" || this.status === "ready" && this.next_index > 0) {
 			this.reset(input);
 		}
 		else if (input !== undefined) {
