@@ -1,6 +1,8 @@
 import {Token} from "../def/token";
 
-// AST
+/**
+ * AST
+ */
 export interface ASTNode {
 	type: Token;
 	value: string | null;

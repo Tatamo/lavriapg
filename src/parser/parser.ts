@@ -4,15 +4,34 @@ import {Token, TokenizedInput} from "../def/token";
 import {ILexer} from "../lexer/lexer";
 import {CallbackController} from "./callback";
 
+/**
+ * 構文解析器
+ */
 export class Parser {
 	private callback_controller: CallbackController;
+
+	/**
+	 * @param {ILexer} lexer 字句解析の際に使用する字句解析器
+	 * @param {GrammarDefinition} grammar 解析する構文定義
+	 * @param {ParsingTable} parsingtable 解析する構文解析表
+	 */
 	constructor(private lexer: ILexer, private grammar: GrammarDefinition, private parsingtable: ParsingTable) {
 	}
 
+	/**
+	 * 使用するコールバックコントローラーを設定する
+	 * @param {CallbackController} cc 構文解析時に使用されるコントローラー
+	 */
 	public setCallbackController(cc: CallbackController) {
 		this.callback_controller = cc;
 		this.lexer.setCallbackController(cc);
 	}
+
+	/**
+	 * 構文解析を実行する
+	 * @param {string} input 解析する入力文字列
+	 * @returns {any} 解析結果(返る結果はコントローラによって異なる)
+	 */
 	public parse(input: string): any {
 		return this._parse(this.lexer.exec(input));
 	}
