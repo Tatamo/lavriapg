@@ -109,6 +109,17 @@ export class ClosureItem {
 		return this.getLR1Hash() == c.getLR1Hash();
 	}
 	/**
+	 * LR0部分を維持しながらLR1先読み記号ごとにClosureItemを分割し、先読み記号の数が1のClosureItemの集合を生成する
+	 */
+	public separateByLookAheads(): Array<ClosureItem> {
+		// this.lookaheadsの要素数が1未満の状況は存在しない
+		const result = [];
+		for (const la of this.lookaheads) {
+			result.push(new ClosureItem(this.grammardb, this.rule_id, this.dot_index, [la]));
+		}
+		return result;
+	}
+	/**
 	 * LR0部分が同じ2つのClosureItemについて、先読み部分を統合した新しいClosureItemを生成する
 	 *
 	 * 異なるLR(0)アイテムであった場合、nullを返す

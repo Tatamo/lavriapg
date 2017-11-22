@@ -156,9 +156,7 @@ export class ClosureSet {
 		const set: Array<ClosureItem> = [];
 		// ClosureItemをlookaheadsごとに分解する
 		for (const ci of this.closureset) {
-			for (const la of ci.lookaheads) {
-				set.push(new ClosureItem(this.grammardb, ci.rule_id, ci.dot_index, [la]));
-			}
+			set.push(...ci.separateByLookAheads());
 		}
 		this.closureset = set;
 		this.sort();
