@@ -2,16 +2,29 @@ import {Token} from "../def/token";
 import {ClosureItem} from "./closureitem";
 import {GrammarDB} from "./grammardb";
 
+/**
+ * 複数のLRアイテムを保持するアイテム集合であり、インスタンス生成時に自身をクロージャー展開する
+ *
+ * [[GrammarDB]]から与えられるトークンIDをもとにして、LR(0)およびLR(1)アイテム集合としてのハッシュ値を生成することができる
+ *
+ * Immutableであるべきオブジェクトであるため、インスタンス生成後は内部状態が変化することはないと仮定される
+ */
 export class ClosureSet {
 	// インスタンス生成後に内部状態が変化することはないものとする
 	private _lr0_hash: string;
 	private _lr1_hash: string;
+	/**
+	 * @param {GrammarDB} grammardb 使用する構文の情報
+	 * @param {Array<ClosureItem>} closureset
+	 */
 	constructor(private grammardb: GrammarDB, private closureset: Array<ClosureItem>) {
 		this.expandClosure();
 		this.sort();
 		this.updateHash();
 	}
-	// 必ずソートされた状態に保たれているようにする
+	/**
+	 * 自身が保持する複数の[[ClosureItem]]は、常にLR(1)ハッシュによってソートされた状態に保たれているようにする
+	 */
 	private sort() {
 		this.closureset.sort((i1: ClosureItem, i2: ClosureItem) => {
 			if (i1.getLR1Hash() < i2.getLR1Hash()) return -1;
@@ -25,27 +38,50 @@ export class ClosureSet {
 	get size() {
 		return this.closureset.length;
 	}
+	/**
+	 * 保持している[[ClosureItem]]の配列を得る
+	 * @param {boolean} prevent_copy trueを与えると配列をコピーせず返す
+	 *
+	 * 得られた配列に変更が加えられないと保証される場合に用いる
+	 * @returns {Array<ClosureItem>}
+	 */
 	public getArray(prevent_copy: boolean = false): Array<ClosureItem> {
 		if (prevent_copy) return this.closureset;
 		// デフォルトではコピーして返す(パフォーマンスは少し落ちる)
 		return this.closureset.concat();
 	}
-	// アイテムが含まれているかどうかを調べる
+	/**
+	 * LRアイテムが集合に含まれているかどうかを調べる
+	 *
+	 * TODO: 二分探索を用いた高速化
+	 * @param {ClosureItem} item
+	 * @returns {boolean}
+	 */
 	public includes(item: ClosureItem): boolean {
 		for (const i of this.closureset) {
 			if (i.isSameLR1(item)) return true;
 		}
 		return false;
 	}
-	// 先読み部分を除いた部分が一致しているか調べる
+	/**
+	 * LR(0)ハッシュの一致を調べる
+	 * @param {ClosureSet} c 比較対象のアイテム集合
+	 * @returns {boolean}
+	 */
 	public isSameLR0(c: ClosureSet): boolean {
 		return this.getLR0Hash() == c.getLR0Hash();
 	}
-	// 先読み部分も含めて完全に一致しているか調べる
+	/**
+	 * LR(1)ハッシュの一致を調べる
+	 * @param {ClosureSet} c 比較対象のアイテム集合
+	 * @returns {boolean}
+	 */
 	public isSameLR1(c: ClosureSet): boolean {
 		return this.getLR1Hash() == c.getLR1Hash();
 	}
-	// ハッシュ文字列を生成する
+	/**
+	 * ハッシュ文字列を生成する
+	 */
 	private updateHash() {
 		let lr0_hash = "";
 		let lr1_hash = "";
@@ -60,13 +96,27 @@ export class ClosureSet {
 		this._lr0_hash = lr0_hash;
 		this._lr1_hash = lr1_hash;
 	}
+	/**
+	 * LR(0)アイテム集合としてのハッシュ文字列を得る
+	 * @returns {string}
+	 */
 	public getLR0Hash() {
 		return this._lr0_hash;
 	}
+	/**
+	 * LR(1)アイテム集合としてのハッシュ文字列を得る
+	 * @returns {string}
+	 */
 	public getLR1Hash() {
 		return this._lr1_hash;
 	}
-	// 先読み部分を除いて一致している2つのClosureSetの先読み部分を統合して新しいClosureSetを生成する
+	/**
+	 * LR(0)部分が同じ2つのClosureSetについて、先読み部分を統合した新しいClosureSetを生成する
+	 *
+	 * 異なるLR(0)アイテム集合であった場合、nullを返す
+	 * @param {ClosureSet} cs マージ対象のアイテム集合
+	 * @returns {ClosureSet | null} 先読み部分がマージされた新しいアイテム集合
+	 */
 	public mergeLA(cs: ClosureSet): ClosureSet | null {
 		// LR0部分が違っている場合はnullを返す
 		if (!this.isSameLR0(cs)) return null;
@@ -83,8 +133,11 @@ export class ClosureSet {
 		return new ClosureSet(this.grammardb, new_set);
 	}
 
-	// クロージャー展開を行う
-	// TODO: リファクタリング
+	/**
+	 * クロージャー展開を行う
+	 *
+	 * TODO: リファクタリング
+	 */
 	private expandClosure() {
 		// 展開処理中はClosureItemのlookaheadsの要素数を常に1に保つこととする
 		// 初期化
