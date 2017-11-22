@@ -65,19 +65,19 @@ export class ClosureSet {
 	}
 	/**
 	 * LR(0)ハッシュの一致を調べる
-	 * @param {ClosureSet} c 比較対象のアイテム集合
+	 * @param {ClosureSet} cs 比較対象のアイテム集合
 	 * @returns {boolean}
 	 */
-	public isSameLR0(c: ClosureSet): boolean {
-		return this.getLR0Hash() == c.getLR0Hash();
+	public isSameLR0(cs: ClosureSet): boolean {
+		return this.getLR0Hash() == cs.getLR0Hash();
 	}
 	/**
 	 * LR(1)ハッシュの一致を調べる
-	 * @param {ClosureSet} c 比較対象のアイテム集合
+	 * @param {ClosureSet} cs 比較対象のアイテム集合
 	 * @returns {boolean}
 	 */
-	public isSameLR1(c: ClosureSet): boolean {
-		return this.getLR1Hash() == c.getLR1Hash();
+	public isSameLR1(cs: ClosureSet): boolean {
+		return this.getLR1Hash() == cs.getLR1Hash();
 	}
 	/**
 	 * ハッシュ文字列を生成する
