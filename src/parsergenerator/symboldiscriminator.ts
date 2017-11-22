@@ -24,11 +24,13 @@ export class SymbolDiscriminator {
 			}
 		}
 	}
-	public getTerminalSymbols(): Set<Token> {
+	public getTerminalSymbols(prevent_copy: boolean = false): Set<Token> {
+		if (prevent_copy) return this.terminal_symbols;
 		// コピーを返す
 		return new Set(this.terminal_symbols);
 	}
-	public getNonterminalSymbols(): Set<Token> {
+	public getNonterminalSymbols(prevent_copy: boolean = false): Set<Token> {
+		if (prevent_copy) return this.nonterminal_symbols;
 		// コピーを返す
 		return new Set(this.nonterminal_symbols);
 	}
