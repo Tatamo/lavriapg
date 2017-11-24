@@ -10,7 +10,7 @@ export class PreCompiler {
 	/**
 	 * @param import_path パーサジェネレータをimportするためのディレクトリパス
 	 */
-	constructor(private import_path: string = "@tatamo/parsergenerator") {
+	constructor(private import_path: string = "lavriapg") {
 		if (import_path[import_path.length - 1] != "/") this.import_path += "/";
 	}
 	/**

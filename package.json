@@ -1,7 +1,7 @@
 {
-	"name": "@tatamo/parsergenerator",
-	"version": "0.1.4",
-	"description": "simple lr(1) parser generator written in TypeScript",
+	"name": "lavriapg",
+	"version": "0.2.0",
+	"description": "lalr(1) parser generator written in TypeScript",
 	"keywords": [
 		"parser",
 		"generator",
@@ -15,11 +15,12 @@
 		"test": "jest",
 		"test-w": "jest --watchAll",
 		"build": "gulp",
-		"watch": "gulp watch"
+		"watch": "gulp watch",
+		"build-doc": "gulp typedoc"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Tatamo/parsergenerator"
+		"url": "https://github.com/Tatamo/lavriapg"
 	},
 	"author": "Tatamo",
 	"license": "BSD-3-Clause",
