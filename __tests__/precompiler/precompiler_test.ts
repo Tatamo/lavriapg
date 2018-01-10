@@ -1,7 +1,7 @@
 import {PreCompiler} from "../../src/precompiler/precompiler";
 import {test_calc_language_raw_string} from "../data/sample_language";
 import {AbstractCallbackController} from "../../src/parser/callback";
-import {ILexer} from "../../dist/lexer/lexer";
+import {ILexer} from "../../src/lexer/lexer";
 import * as fs from "fs";
 
 class CustomCallbackController extends AbstractCallbackController {
@@ -42,7 +42,7 @@ class CustomCallbackController extends AbstractCallbackController {
 }
 
 describe("precompiler test", () => {
-	const precompiler = new PreCompiler("../../../dist");
+	const precompiler = new PreCompiler("../../../src");
 	const source = precompiler.exec(test_calc_language_raw_string);
 	fs.writeFileSync("./__tests__/data/tmp/precompiler_result.ts", source);
 	const p = require("../data/tmp/precompiler_result.ts");
