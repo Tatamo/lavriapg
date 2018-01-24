@@ -1,0 +1,31 @@
+true        "true"
+false       "false"
+null        "null"
+lbrace      "{"
+rbrace      "}"
+lbracket    "["
+rbracket    "]"
+colon       ":"
+comma       ","
+digit1_9    /[1-9]/
+digit0      /0/
+minus       "-"
+period      "."
+string      /".*?"/
+!           /(\r\n|\r|\n)+/
+!           /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/
+invalid     /./
+
+digit :     digit1_9 | digit0;
+digits :    digit | digit digits;
+int :       digit | digit1_9 digits |
+            minus digit | minus digit1_9 digits;
+frac :      period digits;
+number :    int | int frac;
+
+object :    lbrace rbrace | lbrace members rbrace;
+members :   pair | pair comma members;
+pair :      string colon value;
+array :     lbracket rbracket | lbracket elements rbracket;
+elements :  value | value comma elements;
+$value :    string | number | object | array | true | false | null;

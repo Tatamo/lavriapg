@@ -1,0 +1,1082 @@
+{
+  "meta": {
+	"name": "Freeciv2.5 Classic(English)",
+	"language": "en",
+	"ruleset": "classic",
+	"freeciv_version": "2.5"
+  },
+  "units": [
+	{
+	  "id": "warriors",
+	  "label": "Warriors",
+	  "label_detail": "Warriors",
+	  "phonetics": [
+		"warriors"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 10,
+	  "attack": 1,
+	  "defence": 1,
+	  "firepower": 1
+	},
+	{
+	  "id": "phalanx",
+	  "label": "Phalanx",
+	  "label_detail": "Phalanx",
+	  "phonetics": [
+		"phalanx"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 10,
+	  "attack": 1,
+	  "defence": 2,
+	  "firepower": 1
+	},
+	{
+	  "id": "pikemen",
+	  "label": "Pikemen",
+	  "label_detail": "Pikemen",
+	  "phonetics": [
+		"pikemen"
+	  ],
+	  "class": "land",
+	  "flags": [
+		"pikemen"
+	  ],
+	  "hp": 10,
+	  "attack": 1,
+	  "defence": 2,
+	  "firepower": 1
+	},
+	{
+	  "id": "archers",
+	  "label": "Archers",
+	  "label_detail": "Archers",
+	  "phonetics": [
+		"archers"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 10,
+	  "attack": 3,
+	  "defence": 2,
+	  "firepower": 1
+	},
+	{
+	  "id": "legion",
+	  "label": "Legion",
+	  "label_detail": "Legion",
+	  "phonetics": [
+		"legion"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 10,
+	  "attack": 4,
+	  "defence": 2,
+	  "firepower": 1
+	},
+	{
+	  "id": "musketeers",
+	  "label": "Musketeers",
+	  "label_detail": "Musketeers",
+	  "phonetics": [
+		"musketeers"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 3,
+	  "defence": 3,
+	  "firepower": 1
+	},
+	{
+	  "id": "riflemen",
+	  "label": "Riflemen",
+	  "label_detail": "Riflemen",
+	  "phonetics": [
+		"riflemen"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 5,
+	  "defence": 4,
+	  "firepower": 1
+	},
+	{
+	  "id": "alpine-troops",
+	  "label": "Alpine Troops",
+	  "label_detail": "Alpine Troops",
+	  "phonetics": [
+		"alpine troops"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 5,
+	  "defence": 5,
+	  "firepower": 1
+	},
+	{
+	  "id": "mech-inf",
+	  "label": "Mech. Inf.",
+	  "label_detail": "Mech. Inf.",
+	  "phonetics": [
+		"mech. inf."
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 30,
+	  "attack": 6,
+	  "defence": 6,
+	  "firepower": 1
+	},
+	{
+	  "id": "horsemen",
+	  "label": "Horsemen",
+	  "label_detail": "Horsemen",
+	  "phonetics": [
+		"horsemen"
+	  ],
+	  "class": "land",
+	  "flags": [
+		"mounted"
+	  ],
+	  "hp": 10,
+	  "attack": 2,
+	  "defence": 1,
+	  "firepower": 1
+	},
+	{
+	  "id": "chariot",
+	  "label": "Chariot",
+	  "label_detail": "Chariot",
+	  "phonetics": [
+		"chariot"
+	  ],
+	  "class": "land",
+	  "flags": [
+		"mounted"
+	  ],
+	  "hp": 10,
+	  "attack": 3,
+	  "defence": 1,
+	  "firepower": 1
+	},
+	{
+	  "id": "knights",
+	  "label": "Knights",
+	  "label_detail": "Knights",
+	  "phonetics": [
+		"knights"
+	  ],
+	  "class": "land",
+	  "flags": [
+		"mounted"
+	  ],
+	  "hp": 10,
+	  "attack": 4,
+	  "defence": 2,
+	  "firepower": 1
+	},
+	{
+	  "id": "dragoons",
+	  "label": "Dragoons",
+	  "label_detail": "Dragoons",
+	  "phonetics": [
+		"dragoons"
+	  ],
+	  "class": "land",
+	  "flags": [
+		"mounted"
+	  ],
+	  "hp": 20,
+	  "attack": 5,
+	  "defence": 2,
+	  "firepower": 1
+	},
+	{
+	  "id": "cavalry",
+	  "label": "Cavalry",
+	  "label_detail": "Cavalry",
+	  "phonetics": [
+		"cavalry"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 8,
+	  "defence": 3,
+	  "firepower": 1
+	},
+	{
+	  "id": "armor",
+	  "label": "Armor",
+	  "label_detail": "Armor",
+	  "phonetics": [
+		"armor"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 30,
+	  "attack": 10,
+	  "defence": 5,
+	  "firepower": 1
+	},
+	{
+	  "id": "catapult",
+	  "label": "Catapult",
+	  "label_detail": "Catapult",
+	  "phonetics": [
+		"catapult"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 10,
+	  "attack": 6,
+	  "defence": 1,
+	  "firepower": 1
+	},
+	{
+	  "id": "cannon",
+	  "label": "Cannon",
+	  "label_detail": "Cannon",
+	  "phonetics": [
+		"cannon"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 8,
+	  "defence": 1,
+	  "firepower": 1
+	},
+	{
+	  "id": "artillery",
+	  "label": "Artillery",
+	  "label_detail": "Artillery",
+	  "phonetics": [
+		"artillery"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 10,
+	  "defence": 1,
+	  "firepower": 2
+	},
+	{
+	  "id": "howitzer",
+	  "label": "Howitzer",
+	  "label_detail": "Howitzer",
+	  "phonetics": [
+		"howitzer"
+	  ],
+	  "class": "land",
+	  "flags": [
+		"igwall"
+	  ],
+	  "hp": 30,
+	  "attack": 12,
+	  "defence": 2,
+	  "firepower": 2
+	},
+	{
+	  "id": "partisan",
+	  "label": "Partisan",
+	  "label_detail": "Partisan",
+	  "phonetics": [
+		"partisan"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 4,
+	  "defence": 4,
+	  "firepower": 1
+	},
+	{
+	  "id": "marines",
+	  "label": "Marines",
+	  "label_detail": "Marines",
+	  "phonetics": [
+		"marines"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 8,
+	  "defence": 5,
+	  "firepower": 1
+	},
+	{
+	  "id": "paratroopers",
+	  "label": "Paratroopers",
+	  "label_detail": "Paratroopers",
+	  "phonetics": [
+		"paratroopers"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 6,
+	  "defence": 4,
+	  "firepower": 1
+	},
+	{
+	  "id": "trireme",
+	  "label": "Trireme",
+	  "label_detail": "Trireme",
+	  "phonetics": [
+		"trireme"
+	  ],
+	  "class": "trireme",
+	  "flags": [],
+	  "hp": 10,
+	  "attack": 1,
+	  "defence": 1,
+	  "firepower": 1
+	},
+	{
+	  "id": "caravel",
+	  "label": "Caravel",
+	  "label_detail": "Caravel",
+	  "phonetics": [
+		"caravel"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 10,
+	  "attack": 2,
+	  "defence": 1,
+	  "firepower": 1
+	},
+	{
+	  "id": "galleon",
+	  "label": "Galleon",
+	  "label_detail": "Galleon",
+	  "phonetics": [
+		"galleon"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 0,
+	  "defence": 2,
+	  "firepower": 1
+	},
+	{
+	  "id": "transport",
+	  "label": "Transport",
+	  "label_detail": "Transport",
+	  "phonetics": [
+		"transport"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 30,
+	  "attack": 0,
+	  "defence": 3,
+	  "firepower": 1
+	},
+	{
+	  "id": "frigate",
+	  "label": "Frigate",
+	  "label_detail": "Frigate",
+	  "phonetics": [
+		"frigate"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 4,
+	  "defence": 2,
+	  "firepower": 1
+	},
+	{
+	  "id": "ironclad",
+	  "label": "Ironclad",
+	  "label_detail": "Ironclad",
+	  "phonetics": [
+		"ironclad"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 30,
+	  "attack": 4,
+	  "defence": 4,
+	  "firepower": 1
+	},
+	{
+	  "id": "destroyer",
+	  "label": "Destroyer",
+	  "label_detail": "Destroyer",
+	  "phonetics": [
+		"destroyer"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 30,
+	  "attack": 4,
+	  "defence": 4,
+	  "firepower": 1
+	},
+	{
+	  "id": "cruiser",
+	  "label": "Cruiser",
+	  "label_detail": "Cruiser",
+	  "phonetics": [
+		"cruiser"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 30,
+	  "attack": 6,
+	  "defence": 6,
+	  "firepower": 2
+	},
+	{
+	  "id": "aegis-cruiser",
+	  "label": "AEGIS Cruiser",
+	  "label_detail": "AEGIS Cruiser",
+	  "phonetics": [
+		"aegis cruiser"
+	  ],
+	  "class": "sea",
+	  "flags": [
+		"aegis"
+	  ],
+	  "hp": 30,
+	  "attack": 8,
+	  "defence": 8,
+	  "firepower": 2
+	},
+	{
+	  "id": "submarine",
+	  "label": "Submarine",
+	  "label_detail": "Submarine",
+	  "phonetics": [
+		"submarine"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 30,
+	  "attack": 12,
+	  "defence": 2,
+	  "firepower": 2
+	},
+	{
+	  "id": "battleship",
+	  "label": "Battleship",
+	  "label_detail": "Battleship",
+	  "phonetics": [
+		"battleship"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 40,
+	  "attack": 12,
+	  "defence": 12,
+	  "firepower": 2
+	},
+	{
+	  "id": "carrier",
+	  "label": "Carrier",
+	  "label_detail": "Carrier",
+	  "phonetics": [
+		"carrier"
+	  ],
+	  "class": "sea",
+	  "flags": [],
+	  "hp": 40,
+	  "attack": 1,
+	  "defence": 9,
+	  "firepower": 2
+	},
+	{
+	  "id": "fighter",
+	  "label": "Fighter",
+	  "label_detail": "Fighter",
+	  "phonetics": [
+		"fighter"
+	  ],
+	  "class": "air",
+	  "flags": [
+		"fighter"
+	  ],
+	  "hp": 20,
+	  "attack": 4,
+	  "defence": 3,
+	  "firepower": 2
+	},
+	{
+	  "id": "bomber",
+	  "label": "Bomber",
+	  "label_detail": "Bomber",
+	  "phonetics": [
+		"bomber"
+	  ],
+	  "class": "air",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 12,
+	  "defence": 1,
+	  "firepower": 2
+	},
+	{
+	  "id": "awacs",
+	  "label": "AWACS",
+	  "label_detail": "AWACS",
+	  "phonetics": [
+		"awacs"
+	  ],
+	  "class": "air",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 0,
+	  "defence": 1,
+	  "firepower": 1
+	},
+	{
+	  "id": "cruise-missile",
+	  "label": "Cruise Missile",
+	  "label_detail": "Cruise Missile",
+	  "phonetics": [
+		"cruise missile"
+	  ],
+	  "class": "missile",
+	  "flags": [],
+	  "hp": 10,
+	  "attack": 18,
+	  "defence": 0,
+	  "firepower": 3
+	},
+	{
+	  "id": "nuclear",
+	  "label": "Nuclear",
+	  "label_detail": "Nuclear",
+	  "phonetics": [
+		"nuclear"
+	  ],
+	  "class": "missile",
+	  "flags": [],
+	  "hp": 10,
+	  "attack": 99,
+	  "defence": 0,
+	  "firepower": 1
+	},
+	{
+	  "id": "helicopter",
+	  "label": "Helicopter",
+	  "label_detail": "Helicopter",
+	  "phonetics": [
+		"helicopter"
+	  ],
+	  "class": "helicopter",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 10,
+	  "defence": 3,
+	  "firepower": 2
+	},
+	{
+	  "id": "stealth-fighter",
+	  "label": "Stealth Fighter",
+	  "label_detail": "Stealth Fighter",
+	  "phonetics": [
+		"stealth fighter"
+	  ],
+	  "class": "air",
+	  "flags": [
+		"fighter"
+	  ],
+	  "hp": 20,
+	  "attack": 8,
+	  "defence": 4,
+	  "firepower": 2
+	},
+	{
+	  "id": "stealth-bomber",
+	  "label": "Stealth Bomber",
+	  "label_detail": "Stealth Bomber",
+	  "phonetics": [
+		"stealth bomber"
+	  ],
+	  "class": "air",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 18,
+	  "defence": 5,
+	  "firepower": 2
+	},
+	{
+	  "id": "engineers",
+	  "label": "Engineers",
+	  "label_detail": "Engineers",
+	  "phonetics": [
+		"engineers"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 0,
+	  "defence": 2,
+	  "firepower": 1
+	},
+	{
+	  "id": "leader",
+	  "label": "Leader",
+	  "label_detail": "Leader",
+	  "phonetics": [
+		"leader"
+	  ],
+	  "class": "land",
+	  "flags": [],
+	  "hp": 20,
+	  "attack": 0,
+	  "defence": 2,
+	  "firepower": 1
+	}
+  ],
+  "unitclass": [
+	{
+	  "id": "land",
+	  "label": "Land"
+	},
+	{
+	  "id": "sea",
+	  "label": "Sea"
+	},
+	{
+	  "id": "trireme",
+	  "label": "Trireme"
+	},
+	{
+	  "id": "air",
+	  "label": "Air"
+	},
+	{
+	  "id": "helicopter",
+	  "label": "Helicopter"
+	},
+	{
+	  "id": "missile",
+	  "label": "Missile"
+	}
+  ],
+  "veteranlevel": [
+	{
+	  "level": 1,
+	  "id": "recruit",
+	  "label": "Recruit(100%)",
+	  "value": 100,
+	  "chance_for_promotion": 50
+	},
+	{
+	  "level": 2,
+	  "id": "veteran",
+	  "label": "Veteran(150%)",
+	  "value": 150,
+	  "chance_for_promotion": 33
+	},
+	{
+	  "level": 3,
+	  "id": "hardened",
+	  "label": "Hardened(175%)",
+	  "value": 175,
+	  "chance_for_promotion": 20
+	},
+	{
+	  "level": 4,
+	  "id": "elite",
+	  "label": "Elite(200%)",
+	  "value": 200,
+	  "chance_for_promotion": 0
+	}
+  ],
+  "terrains": [
+	{
+	  "id": "plains-grassland",
+	  "label": "Plains,Glassland(100%)",
+	  "value": 100
+	},
+	{
+	  "id": "forest",
+	  "label": "Forest(150%)",
+	  "value": 150
+	},
+	{
+	  "id": "hills",
+	  "label": "Hills(200%)",
+	  "value": 200
+	},
+	{
+	  "id": "mountains",
+	  "label": "Mountains(300%)",
+	  "value": 300
+	},
+	{
+	  "id": "ocean",
+	  "label": "Ocean,Lake(100%)",
+	  "value": 100
+	},
+	{
+	  "id": "glacier",
+	  "label": "Glacier(100%)",
+	  "value": 100
+	},
+	{
+	  "id": "tundra",
+	  "label": "Tundra(100%)",
+	  "value": 100
+	},
+	{
+	  "id": "desert",
+	  "label": "Desert(100%)",
+	  "value": 100
+	},
+	{
+	  "id": "swamp",
+	  "label": "Swamp(150%)",
+	  "value": 150
+	},
+	{
+	  "id": "jungle",
+	  "label": "Jungle(150%)",
+	  "value": 150
+	}
+  ],
+  "flags": {
+	"basic": [
+	  {
+		"id": "in-city",
+		"label": "In city(Land Unit:150%)",
+		"description": "if defender is land unit: 150%"
+	  },
+	  {
+		"id": "defender-fortified",
+		"label": "Fortified(150%)",
+		"description": "land unit only can be gain 150%"
+	  }
+	],
+	"structure": [
+	  {
+		"id": "city-walls",
+		"label": "City walls (against land units or helicopter (except howitzer))(300%)"
+	  },
+	  {
+		"id": "city-coastal-defense",
+		"label": "Coastal defense (against ships)(200%)"
+	  },
+	  {
+		"id": "city-sam-battery",
+		"label": "SAM battery (against aircrafts (except helicopter))(200%)"
+	  },
+	  {
+		"id": "city-sdi-defense",
+		"label": "SDI defense (against missiles)(200%)"
+	  }
+	],
+	"roads": [
+	  {
+		"id": "river",
+		"label": "River(150%)",
+		"description": "land unit only can be gain 150%"
+	  }
+	],
+	"bases": [
+	  {
+		"id": "in-fortress",
+		"label": "Fortress(200%)",
+		"description": "land unit only can be gain 200%"
+	  }
+	],
+	"ex": []
+  },
+  "adjustments": [
+	{
+	  "id": "attacker-vereran",
+	  "label": "Veteran level (attacker)",
+	  "condition": [
+		"true"
+	  ],
+	  "effect": [
+		{
+		  "type": "attacker-strength-multiply",
+		  "value": "attacker-veteran()"
+		}
+	  ]
+	},
+	{
+	  "id": "defender-vereran",
+	  "label": "Veteran level (defender)",
+	  "condition": [
+		"true"
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "defender-veteran()"
+		}
+	  ]
+	},
+	{
+	  "id": "terrain",
+	  "label": "Terrain",
+	  "condition": [
+		"defender-class(land)"
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "terrain()"
+		}
+	  ]
+	},
+	{
+	  "id": "terrain-river",
+	  "label": "Terrain (river)",
+	  "condition": [
+		"defender-class(land)",
+		"flag(river)",
+		[
+		  "NOT",
+		  [
+			[
+			  "NOT",
+			  "flag(in-city)"
+			],
+			"flag(in-fortress)"
+		  ]
+		]
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "150"
+		}
+	  ]
+	},
+	{
+	  "id": "land-unit-in-fortress",
+	  "label": "Terrain (fortress)",
+	  "condition": [
+		"defender-class(land)",
+		[
+		  "NOT",
+		  "flag(in-city)"
+		],
+		"flag(in-fortress)",
+		[
+		  "NOT",
+		  "flag(river)"
+		]
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "200"
+		}
+	  ]
+	},
+	{
+	  "id": "in-fortress-and-river",
+	  "label": "Terrain (both river and fortress)",
+	  "condition": [
+		"defender-class(land)",
+		[
+		  "NOT",
+		  "flag(in-city)"
+		],
+		"flag(in-fortress)",
+		"flag(river)"
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "250"
+		}
+	  ]
+	},
+	{
+	  "id": "land-unit-fortified-or-in-city",
+	  "label": "Land unit fortified or in city",
+	  "condition": [
+		"defender-class(land)",
+		[
+		  "OR",
+		  "flag(defender-fortified)",
+		  "flag(in-city)"
+		]
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "150"
+		}
+	  ]
+	},
+	{
+	  "id": "city-walls",
+	  "label": "City walls",
+	  "condition": [
+		"flag(in-city)",
+		"flag(city-walls)",
+		[
+		  "OR",
+		  "attacker-class(land)",
+		  "attacker-class(helicopter)"
+		],
+		[
+		  "NOT",
+		  "attacker-flag(igwall)"
+		]
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "300"
+		}
+	  ]
+	},
+	{
+	  "id": "city-coastal-defense",
+	  "label": "coastal defense",
+	  "condition": [
+		"flag(in-city)",
+		"flag(city-coastal-defense)",
+		"attacker-class(sea)"
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "200"
+		}
+	  ]
+	},
+	{
+	  "id": "city-sam-battery",
+	  "label": "SAM battery",
+	  "condition": [
+		"flag(in-city)",
+		"flag(city-sam-battery)",
+		"attacker-class(air)"
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "200"
+		}
+	  ]
+	},
+	{
+	  "id": "city-sdi-defense",
+	  "label": "SDI defense",
+	  "condition": [
+		"flag(in-city)",
+		"flag(city-sdi-defense)",
+		"attacker-class(missile)"
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "200"
+		}
+	  ]
+	},
+	{
+	  "id": "pikemen-attacked-by-mounted",
+	  "label": "Pikemen attacker by a mounted unit",
+	  "condition": [
+		"defender-flag(pikemen)",
+		"attacker-flag(mounted)"
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "200"
+		}
+	  ]
+	},
+	{
+	  "id": "aegis-cruiser-attacked-by-aircraft-missile-or-helicopter",
+	  "label": "AEGIS Cruiser attacker by an aircraft, missile or helicopter",
+	  "condition": [
+		"defender-flag(aegis)",
+		[
+		  "OR",
+		  "attacker-class(air)",
+		  "attacker-class(missile)",
+		  "attacker-class(helicopter)"
+		]
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "500"
+		}
+	  ]
+	},
+	{
+	  "id": "fighter-attacks-helicopter",
+	  "label": "Fighter attacks a helicopter",
+	  "condition": [
+		"attacker-flag(fighter)",
+		"defender-class(helicopter)"
+	  ],
+	  "effect": [
+		{
+		  "type": "defender-strength-multiply",
+		  "value": "50"
+		},
+		{
+		  "type": "defender-firepower-set",
+		  "value": "1"
+		}
+	  ]
+	},
+	{
+	  "id": "ship-in-city-attacked",
+	  "label": "Ship in city attacked",
+	  "condition": [
+		[
+		  "OR",
+		  "defender-class(sea)",
+		  "defender-class(trireme)"
+		],
+		"flag(in-city)"
+	  ],
+	  "effect": [
+		{
+		  "type": "attacker-firepower-multiply",
+		  "value": "200"
+		},
+		{
+		  "type": "defender-firepower-set",
+		  "value": "1"
+		}
+	  ]
+	},
+	{
+	  "id": "ship-attacks-land-unit",
+	  "label": "Ship attacks land unit",
+	  "condition": [
+		"attacker-class(sea)",
+		"defender-class(land)"
+	  ],
+	  "effect": [
+		{
+		  "type": "attacker-firepower-set",
+		  "value": "1"
+		},
+		{
+		  "type": "defender-firepower-set",
+		  "value": "1"
+		}
+	  ]
+	}
+  ]
+}
