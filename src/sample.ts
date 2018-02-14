@@ -1,6 +1,7 @@
 import {readFileSync} from "fs";
 import {ParserGenerator} from "./parsergenerator/parsergenerator";
 import {Language, LexDefinition, GrammarDefinition} from "./def/language";
+import {ParserFactory} from "./parser/factory";
 
 const input = readFileSync("/dev/stdin", "utf8");
 
@@ -47,5 +48,5 @@ const language: Language = {
 };
 
 console.time("process");
-console.log(JSON.stringify(new ParserGenerator(language).getParser().parse(input), undefined, 2));
+console.log(JSON.stringify(ParserFactory.createAST(language, new ParserGenerator(language).getParsingTable()).parse(input), undefined, 2));
 console.timeEnd("process");
