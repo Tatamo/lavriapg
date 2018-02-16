@@ -44,7 +44,7 @@ export class FirstSet {
 
 		// 包含についての制約を生成
 		const constraint: Constraint = [];
-		for (const rule of this.grammar) {
+		for (const rule of this.grammar.rules) {
 			const sup: Token = rule.ltoken;
 			// 右辺の左から順に、non-nullableな記号が現れるまで制約に追加
 			// 最初のnon-nullableな記号は制約に含める

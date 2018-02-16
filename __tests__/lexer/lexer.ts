@@ -37,13 +37,15 @@ describe("Lexer test", () => {
 		]);
 	});
 	test("regexp flags", () => {
-		const lexer = new Lexer([
-			{token: "I", pattern: /AbC/i},
-			{token: "M", pattern: /x\nyz/m},
-			{token: "U", pattern: /\u{64}\u{65}\u{66}/u},
-			{token: "G", pattern: /pqr/g},
-			{token: "A", pattern: /\u{61}\nC/imugy}
-		]);
+		const lexer = new Lexer({
+			rules: [
+				{token: "I", pattern: /AbC/i},
+				{token: "M", pattern: /x\nyz/m},
+				{token: "U", pattern: /\u{64}\u{65}\u{66}/u},
+				{token: "G", pattern: /pqr/g},
+				{token: "A", pattern: /\u{61}\nC/imugy}
+			]
+		});
 		expect(lexer.exec("abcx\nyzdefpqra\nc")).toEqual([
 			{token: "I", value: "abc"},
 			{token: "M", value: "x\nyz"},
@@ -54,12 +56,14 @@ describe("Lexer test", () => {
 		]);
 	});
 	test("skip string pattern if the following is \\w", () => {
-		const lexer = new Lexer([
-			{token: "STR", pattern: "abc"},
-			{token: "REGEXP", pattern: /abc/},
-			{token: "ASTERISK", pattern: "*"},
-			{token: "XYZ", pattern: "xyz"}
-		]);
+		const lexer = new Lexer({
+			rules: [
+				{token: "STR", pattern: "abc"},
+				{token: "REGEXP", pattern: /abc/},
+				{token: "ASTERISK", pattern: "*"},
+				{token: "XYZ", pattern: "xyz"}
+			]
+		});
 		expect(lexer.exec("abcxyz*abc*xyz*abcabc")).toEqual([
 			{token: "REGEXP", value: "abc"},
 			{token: "XYZ", value: "xyz"},
@@ -74,19 +78,21 @@ describe("Lexer test", () => {
 		]);
 	});
 	test("rule priority", () => {
-		const lexer = new Lexer([
-			{token: "PM", pattern: "+-"},
-			{token: "PMA", pattern: "+-*"},
-			{token: "ASTERISK", pattern: "*", priority: 1},
-			{token: "ABC", pattern: /abc/},
-			{token: "ABCD", pattern: /abcd/},
-			{token: "ABCD2", pattern: /abcd/, priority: 2},
-			{token: "D", pattern: /d/},
-			{token: "XYZ", pattern: /xyz/},
-			{token: "XYZW", pattern: /xyzw/, priority: -1},
-			{token: "W", pattern: /w/},
-			{token: null, pattern: " "}
-		]);
+		const lexer = new Lexer({
+			rules: [
+				{token: "PM", pattern: "+-"},
+				{token: "PMA", pattern: "+-*"},
+				{token: "ASTERISK", pattern: "*", priority: 1},
+				{token: "ABC", pattern: /abc/},
+				{token: "ABCD", pattern: /abcd/},
+				{token: "ABCD2", pattern: /abcd/, priority: 2},
+				{token: "D", pattern: /d/},
+				{token: "XYZ", pattern: /xyz/},
+				{token: "XYZW", pattern: /xyzw/, priority: -1},
+				{token: "W", pattern: /w/},
+				{token: null, pattern: " "}
+			]
+		});
 		expect(lexer.exec(" +-+-*abcd xyzw")).toEqual([
 			{token: "PM", value: "+-"},
 			{token: "PMA", value: "+-*"},
@@ -97,16 +103,18 @@ describe("Lexer test", () => {
 		]);
 	});
 	test("longest match", () => {
-		const lexer = new Lexer([
-			{token: "PM", pattern: "+-"},
-			{token: "PMA", pattern: "+-*"},
-			{token: "ASTERISK", pattern: "*"},
-			{token: "ABC", pattern: /abc/},
-			{token: "ABCD", pattern: /abcd/},
-			{token: "ABCD2", pattern: /abcd/},
-			{token: "D", pattern: /d/},
-			{token: null, pattern: " "}
-		]);
+		const lexer = new Lexer({
+			rules: [
+				{token: "PM", pattern: "+-"},
+				{token: "PMA", pattern: "+-*"},
+				{token: "ASTERISK", pattern: "*"},
+				{token: "ABC", pattern: /abc/},
+				{token: "ABCD", pattern: /abcd/},
+				{token: "ABCD2", pattern: /abcd/},
+				{token: "D", pattern: /d/},
+				{token: null, pattern: " "}
+			]
+		});
 		expect(lexer.exec(" +-+-*abcd ")).toEqual([
 			{token: "PM", value: "+-"},
 			{token: "PMA", value: "+-*"},
@@ -116,11 +124,13 @@ describe("Lexer test", () => {
 	});
 	test("add rule and exec again after reset", () => {
 		// TODO: このテストで規定される挙動は直観的でない可能性がある
-		const lexer = new Lexer([
-			{token: "ASTERISK", pattern: "*"},
-			{token: "ABC", pattern: /abc/},
-			{token: null, pattern: " "}
-		]);
+		const lexer = new Lexer({
+			rules: [
+				{token: "ASTERISK", pattern: "*"},
+				{token: "ABC", pattern: /abc/},
+				{token: null, pattern: " "}
+			]
+		});
 		lexer.add({token: "ABCAST", pattern: /abc\*/, priority: 1});
 		expect(lexer.exec(" *abc* ")).toEqual([
 			{token: "ASTERISK", value: "*"},
@@ -149,28 +159,32 @@ describe("Lexer test", () => {
 	});
 	test("custom callback (without CallbackController)", () => {
 		// デフォルトの挙動がこれでいいのか不明
-		const lexer = new Lexer([
-			{
-				token: "ERROR", pattern: "x",
-				callback: () => {
-					throw new Error("custom callback");
-				}
-			},
-			{token: null, pattern: " "}
-		]);
+		const lexer = new Lexer({
+			rules: [
+				{
+					token: "ERROR", pattern: "x",
+					callback: () => {
+						throw new Error("custom callback");
+					}
+				},
+				{token: null, pattern: " "}
+			]
+		});
 		expect(() => lexer.exec(" x ")).toThrow(/custom callback/);
 	});
 	test("custom callback (set CallbackController)", () => {
-		const lex = [
-			{
-				token: "ERROR", pattern: "x",
-				callback: () => {
-					throw new Error("custom callback");
-				}
-			},
-			{token: null, pattern: " "}
-		];
-		const lang = {lex, grammar: [], start_symbol: ""}; // lex以外はダミー
+		const lex = {
+			rules: [
+				{
+					token: "ERROR", pattern: "x",
+					callback: () => {
+						throw new Error("custom callback");
+					}
+				},
+				{token: null, pattern: " "}
+			]
+		};
+		const lang = {lex, grammar: {rules: [], start_symbol: ""}}; // lex以外はダミー
 		const lexer = new Lexer(lex);
 		lexer.setCallbackController(new DefaultCallbackController(lang));
 		expect(() => lexer.exec(" x ")).toThrow(/custom callback/);

@@ -69,7 +69,7 @@ export class Parser {
 			}
 			else if (action.type == "reduce") {
 				// reduceオペレーション
-				const grammar_rule = this.grammar[action.grammar_id];
+				const grammar_rule = this.grammar.rules[action.grammar_id];
 				const rnum = grammar_rule.pattern.length;
 				// 対応する規則の右辺の記号の数だけスタックからポップする
 				for (let i = 0; i < rnum; i++) state_stack.pop();

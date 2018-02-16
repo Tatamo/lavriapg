@@ -7,11 +7,20 @@ import {ILexer} from "../lexer/lexer";
 export type LexCallback = (value: string, token: string | null, lexer: ILexer) => any;
 
 /**
+ * 字句解析器に与える状態
+ */
+export interface LexState {
+	label: string;
+	exclusive?: boolean;
+}
+
+/**
  * 単一の字句ルール
  */
 export interface LexRule {
 	token: Token | null;
 	pattern: string | RegExp;
+	state?: Array<string>;
 	priority?: number;
 	callback?: LexCallback;
 }
@@ -19,7 +28,10 @@ export interface LexRule {
 /**
  * 字句規則
  */
-export type LexDefinition = Array<LexRule>;
+export interface LexDefinition {
+	rules: Array<LexRule>;
+	states?: Array<LexState>;
+}
 
 /**
  * 構文のreduce時に呼び出されるコールバック
@@ -38,7 +50,10 @@ export interface GrammarRule {
 /**
  * 構文規則
  */
-export type GrammarDefinition = Array<GrammarRule>;
+export interface GrammarDefinition {
+	rules: Array<GrammarRule>;
+	start_symbol: Token;
+}
 
 /**
  * 言語定義
@@ -46,5 +61,4 @@ export type GrammarDefinition = Array<GrammarRule>;
 export interface Language {
 	lex: LexDefinition;
 	grammar: GrammarDefinition;
-	start_symbol: Token;
 }

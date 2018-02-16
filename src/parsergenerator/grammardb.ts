@@ -17,7 +17,7 @@ export class GrammarDB {
 
 	constructor(language: Language) {
 		this.grammar = language.grammar;
-		this._start_symbol = language.start_symbol;
+		this._start_symbol = language.grammar.start_symbol;
 		this._symbols = new SymbolDiscriminator(this.grammar);
 		this._first = new FirstSet(this.grammar, this.symbols);
 
@@ -38,7 +38,7 @@ export class GrammarDB {
 		this.tokenmap.set(SYMBOL_SYNTAX, this.tokenid_counter++);
 
 		// 左辺値の登録
-		for (const rule of this.grammar) {
+		for (const rule of this.grammar.rules) {
 			const ltoken = rule.ltoken;
 			// 構文規則の左辺に現れる記号は非終端記号
 			if (!this.tokenmap.has(ltoken)) {
@@ -46,7 +46,7 @@ export class GrammarDB {
 			}
 		}
 		// 右辺値の登録
-		for (const rule of this.grammar) {
+		for (const rule of this.grammar.rules) {
 			for (const symbol of rule.pattern) {
 				if (!this.tokenmap.has(symbol)) {
 					// 非終端記号でない(=左辺値に現れない)場合、終端記号である
@@ -61,16 +61,16 @@ export class GrammarDB {
 	 */
 	private initDefMap() {
 		this.rulemap = new Map<Token, Array<{ id: number, rule: GrammarRule }>>();
-		for (let i = 0; i < this.grammar.length; i++) {
+		for (let i = 0; i < this.grammar.rules.length; i++) {
 			let tmp: Array<{ id: number, rule: GrammarRule }>;
-			if (this.rulemap.has(this.grammar[i].ltoken)) {
-				tmp = this.rulemap.get(this.grammar[i].ltoken)!;
+			if (this.rulemap.has(this.grammar.rules[i].ltoken)) {
+				tmp = this.rulemap.get(this.grammar.rules[i].ltoken)!;
 			}
 			else {
 				tmp = [];
 			}
-			tmp.push({id: i, rule: this.grammar[i]});
-			this.rulemap.set(this.grammar[i].ltoken, tmp);
+			tmp.push({id: i, rule: this.grammar.rules[i]});
+			this.rulemap.set(this.grammar.rules[i].ltoken, tmp);
 		}
 	}
 
@@ -98,7 +98,7 @@ export class GrammarDB {
 	 * 構文規則がいくつあるかを返す ただし-1番の規則は含めない
 	 */
 	get rule_size(): number {
-		return this.grammar.length;
+		return this.grammar.rules.length;
 	}
 
 	/**
@@ -132,7 +132,7 @@ export class GrammarDB {
 			return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol]};
 			// return {ltoken: SYMBOL_SYNTAX, pattern: [this.start_symbol, SYMBOL_EOF]};
 		}
-		else if (id >= 0 && id < this.grammar.length) return this.grammar[id];
+		else if (id >= 0 && id < this.grammar.rules.length) return this.grammar.rules[id];
 		throw new Error("grammar id out of range");
 	}
 	/**

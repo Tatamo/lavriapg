@@ -35,10 +35,10 @@ export class PreCompiler {
 	   */
 
 		result += "export const language: Language = {\n";
-		result += "\t" + "lex: [\n";
-		for (let i = 0; i < language.lex.length; i++) {
-			const token = language.lex[i].token;
-			const pattern = language.lex[i].pattern;
+		result += "\t" + "lex: {rules:[\n";
+		for (let i = 0; i < language.lex.rules.length; i++) {
+			const token = language.lex.rules[i].token;
+			const pattern = language.lex.rules[i].pattern;
 			result += "\t\t" + "{token: " + (token === null ? "null" : ('"' + (token as string)) + '"') + ", pattern: ";
 			if (pattern instanceof RegExp) {
 				result += pattern.toString();
@@ -47,14 +47,14 @@ export class PreCompiler {
 				result += '"' + pattern + '"';
 			}
 			result += "}";
-			if (i != language.lex.length - 1) result += ",";
+			if (i != language.lex.rules.length - 1) result += ",";
 			result += "\n";
 		}
-		result += "\t" + "],\n";
-		result += "\t" + "grammar: [\n";
-		for (let i = 0; i < language.grammar.length; i++) {
-			const ltoken = language.grammar[i].ltoken;
-			const pattern = language.grammar[i].pattern;
+		result += "\t" + "]},\n";
+		result += "\t" + "grammar: {rules:[\n";
+		for (let i = 0; i < language.grammar.rules.length; i++) {
+			const ltoken = language.grammar.rules[i].ltoken;
+			const pattern = language.grammar.rules[i].pattern;
 			result += "\t\t" + "{\n";
 			result += "\t\t\t" + 'ltoken: "' + (ltoken as string) + '",\n';
 			result += "\t\t\t" + "pattern: [";
@@ -64,11 +64,12 @@ export class PreCompiler {
 			}
 			result += "]\n";
 			result += "\t\t" + "}";
-			if (i != language.grammar.length - 1) result += ",";
+			if (i != language.grammar.rules.length - 1) result += ",";
 			result += "\n";
 		}
 		result += "\t" + "],\n";
-		result += "\t" + 'start_symbol: "' + (language.start_symbol as string) + '"\n';
+		result += "\t" + 'start_symbol: "' + (language.grammar.start_symbol as string) + '"\n';
+		result += "\t" + "},\n";
 		result += "};\n\n";
 		result += "export const parsing_table:ParsingTable = [\n";
 		for (let i = 0; i < parsing_table.length; i++) {

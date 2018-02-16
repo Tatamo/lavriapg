@@ -4,165 +4,169 @@ import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserFactory} from "../parser/factory";
 import {Parser} from "../parser/parser";
 
-const lex: LexDefinition = [
-	{token: "EXCLAMATION", pattern: "!"},
-	{token: "VBAR", pattern: "|"},
-	{token: "DOLLAR", pattern: "$"},
-	{token: "COLON", pattern: ":"},
-	{token: "SEMICOLON", pattern: ";"},
-	{token: "LABEL", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
-	{
-		token: "REGEXP", pattern: /\/.*\/[gimuy]*/,
-		callback: (v) => {
-			const tmp = v.split("/");
-			const flags = tmp[tmp.length - 1];
-			const p = v.slice(1, -1 - flags.length);
-			return new RegExp(p, flags);
-		}
-	},
-	{token: "STRING", pattern: /".*"/, callback: (v) => v.slice(1, -1)},
-	{token: "STRING", pattern: /'.*'/, callback: (v) => v.slice(1, -1)},
-	{token: null, pattern: /(\r\n|\r|\n)+/},
-	{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
-	{token: "INVALID", pattern: /./}
-];
+const lex: LexDefinition = {
+	rules: [
+		{token: "EXCLAMATION", pattern: "!"},
+		{token: "VBAR", pattern: "|"},
+		{token: "DOLLAR", pattern: "$"},
+		{token: "COLON", pattern: ":"},
+		{token: "SEMICOLON", pattern: ";"},
+		{token: "LABEL", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
+		{
+			token: "REGEXP", pattern: /\/.*\/[gimuy]*/,
+			callback: (v) => {
+				const tmp = v.split("/");
+				const flags = tmp[tmp.length - 1];
+				const p = v.slice(1, -1 - flags.length);
+				return new RegExp(p, flags);
+			}
+		},
+		{token: "STRING", pattern: /".*"/, callback: (v) => v.slice(1, -1)},
+		{token: "STRING", pattern: /'.*'/, callback: (v) => v.slice(1, -1)},
+		{token: null, pattern: /(\r\n|\r|\n)+/},
+		{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
+		{token: "INVALID", pattern: /./}
+	]
+};
 
-const grammar: GrammarDefinition = [
-	{
-		ltoken: "LANGUAGE",
-		pattern: ["LEX", "GRAMMAR"],
-		callback: (c) => {
-			let start_symbol = c[1].start_symbol;
-			// 開始記号の指定がない場合、最初の規則に設定]
-			if (start_symbol === null) {
-				if (c[1].sect.length > 0) start_symbol = c[1].sect[0].ltoken;
-				else start_symbol = "";
+const grammar: GrammarDefinition = {
+	rules: [
+		{
+			ltoken: "LANGUAGE",
+			pattern: ["LEX", "GRAMMAR"],
+			callback: (c) => {
+				let start_symbol = c[1].start_symbol;
+				// 開始記号の指定がない場合、最初の規則に設定]
+				if (start_symbol === null) {
+					if (c[1].sect.length > 0) start_symbol = c[1].sect[0].ltoken;
+					else start_symbol = "";
+				}
+				return {lex: {rules: c[0]}, grammar: {rules: c[1].grammar, start_symbol: start_symbol}};
 			}
-			return {lex: c[0], grammar: c[1].grammar, start_symbol: start_symbol};
-		}
-	},
-	{
-		ltoken: "LEX",
-		pattern: ["LEX", "LEXSECT"],
-		callback: (c) => c[0].concat([c[1]])
-	},
-	{
-		ltoken: "LEX",
-		pattern: ["LEXSECT"],
-		callback: (c) => [c[0]]
-	},
-	{
-		ltoken: "LEXSECT",
-		pattern: ["LEXLABEL", "LEXDEF"],
-		callback: (c) => ({token: c[0], pattern: c[1]})
-	},
-	{
-		ltoken: "LEXLABEL",
-		pattern: ["LABEL"]
-	},
-	{
-		ltoken: "LEXLABEL",
-		pattern: ["EXCLAMATION"],
-		callback: () => null
-	},
-	{
-		ltoken: "LEXLABEL",
-		pattern: ["EXCLAMATION", "LABEL"],
-		callback: () => null
-	},
-	{
-		ltoken: "LEXDEF",
-		pattern: ["STRING"]
-	},
-	{
-		ltoken: "LEXDEF",
-		pattern: ["REGEXP"]
-	},
-	{
-		ltoken: "GRAMMAR",
-		pattern: ["SECT", "GRAMMAR"],
-		callback: (c) => {
-			let start_symbol = c[1].start_symbol;
-			if (c[0].start_symbol !== null) {
-				start_symbol = c[0].start_symbol;
+		},
+		{
+			ltoken: "LEX",
+			pattern: ["LEX", "LEXSECT"],
+			callback: (c) => c[0].concat([c[1]])
+		},
+		{
+			ltoken: "LEX",
+			pattern: ["LEXSECT"],
+			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "LEXSECT",
+			pattern: ["LEXLABEL", "LEXDEF"],
+			callback: (c) => ({token: c[0], pattern: c[1]})
+		},
+		{
+			ltoken: "LEXLABEL",
+			pattern: ["LABEL"]
+		},
+		{
+			ltoken: "LEXLABEL",
+			pattern: ["EXCLAMATION"],
+			callback: () => null
+		},
+		{
+			ltoken: "LEXLABEL",
+			pattern: ["EXCLAMATION", "LABEL"],
+			callback: () => null
+		},
+		{
+			ltoken: "LEXDEF",
+			pattern: ["STRING"]
+		},
+		{
+			ltoken: "LEXDEF",
+			pattern: ["REGEXP"]
+		},
+		{
+			ltoken: "GRAMMAR",
+			pattern: ["SECT", "GRAMMAR"],
+			callback: (c) => {
+				let start_symbol = c[1].start_symbol;
+				if (c[0].start_symbol !== null) {
+					start_symbol = c[0].start_symbol;
+				}
+				return {
+					start_symbol,
+					grammar: c[0].sect.concat(c[1].grammar)
+				};
 			}
-			return {
-				start_symbol,
-				grammar: c[0].sect.concat(c[1].grammar)
-			};
-		}
-	},
-	{
-		ltoken: "GRAMMAR",
-		pattern: ["SECT"],
-		callback: (c) => {
-			let start_symbol = null;
-			if (c[0].start_symbol !== null) {
-				start_symbol = c[0].start_symbol;
+		},
+		{
+			ltoken: "GRAMMAR",
+			pattern: ["SECT"],
+			callback: (c) => {
+				let start_symbol = null;
+				if (c[0].start_symbol !== null) {
+					start_symbol = c[0].start_symbol;
+				}
+				return {
+					start_symbol,
+					grammar: c[0].sect
+				};
 			}
-			return {
-				start_symbol,
-				grammar: c[0].sect
-			};
-		}
-	},
-	{
-		ltoken: "SECT",
-		pattern: ["SECTLABEL", "COLON", "DEF", "SEMICOLON"],
-		callback: (c) => {
-			const result: GrammarDefinition = [];
-			for (const pt of c[2]) {
-				result.push({ltoken: c[0].label, pattern: pt});
+		},
+		{
+			ltoken: "SECT",
+			pattern: ["SECTLABEL", "COLON", "DEF", "SEMICOLON"],
+			callback: (c) => {
+				const result = [];
+				for (const pt of c[2]) {
+					result.push({ltoken: c[0].label, pattern: pt});
+				}
+				return {start_symbol: c[0].start_symbol, sect: result};
 			}
-			return {start_symbol: c[0].start_symbol, sect: result};
+		},
+		{
+			ltoken: "SECTLABEL",
+			pattern: ["LABEL"],
+			callback: (c) => ({start_symbol: null, label: c[0]})
+		},
+		{
+			ltoken: "SECTLABEL",
+			pattern: ["DOLLAR", "LABEL"],
+			callback: (c) => ({start_symbol: c[1], label: c[1]})
+		},
+		{
+			ltoken: "DEF",
+			pattern: ["PATTERN", "VBAR", "DEF"],
+			callback: (c) => [c[0]].concat(c[2])
+		},
+		{
+			ltoken: "DEF",
+			pattern: ["PATTERN"],
+			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "PATTERN",
+			pattern: ["SYMBOLLIST"]
+		},
+		{
+			ltoken: "PATTERN",
+			pattern: [],
+			callback: () => []
+		},
+		{
+			ltoken: "SYMBOLLIST",
+			pattern: ["LABEL", "SYMBOLLIST"],
+			callback: (c) => [c[0]].concat(c[1])
+		},
+		{
+			ltoken: "SYMBOLLIST",
+			pattern: ["LABEL"],
+			callback: (c) => [c[0]]
 		}
-	},
-	{
-		ltoken: "SECTLABEL",
-		pattern: ["LABEL"],
-		callback: (c) => ({start_symbol: null, label: c[0]})
-	},
-	{
-		ltoken: "SECTLABEL",
-		pattern: ["DOLLAR", "LABEL"],
-		callback: (c) => ({start_symbol: c[1], label: c[1]})
-	},
-	{
-		ltoken: "DEF",
-		pattern: ["PATTERN", "VBAR", "DEF"],
-		callback: (c) => [c[0]].concat(c[2])
-	},
-	{
-		ltoken: "DEF",
-		pattern: ["PATTERN"],
-		callback: (c) => [c[0]]
-	},
-	{
-		ltoken: "PATTERN",
-		pattern: ["SYMBOLLIST"]
-	},
-	{
-		ltoken: "PATTERN",
-		pattern: [],
-		callback: () => []
-	},
-	{
-		ltoken: "SYMBOLLIST",
-		pattern: ["LABEL", "SYMBOLLIST"],
-		callback: (c) => [c[0]].concat(c[1])
-	},
-	{
-		ltoken: "SYMBOLLIST",
-		pattern: ["LABEL"],
-		callback: (c) => [c[0]]
-	}
-];
+	], start_symbol: "LANGUAGE"
+};
 
 /**
  * 言語定義文法の言語定義
  * @type Language
  */
-export const language_language: Language = {lex: lex, grammar: grammar, start_symbol: "LANGUAGE"};
+export const language_language: Language = {lex: lex, grammar: grammar};
 
 // 予めParsingTableを用意しておくことで高速化
 /**

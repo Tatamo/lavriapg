@@ -51,7 +51,7 @@ export abstract class AbstractCallbackController implements CallbackController {
  */
 export class DefaultCallbackController extends AbstractCallbackController {
 	callLex(id: number, value: any, lexer: ILexer): any {
-		const rule = this.language.lex[id];
+		const rule = this.language.lex.rules[id];
 		if (rule.callback !== undefined) {
 			return rule.callback(value, rule.token as string, lexer);
 		}
@@ -60,7 +60,7 @@ export class DefaultCallbackController extends AbstractCallbackController {
 		}
 	}
 	callGrammar(id: number, children: Array<any>, lexer: ILexer): any {
-		const rule = this.language.grammar[id];
+		const rule = this.language.grammar.rules[id];
 		if (rule.callback !== undefined) {
 			return rule.callback(children, rule.ltoken as string, lexer);
 		}
@@ -76,14 +76,14 @@ export class DefaultCallbackController extends AbstractCallbackController {
 export class ASTConstructor extends AbstractCallbackController {
 	callLex(id: number, value: any, lexer: ILexer): ASTNode {
 		return {
-			type: this.language.lex[id].token!,
+			type: this.language.lex.rules[id].token!,
 			value,
 			children: []
 		};
 	}
 	callGrammar(id: number, children: Array<any>, lexer: ILexer): ASTNode {
 		return {
-			type: this.language.grammar[id].ltoken,
+			type: this.language.grammar.rules[id].ltoken,
 			value: null,
 			children: children
 		};

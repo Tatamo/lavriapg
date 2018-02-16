@@ -6,14 +6,14 @@ import * as fs from "fs";
 
 class CustomCallbackController extends AbstractCallbackController {
 	callLex(id: number, value: any, lexer: ILexer) {
-		const rule = this.language.lex[id];
+		const rule = this.language.lex.rules[id];
 		if (rule.token == "DIGITS") {
 			return +value;
 		}
 		return null;
 	}
 	callGrammar(id: number, children: Array<any>, lexer: ILexer) {
-		const rule = this.language.grammar[id];
+		const rule = this.language.grammar.rules[id];
 		if (rule.ltoken == "ATOM") {
 			if (children.length == 1) {
 				return children[0];

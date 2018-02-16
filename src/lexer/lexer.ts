@@ -48,7 +48,7 @@ export class Lexer implements ILexer {
 	constructor(def: LexDefinition, input?: string) {
 		this._def = [];
 		this._rule_id = 0;
-		for (const rule of def) {
+		for (const rule of def.rules) {
 			this.add(rule);
 		}
 		this.setCurrentDefinitionAsDefault();
