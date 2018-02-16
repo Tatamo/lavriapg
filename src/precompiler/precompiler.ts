@@ -1,7 +1,8 @@
 import {Language} from "../def/language";
-import {SYMBOL_EOF} from "../def/token";
+import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserGenerator} from "../parsergenerator/parsergenerator";
 import {language_parser} from "./ruleparser";
+import {ParsingOperation} from "../def/parsingtable";
 
 /**
  * 予め構文解析器を生成しておいて利用するためのソースコードを生成する
@@ -20,69 +21,49 @@ export class PreCompiler {
 	 */
 	public exec(input: string): string {
 		const language: Language = language_parser.parse(input);
-		console.error(language);
 		const parsing_table = new ParserGenerator(language).getParsingTable();
 		let result = "";
 
-		result += 'import {Token, SYMBOL_EOF} from "' + this.import_path + 'def/token";\n';
-		result += 'import {Language} from "' + this.import_path + 'def/language";\n';
-		result += 'import {ParsingOperation, ParsingTable} from "' + this.import_path + 'def/parsingtable";\n';
-		result += 'import {Parser} from "' + this.import_path + 'parser/parser";\n';
-		result += 'import {ParserFactory} from "' + this.import_path + 'parser/factory";\n\n';
+		result += `import {Token, SYMBOL_EOF} from "${this.import_path}def/token";
+import {Language} from "${this.import_path}def/language";
+import {ParsingOperation, ParsingTable} from "${this.import_path}def/parsingtable";
+import {Parser} from "${this.import_path}parser/parser";
+import {ParserFactory} from "${this.import_path}parser/factory";
 
-		/*
-		result += 'import {Token, SYMBOL_EOF, Language, ParsingOperation, ParsingTable, Parser, ParserFactory} from "' + this.import_path +'";\n\n';
-	   */
+export const language: Language = {
+	lex: {
+		rules: [
+${language.lex.rules.map(({token, pattern}) => {
+			return `\t\t\t{token: ${token === null ? "null" : `"${token}"`}, ` +
+				`pattern: ${pattern instanceof RegExp ? pattern : `"${pattern}"`}}`;
+		}).join(",\n")}
+		]
+	},
+	grammar: {
+		rules: [
+${language.grammar.rules.map(({ltoken, pattern}) => `\t\t\t{
+				ltoken: "${ltoken as string}",
+				pattern: [${pattern.map((t) => `"${t as string}"`).join(", ")}]
+			}`).join(",\n")}
+		],
+		start_symbol: "${language.grammar.start_symbol as string}"
+	}
+};
 
-		result += "export const language: Language = {\n";
-		result += "\t" + "lex: {rules:[\n";
-		for (let i = 0; i < language.lex.rules.length; i++) {
-			const token = language.lex.rules[i].token;
-			const pattern = language.lex.rules[i].pattern;
-			result += "\t\t" + "{token: " + (token === null ? "null" : ('"' + (token as string)) + '"') + ", pattern: ";
-			if (pattern instanceof RegExp) {
-				result += pattern.toString();
+export const parsing_table: ParsingTable = [
+${parsing_table.map((row: Map<Token, ParsingOperation>) => `\tnew Map<Token, ParsingOperation>([
+${(() => {
+			let line = "";
+			for (const [key, value] of row) {
+				line += `\t\t[${key === SYMBOL_EOF ? "SYMBOL_EOF" : `"${key as string}"`}, ${JSON.stringify(value)}],\n`;
 			}
-			else {
-				result += '"' + pattern + '"';
-			}
-			result += "}";
-			if (i != language.lex.rules.length - 1) result += ",";
-			result += "\n";
-		}
-		result += "\t" + "]},\n";
-		result += "\t" + "grammar: {rules:[\n";
-		for (let i = 0; i < language.grammar.rules.length; i++) {
-			const ltoken = language.grammar.rules[i].ltoken;
-			const pattern = language.grammar.rules[i].pattern;
-			result += "\t\t" + "{\n";
-			result += "\t\t\t" + 'ltoken: "' + (ltoken as string) + '",\n';
-			result += "\t\t\t" + "pattern: [";
-			for (let ii = 0; ii < pattern.length; ii++) {
-				result += '"' + (pattern[ii] as string) + '"';
-				if (ii != pattern.length - 1) result += ", ";
-			}
-			result += "]\n";
-			result += "\t\t" + "}";
-			if (i != language.grammar.rules.length - 1) result += ",";
-			result += "\n";
-		}
-		result += "\t" + "],\n";
-		result += "\t" + 'start_symbol: "' + (language.grammar.start_symbol as string) + '"\n';
-		result += "\t" + "},\n";
-		result += "};\n\n";
-		result += "export const parsing_table:ParsingTable = [\n";
-		for (let i = 0; i < parsing_table.length; i++) {
-			result += "\t" + "new Map<Token, ParsingOperation>([\n";
-			parsing_table[i].forEach((value, key) => {
-				result += "\t\t" + "[" + (key == SYMBOL_EOF ? "SYMBOL_EOF" : ('"' + (key as string)) + '"') + ", " + JSON.stringify(value) + "],\n";
-			});
-			result = result.slice(0, -2);
-			result += " ]),\n";
-		}
-		result = result.slice(0, -2);
-		result += "\n];\n\n";
-		result += "export const parser:Parser = ParserFactory.create(language, parsing_table);\n";
+			return line.slice(0, -2);
+		})()}`).join("\n\t]),\n")}
+	])
+];
+
+export const parser: Parser = ParserFactory.create(language, parsing_table);
+`;
 		return result;
 	}
 }
