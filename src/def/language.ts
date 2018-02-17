@@ -2,17 +2,22 @@ import {Token} from "./token";
 import {ILexer} from "../lexer/lexer";
 
 /**
- * 字句規則マッチ時に呼び出されるコールバック
+ * 字句解析器の状態を区別するためのラベル型
  */
-export type LexCallback = (value: string, token: string | null, lexer: ILexer) => any;
+export type LexStateLabel = string;
 
 /**
  * 字句解析器に与える状態
  */
 export interface LexState {
-	label: string;
+	label: LexStateLabel;
 	exclusive?: boolean;
 }
+
+/**
+ * 字句規則マッチ時に呼び出されるコールバック
+ */
+export type LexCallback = (value: string, token: string | null, lexer: ILexer) => any;
 
 /**
  * 単一の字句ルール
