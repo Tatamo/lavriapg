@@ -7,7 +7,7 @@ export type Token = string | symbol;
  * トークン化された入力
  * トークン名と、字句規則にマッチした元々の入力
  */
-export type TokenizedInput = { token: Token, value: string };
+export type TokenizedInput<T = string> = { token: Token, value: T };
 
 /**
  * 入力の終端を表す終端記号名
