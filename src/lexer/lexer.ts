@@ -17,7 +17,6 @@ export interface ILexer {
  * 字句解析器
  * 入力を受け取ってトークン化する
  */
-
 export class Lexer implements ILexer {
 	private rules: Map<LexStateLabel, Array<LexRule>>;
 	private states: Map<LexStateLabel, LexState>;

@@ -41,6 +41,7 @@ export interface LexRule {
 export interface LexDefinition {
 	rules: Array<LexRule>;
 	states?: Array<LexState>;
+	default_callback?: LexCallback;
 }
 
 /**
@@ -63,6 +64,7 @@ export interface GrammarRule {
 export interface GrammarDefinition {
 	rules: Array<GrammarRule>;
 	start_symbol: Token;
+	default_callback?: GrammarCallback;
 }
 
 /**
