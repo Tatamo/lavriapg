@@ -2,29 +2,17 @@ import {GrammarDefinition} from "../def/language";
 import {ParsingTable} from "../def/parsingtable";
 import {Token, TokenizedInput} from "../def/token";
 import {ILexer} from "../lexer/lexer";
-import {CallbackController} from "./callback";
 
 /**
  * 構文解析器
  */
 export class Parser {
-	private callback_controller: CallbackController;
-
 	/**
 	 * @param {ILexer} lexer 字句解析の際に使用する字句解析器
 	 * @param {GrammarDefinition} grammar 解析する構文定義
 	 * @param {ParsingTable} parsingtable 解析する構文解析表
 	 */
 	constructor(private lexer: ILexer, private grammar: GrammarDefinition, private parsingtable: ParsingTable) {
-	}
-
-	/**
-	 * 使用するコールバックコントローラーを設定する
-	 * @param {CallbackController} cc 構文解析時に使用されるコントローラー
-	 */
-	public setCallbackController(cc: CallbackController) {
-		this.callback_controller = cc;
-		this.lexer.setCallbackController(cc);
 	}
 
 	/**
@@ -78,8 +66,11 @@ export class Parser {
 				const children = [];
 				for (let i = 0; i < rnum; i++) children[rnum - 1 - i] = result_stack.pop();
 
-				if (this.callback_controller !== undefined) {
-					result_stack.push(this.callback_controller.callGrammar(action.grammar_id, children, this.lexer));
+				if (typeof grammar_rule.ltoken !== "symbol" && grammar_rule.callback !== undefined) {
+					result_stack.push(grammar_rule.callback(children, grammar_rule.ltoken, this.lexer));
+				}
+				else if (typeof grammar_rule.ltoken !== "symbol" && this.grammar.default_callback !== undefined) {
+					result_stack.push(this.grammar.default_callback(children, grammar_rule.ltoken, this.lexer));
 				}
 				else {
 					result_stack.push(children[0]);

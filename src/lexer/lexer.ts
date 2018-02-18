@@ -1,6 +1,5 @@
 import {default_lex_state, Language, LexCallback, LexDefinition, LexRule, LexState, LexStateLabel} from "../def/language";
 import {SYMBOL_EOF, Token, TokenizedInput} from "../def/token";
-import {CallbackController} from "../parser/callback";
 
 /**
  * 字句解析器用のinterface
@@ -9,8 +8,6 @@ import {CallbackController} from "../parser/callback";
  */
 export interface ILexer {
 	exec(input: string): Array<TokenizedInput>;
-
-	setCallbackController(cc: CallbackController): void;
 }
 
 /**
@@ -21,9 +18,6 @@ export class Lexer implements ILexer {
 	private rules: Map<LexStateLabel, Array<LexRule>>;
 	private states: Map<LexStateLabel, LexState>;
 	private lex: LexDefinition;
-	setCallbackController(cc: CallbackController) {
-		return;
-	}
 	constructor(language: Language) {
 		this.lex = language.lex;
 		// initialize lex states map
@@ -110,13 +104,14 @@ export class Lexer implements ILexer {
 				throw new Error("no pattern matched");
 			}
 			else {
+				let result_value = result_match;
 				// コールバック呼び出し
 				if (typeof result_rule.token !== "symbol" && result_rule.callback !== undefined) {
-					result_rule.callback(result_match, result_rule.token, this);
+					result_value = result_rule.callback(result_match, result_rule.token, this);
 				}
 				// tokenがnullなら処理を飛ばす
 				if (result_rule.token !== null) {
-					result.push({token: result_rule.token, value: result_match});
+					result.push({token: result_rule.token, value: result_value});
 				}
 				// 読む位置を進める
 				next_index += result_match.length;
@@ -144,4 +139,3 @@ export class Lexer implements ILexer {
 		return new RegExp(pattern, flags);
 	}
 }
-

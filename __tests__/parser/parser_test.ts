@@ -5,9 +5,9 @@ import {test_calc_language} from "../data/sample_language";
 
 describe("parser test", () => {
 	const parsingtable = new ParserGenerator(test_calc_language).getParsingTable();
-	const parser = ParserFactory.createAST(test_calc_language, new ParserGenerator(test_calc_language).getParsingTable());
+	const parser = ParserFactory.create(test_calc_language, new ParserGenerator(test_calc_language).getParsingTable());
 	test("parser factory", () => {
-		expect(ParserFactory.createAST(test_calc_language, parsingtable)).toBeInstanceOf(Parser);
+		expect(ParserFactory.create(test_calc_language, parsingtable)).toBeInstanceOf(Parser);
 	});
 	test("getting calc language ast", () => {
 		expect(parser.parse("1+1")).toEqual({
