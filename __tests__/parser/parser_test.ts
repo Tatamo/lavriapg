@@ -9,6 +9,10 @@ describe("parser test", () => {
 	test("parser factory", () => {
 		expect(ParserFactory.create(test_calc_language, parsingtable)).toBeInstanceOf(Parser);
 	});
+	test("custom callback in grammar", () => {
+		expect(parser.parse("2*(3+4)")).toBe(14);
+	});
+	/*
 	test("getting calc language ast", () => {
 		expect(parser.parse("1+1")).toEqual({
 			type: "EXP", value: null, children:
@@ -19,14 +23,8 @@ describe("parser test", () => {
 				]
 		});
 	});
+	*/
 	test("invalid input", () => {
-		expect(parser.parse("1zzz")).toEqual({type: "DIGITS", value: "1", children: []});
-	});
-});
-
-describe("test grammar input with callback", () => {
-	const parser = ParserFactory.create(test_calc_language, new ParserGenerator(test_calc_language).getParsingTable());
-	test("custom callback in grammar", () => {
-		expect(parser.parse("2*(3+4)")).toBe(14);
+		expect(parser.parse("1zzz")).toEqual("1");
 	});
 });
