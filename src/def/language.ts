@@ -7,6 +7,11 @@ import {ILexer} from "../lexer/lexer";
 export type LexStateLabel = string;
 
 /**
+ * デフォルトの字句解析器の状態
+ */
+export const default_lex_state = "default";
+
+/**
  * 字句解析器に与える状態
  */
 export interface LexState {
