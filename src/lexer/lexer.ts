@@ -38,6 +38,12 @@ export class Lexer implements ILexer {
 
 		// initialize lex rules
 		this.rules = new Map();
+		this.rules.set(default_lex_state, []);
+		// exclusiveでない状態(デフォルト状態を除く)をまとめておく
+		const non_exclusive_states = new Set();
+		for (const [label, state] of this.states) {
+			if (label !== default_lex_state && !state.exclusive) non_exclusive_states.add(state);
+		}
 		for (const _rule of this.lex.rules) {
 			// clone rule
 			const rule = {..._rule};
@@ -45,16 +51,21 @@ export class Lexer implements ILexer {
 			if (rule.pattern instanceof RegExp) {
 				rule.pattern = Lexer.ReformatRegExp(rule.pattern);
 			}
-			// 状態ごとに登録
-			const states: Array<LexStateLabel> = rule.state !== undefined ? rule.state : [default_lex_state];
-			this.rules.set(default_lex_state, []);
-			for (const state of states) {
-				if (!this.rules.has(state)) this.rules.set(state, []);
-				this.rules.get(state)!.push(rule);
-				// not exclusiveならデフォルト状態にも登録
-				if (state !== default_lex_state && !this.states.get(state)!.exclusive) {
-					this.rules.get(default_lex_state)!.push(rule);
+			// 登録するべき状態を求める
+			const states: Set<LexStateLabel> = new Set();
+			for (const state of rule.state !== undefined ? rule.state : [default_lex_state]) {
+				states.add(state);
+				// デフォルト状態に登録する場合はnon-exclusiveな状態にも登録
+				if (state === default_lex_state) {
+					for (const non_exclusive_state of non_exclusive_states) states.add(non_exclusive_state);
 				}
+			}
+			// 状態ごとに登録
+			for (const state of states) {
+				if (!this.rules.has(state)) {
+					this.rules.set(state, []);
+				}
+				this.rules.get(state)!.push(rule);
 			}
 		}
 	}
