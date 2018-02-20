@@ -16,7 +16,8 @@ export const default_lex_state = "default";
  */
 export interface LexState {
 	label: LexStateLabel;
-	exclusive?: boolean;
+	is_disabled?: boolean;
+	is_exclusive?: boolean;
 }
 
 /**

@@ -22,10 +22,14 @@ export class Lexer implements ILexer {
 		this.lex = language.lex;
 		// initialize lex states map
 		this.states = new Map();
-		this.states.set(default_lex_state, {label: default_lex_state, exclusive: false});
+		this.states.set(default_lex_state, {label: default_lex_state, is_exclusive: false});
 		if (this.lex.states !== undefined) {
-			for (const {label, exclusive} of this.lex.states) {
-				this.states.set(label, {label, exclusive: exclusive !== undefined ? exclusive : false});
+			for (const {label, is_disabled, is_exclusive} of this.lex.states) {
+				this.states.set(label, {
+					label,
+					is_disabled: is_disabled !== undefined ? is_disabled : false,
+					is_exclusive: is_exclusive !== undefined ? is_exclusive : false
+				});
 			}
 		}
 
@@ -35,7 +39,7 @@ export class Lexer implements ILexer {
 		// exclusiveでない状態(デフォルト状態を除く)をまとめておく
 		const non_exclusive_states = new Set();
 		for (const [label, state] of this.states) {
-			if (label !== default_lex_state && !state.exclusive) non_exclusive_states.add(state);
+			if (label !== default_lex_state && !state.is_exclusive) non_exclusive_states.add(state);
 		}
 		for (const _rule of this.lex.rules) {
 			// clone rule
