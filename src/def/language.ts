@@ -16,7 +16,6 @@ export const default_lex_state = "default";
  */
 export interface LexState {
 	label: LexStateLabel;
-	is_disabled?: boolean;
 	is_exclusive?: boolean;
 }
 
@@ -32,6 +31,7 @@ export interface LexRule {
 	token: Token | null;
 	pattern: string | RegExp;
 	state?: Array<string>;
+	is_disabled?: boolean;
 	priority?: number;
 	callback?: LexCallback;
 }

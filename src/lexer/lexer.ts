@@ -24,10 +24,9 @@ export class Lexer implements ILexer {
 		this.states = new Map();
 		this.states.set(default_lex_state, {label: default_lex_state, is_exclusive: false});
 		if (this.lex.states !== undefined) {
-			for (const {label, is_disabled, is_exclusive} of this.lex.states) {
+			for (const {label, is_exclusive} of this.lex.states) {
 				this.states.set(label, {
 					label,
-					is_disabled: is_disabled !== undefined ? is_disabled : false,
 					is_exclusive: is_exclusive !== undefined ? is_exclusive : false
 				});
 			}
@@ -44,6 +43,7 @@ export class Lexer implements ILexer {
 		for (const _rule of this.lex.rules) {
 			// clone rule
 			const rule = {..._rule};
+			if (rule.is_disabled === undefined) rule.is_disabled = false;
 			// 正規表現を字句解析に適した形に整形
 			if (rule.pattern instanceof RegExp) {
 				rule.pattern = Lexer.ReformatRegExp(rule.pattern);
