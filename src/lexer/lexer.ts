@@ -74,55 +74,59 @@ export class Lexer implements ILexer {
 		while (next_index < input.length) {
 			// 念の為undefined対策
 			const current_rules = this.rules.has(lex_state) ? this.rules.get(lex_state)! : [];
-			let result_match: string = "";
-			let result_rule: LexRule | null = null;
-			let result_priority: number | null = null;
-			for (const rule of current_rules) {
-				let match = "";
-				if (typeof rule.pattern === "string") {
-					const tmp_next_index = next_index + rule.pattern.length;
-					if (input.substring(next_index, tmp_next_index) != rule.pattern) continue; // マッチしない
-					// マッチした文字列の末尾が\wで、その直後の文字が\wの場合はスキップ
-					if (tmp_next_index < input.length && /\w/.test(rule.pattern.substring(0, 1)) && /\w/.test(input[tmp_next_index])) continue;
-					match = rule.pattern;
-				}
-				else {
-					// pattern: RegExp
-					rule.pattern.lastIndex = next_index;
-					const m = rule.pattern.exec(input);
-					if (m === null) continue; // マッチ失敗
-					match = m[0];
-				}
-				// 同じ優先度の場合、最長マッチまたは出現順(match_priorityで設定)
-				const priority = rule.priority !== undefined ? rule.priority : 0;
-				if (result_priority === null ||
-					priority > result_priority ||
-					priority === result_priority && match.length > result_match.length) {
-					result_match = match;
-					result_rule = rule;
-					result_priority = priority;
-				}
-			}
-			if (result_rule === null) {
+			const {rule, matched} = Lexer.match(current_rules, input, next_index);
+			if (rule === null) {
 				// マッチする規則がなかった
 				throw new Error("no pattern matched");
 			}
 			else {
-				let result_value = result_match;
+				let result_value = matched;
 				// コールバック呼び出し
-				if (typeof result_rule.token !== "symbol" && result_rule.callback !== undefined) {
-					result_value = result_rule.callback(result_match, result_rule.token, this);
+				if (typeof rule.token !== "symbol" && rule.callback !== undefined) {
+					result_value = rule.callback(matched, rule.token, this);
 				}
 				// tokenがnullなら処理を飛ばす
-				if (result_rule.token !== null) {
-					result.push({token: result_rule.token, value: result_value});
+				if (rule.token !== null) {
+					result.push({token: rule.token, value: result_value});
 				}
 				// 読む位置を進める
-				next_index += result_match.length;
+				next_index += matched.length;
 			}
 		}
 		result.push({token: SYMBOL_EOF, value: ""});
 		return result;
+	}
+	private static match(rules: Iterable<LexRule>, input: string, next_index: number): { rule: LexRule | null, matched: string } {
+		let result_matched: string = "";
+		let result_rule: LexRule | null = null;
+		let result_priority: number | null = null;
+		for (const rule of rules) {
+			let match = "";
+			if (typeof rule.pattern === "string") {
+				const tmp_next_index = next_index + rule.pattern.length;
+				if (input.substring(next_index, tmp_next_index) != rule.pattern) continue; // マッチしない
+				// マッチした文字列の末尾が\wで、その直後の文字が\wの場合はスキップ
+				if (tmp_next_index < input.length && /\w/.test(rule.pattern.substring(0, 1)) && /\w/.test(input[tmp_next_index])) continue;
+				match = rule.pattern;
+			}
+			else {
+				// pattern: RegExp
+				rule.pattern.lastIndex = next_index;
+				const m = rule.pattern.exec(input);
+				if (m === null) continue; // マッチ失敗
+				match = m[0];
+			}
+			// 同じ優先度の場合、最長マッチまたは出現順(match_priorityで設定)
+			const priority = rule.priority !== undefined ? rule.priority : 0;
+			if (result_priority === null ||
+				priority > result_priority ||
+				priority === result_priority && match.length > result_matched.length) {
+				result_matched = match;
+				result_rule = rule;
+				result_priority = priority;
+			}
+		}
+		return {rule: result_rule, matched: result_matched};
 	}
 	private static ReformatRegExp(pattern: RegExp): RegExp {
 		// フラグを整形する
