@@ -22,11 +22,12 @@ export interface LexState {
 /**
  * 字句規則マッチ時に呼び出されるコールバック
  */
-export type LexCallback = (value: string, token: string | null, lexer: ILexer) => any;
+export type LexCallback = (value: string, token: string | null, lexer: ILexer) => [string | null, any] | { token: string | null, value: any } | string | null;
 
 /**
  * 単一の字句ルール
  */
+// TODO: tokenはlabelに名称変更してもよい？
 export interface LexRule {
 	token: Token | null;
 	pattern: string | RegExp;

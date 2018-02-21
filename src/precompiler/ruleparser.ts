@@ -18,11 +18,11 @@ const lex: LexDefinition = {
 				const tmp = v.split("/");
 				const flags = tmp[tmp.length - 1];
 				const p = v.slice(1, -1 - flags.length);
-				return new RegExp(p, flags);
+				return ["REGEXP", new RegExp(p, flags)];
 			}
 		},
-		{token: "STRING", pattern: /".*"/, callback: (v) => v.slice(1, -1)},
-		{token: "STRING", pattern: /'.*'/, callback: (v) => v.slice(1, -1)},
+		{token: "STRING", pattern: /".*"/, callback: (v) => ["STRING", v.slice(1, -1)]},
+		{token: "STRING", pattern: /'.*'/, callback: (v) => ["STRING", v.slice(1, -1)]},
 		{token: null, pattern: /(\r\n|\r|\n)+/},
 		{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
 		{token: "INVALID", pattern: /./}

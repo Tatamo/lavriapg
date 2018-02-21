@@ -132,7 +132,6 @@ export class Lexer implements ILexer {
 		const result: Array<TokenizedInput> = [];
 		let next_index = 0;
 		const controller = new LexController(this.language, this.rules, this.states);
-		// 一応const
 		while (next_index < input.length) {
 			// 念の為undefined対策
 			const current_rules = this.rules.has(controller.getCurrentState()) ? this.rules.get(controller.getCurrentState())! : [];
@@ -142,14 +141,29 @@ export class Lexer implements ILexer {
 				throw new Error("no pattern matched");
 			}
 			else {
-				let result_value = matched;
+				let token = rule.token;
+				let value = matched;
 				// コールバック呼び出し
 				if (typeof rule.token !== "symbol" && rule.callback !== undefined) {
-					result_value = rule.callback(matched, rule.token, this);
+					const callback_result = rule.callback(matched, rule.token, this);
+					if (callback_result === null) {
+						token = null;
+					}
+					else if (typeof callback_result === "string") {
+						token = callback_result;
+					}
+					else if (Array.isArray(callback_result)) {
+						token = callback_result[0];
+						value = callback_result[1];
+					}
+					else {
+						token = callback_result.token;
+						value = callback_result.value;
+					}
 				}
 				// tokenがnullなら処理を飛ばす
-				if (rule.token !== null) {
-					result.push({token: rule.token, value: result_value});
+				if (token !== null) {
+					result.push({token: token, value: value});
 				}
 				// 読む位置を進める
 				next_index += matched.length;
