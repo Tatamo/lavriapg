@@ -10,6 +10,68 @@ export interface ILexer {
 	exec(input: string): Array<TokenizedInput>;
 }
 
+export class LexController {
+	private _lex: LexDefinition;
+	private _current_state: LexStateLabel;
+	private _state_stack: Array<LexStateLabel>;
+	private _temporary_rules: Map<LexStateLabel, Array<LexRule>>;
+	private _updated_rules: Map<Token, LexRule>;
+	constructor(language: Language, private _basic_rules: Map<LexStateLabel, Array<LexRule>>, private _states: Map<LexStateLabel, LexState>) {
+		this._lex = language.lex;
+		this._current_state = default_lex_state;
+		this._state_stack = [];
+		this._temporary_rules = new Map();
+		this._updated_rules = new Map();
+	}
+	getRulesItr(): IterableIterator<LexRule> {
+		const basic_r: Array<LexRule> = this._basic_rules.has(this._current_state) ? this._basic_rules.get(this._current_state)! : [];
+		const tmp_r: Array<LexRule> = this._temporary_rules.has(this._current_state) ? this._temporary_rules.get(this._current_state)! : [];
+		const itr_basic_rules = basic_r[Symbol.iterator]();
+		const itr_temporary_rules = tmp_r[Symbol.iterator]();
+		const itr: IterableIterator<LexRule> = {
+			next: (): IteratorResult<LexRule> => {
+				let next;
+				while (true) {
+					next = itr_basic_rules.next();
+					if (next.done) next = itr_temporary_rules.next();
+					// 繰り返し終了
+					if (!next.done) return next;
+
+					if (next.value.token !== null && this._updated_rules.has(next.value.token)) {
+						next.value = this._updated_rules.get(next.value.token)!;
+					}
+					// 無効化されているルールなら無視して次へ
+					if (next.value.is_disabled) {
+						continue;
+					}
+					break;
+				}
+				return next;
+			},
+			[Symbol.iterator]: () => {
+				return itr;
+			}
+		};
+		return itr;
+	}
+	getCurrentState(): LexStateLabel {
+		return this._current_state;
+	}
+	jumpState(state: LexStateLabel): void {
+		this._current_state = state;
+	}
+	callState(state: LexStateLabel): void {
+		this._state_stack.push(this._current_state);
+		this._current_state = state;
+	}
+	returnState(): LexStateLabel | undefined {
+		const pop = this._state_stack.pop();
+		if (pop === undefined) this._current_state = default_lex_state;
+		else this._current_state = pop;
+		return pop;
+	}
+}
+
 /**
  * 字句解析器
  * 入力を受け取ってトークン化する
@@ -18,7 +80,7 @@ export class Lexer implements ILexer {
 	private rules: Map<LexStateLabel, Array<LexRule>>;
 	private states: Map<LexStateLabel, LexState>;
 	private lex: LexDefinition;
-	constructor(language: Language) {
+	constructor(private language: Language) {
 		this.lex = language.lex;
 		// initialize lex states map
 		this.states = new Map();
@@ -69,11 +131,11 @@ export class Lexer implements ILexer {
 	exec(input: string): Array<TokenizedInput> {
 		const result: Array<TokenizedInput> = [];
 		let next_index = 0;
+		const controller = new LexController(this.language, this.rules, this.states);
 		// 一応const
-		const lex_state = default_lex_state;
 		while (next_index < input.length) {
 			// 念の為undefined対策
-			const current_rules = this.rules.has(lex_state) ? this.rules.get(lex_state)! : [];
+			const current_rules = this.rules.has(controller.getCurrentState()) ? this.rules.get(controller.getCurrentState())! : [];
 			const {rule, matched} = Lexer.match(current_rules, input, next_index);
 			if (rule === null) {
 				// マッチする規則がなかった
