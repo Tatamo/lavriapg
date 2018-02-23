@@ -1,5 +1,5 @@
 import {Token} from "./token";
-import {ILexer} from "../lexer/lexer";
+import {ILexer, LexController} from "../lexer/lexer";
 
 /**
  * 字句解析器の状態を区別するためのラベル型
@@ -22,7 +22,7 @@ export interface LexState {
 /**
  * 字句規則マッチ時に呼び出されるコールバック
  */
-export type LexCallback = (value: string, token: string | null, lexer: ILexer) => [string | null, any] | { token: string | null, value: any } | string | null;
+export type LexCallback = (value: string, token: string | null, lex: LexController) => [string | null, any] | { token: string | null, value: any } | string | null;
 
 /**
  * 単一の字句ルール
@@ -31,7 +31,7 @@ export type LexCallback = (value: string, token: string | null, lexer: ILexer) =
 export interface LexRule {
 	token: Token | null;
 	pattern: string | RegExp;
-	state?: Array<string>;
+	state?: Array<LexStateLabel>;
 	is_disabled?: boolean;
 	priority?: number;
 	callback?: LexCallback;

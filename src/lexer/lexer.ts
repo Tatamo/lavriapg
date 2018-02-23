@@ -145,7 +145,7 @@ export class Lexer implements ILexer {
 				let value = matched;
 				// コールバック呼び出し
 				if (typeof rule.token !== "symbol" && rule.callback !== undefined) {
-					const callback_result = rule.callback(matched, rule.token, this);
+					const callback_result = rule.callback(matched, rule.token, controller);
 					if (callback_result === null) {
 						token = null;
 					}
