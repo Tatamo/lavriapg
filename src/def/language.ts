@@ -22,7 +22,7 @@ export interface LexState {
 /**
  * 字句規則マッチ時に呼び出されるコールバック
  */
-export type LexCallback = (value: string, token: string | null, lex: LexController) => [string | null, any] | { token: string | null, value: any } | string | null;
+export type LexCallback = (value: string, token: string | null, lex: LexController) => [string | null, any] | { token: string | null, value: any } | string | null | void;
 
 /**
  * 単一の字句ルール

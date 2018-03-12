@@ -156,10 +156,11 @@ export class Lexer implements ILexer {
 						token = callback_result[0];
 						value = callback_result[1];
 					}
-					else {
+					else if (callback_result !== undefined) {
 						token = callback_result.token;
 						value = callback_result.value;
 					}
+					// callback_result === undefinedなら何もしない
 				}
 				// tokenがnullなら処理を飛ばす
 				if (token !== null) {
