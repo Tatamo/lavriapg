@@ -26,12 +26,19 @@ export class LexController {
 	 * @param {LexStateLabel} state 字句解析機の状態を表すラベル
 	 * @returns {Array<LexRule>} 対応する字句ルール
 	 */
-	private getTemporaryRulesByState(state: LexStateLabel): Array<LexRule> {
+	private getTemporaryRules(state: LexStateLabel): Array<LexRule> {
 		const result: Array<LexRule> = [];
 		const set: Set<string> = this._temporary_rules.states.has(state) ? this._temporary_rules.states.get(state)! : new Set();
 		for (const label of set) {
 			if (this._temporary_rules.rules.has(label)) {
 				result.push(this._temporary_rules.rules.get(label)!);
+			}
+		}
+		if (state !== default_lex_state && this._states.has(state) && !this._states.get(state)!.is_exclusive) {
+			if (this._temporary_rules.states.has(default_lex_state)) {
+				for (const rule of this.getTemporaryRules(default_lex_state)) {
+					result.push(rule);
+				}
 			}
 		}
 		return result;
@@ -51,7 +58,7 @@ export class LexController {
 	}
 	getRulesItr(): IterableIterator<LexRule> {
 		const basic_r: Array<LexRule> = this.getBasicRules(this._current_state);
-		const tmp_r: Array<LexRule> = this.getTemporaryRulesByState(this._current_state);
+		const tmp_r: Array<LexRule> = this.getTemporaryRules(this._current_state);
 		const itr_basic_rules = basic_r[Symbol.iterator]();
 		const itr_temporary_rules = tmp_r[Symbol.iterator]();
 		const itr: IterableIterator<LexRule> = {
