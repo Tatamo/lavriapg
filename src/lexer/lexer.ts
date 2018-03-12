@@ -89,13 +89,22 @@ export class LexController {
 		this.removeRule(label);
 
 		this._temporary_rules.rules.set(label, rule);
+		const states: Array<LexStateLabel> = rule.state !== undefined ? rule.state : [default_lex_state];
+		for (const state of states) {
+			if (this._temporary_rules.states.has(state)) {
+				this._temporary_rules.states.get(state)!.add(label);
+			}
+			else {
+				this._temporary_rules.states.set(state, new Set([label]));
+			}
+		}
 	}
 	removeRule(label: string): LexRule | null {
 		if (!this._temporary_rules.rules.has(label)) {
 			return null;
 		}
 		const rule = this._temporary_rules.rules.get(label)!;
-		const states: Array<LexStateLabel> = rule.state !== undefined ? rule.state : [];
+		const states: Array<LexStateLabel> = rule.state !== undefined ? rule.state : [default_lex_state];
 		for (const state of states) {
 			if (this._temporary_rules.states.has(state)) {
 				this._temporary_rules.states.get(state)!.delete(label);
