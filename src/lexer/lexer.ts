@@ -98,9 +98,9 @@ export class Lexer implements ILexer {
 		this.rules = new Map();
 		this.rules.set(default_lex_state, []);
 		// exclusiveでない状態(デフォルト状態を除く)をまとめておく
-		const non_exclusive_states = new Set();
+		const non_exclusive_states: Set<LexStateLabel> = new Set();
 		for (const [label, state] of this.states) {
-			if (label !== default_lex_state && !state.is_exclusive) non_exclusive_states.add(state);
+			if (label !== default_lex_state && !state.is_exclusive) non_exclusive_states.add(state.label);
 		}
 		for (const _rule of this.lex.rules) {
 			// clone rule
