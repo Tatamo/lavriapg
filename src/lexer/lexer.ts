@@ -14,14 +14,27 @@ export class LexController {
 	private _lex: LexDefinition;
 	private _current_state: LexStateLabel;
 	private _state_stack: Array<LexStateLabel>;
-	private _temporary_rules: Map<LexStateLabel, Array<LexRule>>;
-	private _updated_rules: Map<Token, LexRule>;
+	private _temporary_rules: { states: Map<LexStateLabel, Set<string>>, rules: Map<string, LexRule> };
 	constructor(language: Language, private _basic_rules: Map<LexStateLabel, Array<LexRule>>, private _states: Map<LexStateLabel, LexState>) {
 		this._lex = language.lex;
 		this._current_state = default_lex_state;
 		this._state_stack = [];
-		this._temporary_rules = new Map();
-		this._updated_rules = new Map();
+		this._temporary_rules = {states: new Map(), rules: new Map()};
+	}
+	/**
+	 * 字句解析器の状態を与えると、それに対応する動的に追加されたルールを返す
+	 * @param {LexStateLabel} state 字句解析機の状態を表すラベル
+	 * @returns {Array<LexRule>} 対応する字句ルール
+	 */
+	private getTemporaryRulesByState(state: LexStateLabel): Array<LexRule> {
+		const result: Array<LexRule> = [];
+		const set: Set<string> = this._temporary_rules.states.has(state) ? this._temporary_rules.states.get(state)! : new Set();
+		for (const label of set) {
+			if (this._temporary_rules.rules.has(label)) {
+				result.push(this._temporary_rules.rules.get(label)!);
+			}
+		}
+		return result;
 	}
 	private getBasicRules(state: LexStateLabel): Array<LexRule> {
 		let result: Array<LexRule>;
@@ -38,7 +51,7 @@ export class LexController {
 	}
 	getRulesItr(): IterableIterator<LexRule> {
 		const basic_r: Array<LexRule> = this.getBasicRules(this._current_state);
-		const tmp_r: Array<LexRule> = this._temporary_rules.has(this._current_state) ? this._temporary_rules.get(this._current_state)! : [];
+		const tmp_r: Array<LexRule> = this.getTemporaryRulesByState(this._current_state);
 		const itr_basic_rules = basic_r[Symbol.iterator]();
 		const itr_temporary_rules = tmp_r[Symbol.iterator]();
 		const itr: IterableIterator<LexRule> = {
@@ -50,9 +63,6 @@ export class LexController {
 					// 繰り返し終了
 					if (next.done) return next;
 
-					if (next.value.token !== null && this._updated_rules.has(next.value.token)) {
-						next.value = this._updated_rules.get(next.value.token)!;
-					}
 					// 無効化されているルールなら無視して次へ
 					if (next.value.is_disabled) {
 						continue;
@@ -66,6 +76,25 @@ export class LexController {
 			}
 		};
 		return itr;
+	}
+	addRule(label: string, rule: LexRule): void {
+		// 同名の既存ルールを破棄
+		this.removeRule(label);
+
+		this._temporary_rules.rules.set(label, rule);
+	}
+	removeRule(label: string): LexRule | null {
+		if (!this._temporary_rules.rules.has(label)) {
+			return null;
+		}
+		const rule = this._temporary_rules.rules.get(label)!;
+		const states: Array<LexStateLabel> = rule.state !== undefined ? rule.state : [];
+		for (const state of states) {
+			if (this._temporary_rules.states.has(state)) {
+				this._temporary_rules.states.get(state)!.delete(label);
+			}
+		}
+		return rule;
 	}
 	getCurrentState(): LexStateLabel {
 		return this._current_state;
