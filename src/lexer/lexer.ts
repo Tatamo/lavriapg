@@ -88,8 +88,9 @@ export class LexController {
 		// 同名の既存ルールを破棄
 		this.removeRule(label);
 
-		this._temporary_rules.rules.set(label, rule);
-		const states: Array<LexStateLabel> = rule.state !== undefined ? rule.state : [default_lex_state];
+		const formatted_rule = Lexer.ReformatLexRule(rule);
+		this._temporary_rules.rules.set(label, formatted_rule);
+		const states: Array<LexStateLabel> = formatted_rule.state !== undefined ? formatted_rule.state : [default_lex_state];
 		for (const state of states) {
 			if (this._temporary_rules.states.has(state)) {
 				this._temporary_rules.states.get(state)!.add(label);
@@ -157,12 +158,7 @@ export class Lexer implements ILexer {
 		this.rules.set(default_lex_state, []);
 		for (const _rule of this.lex.rules) {
 			// clone rule
-			const rule = {..._rule};
-			if (rule.is_disabled === undefined) rule.is_disabled = false;
-			// 正規表現を字句解析に適した形に整形
-			if (rule.pattern instanceof RegExp) {
-				rule.pattern = Lexer.ReformatRegExp(rule.pattern);
-			}
+			const rule = Lexer.ReformatLexRule(_rule);
 			// 状態ごとに登録
 			for (const state of rule.state !== undefined ? rule.state : [default_lex_state]) {
 				if (!this.rules.has(state)) {
@@ -249,6 +245,16 @@ export class Lexer implements ILexer {
 			}
 		}
 		return {rule: result_rule, matched: result_matched};
+	}
+	static ReformatLexRule(rule: LexRule): LexRule {
+		// clone rule
+		const result = {...rule};
+		if (result.is_disabled === undefined) result.is_disabled = false;
+		// 正規表現を字句解析に適した形に整形
+		if (result.pattern instanceof RegExp) {
+			result.pattern = Lexer.ReformatRegExp(result.pattern);
+		}
+		return result;
 	}
 	private static ReformatRegExp(pattern: RegExp): RegExp {
 		// フラグを整形する
