@@ -1,4 +1,4 @@
-import {Language, LexDefinition, GrammarDefinition} from "../../src/def/language";
+import {Language, LexDefinition, GrammarDefinition, default_lex_state} from "../../src/def/language";
 
 export const test_sample_grammar: GrammarDefinition = {
 	rules: [
@@ -127,3 +127,49 @@ $EXP : EXP PLUS TERM | TERM;
 TERM : TERM ASTERISK ATOM | ATOM;
 ATOM : DIGITS | LPAREN EXP RPAREN;
 `;
+
+export const test_lexstate_lex: LexDefinition = {
+	rules: [
+		{token: "NUMBER", pattern: /0|[1-9][0-9]*/, state: ["in-parenthesis"]},
+		{token: "ID", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
+		{token: "ASTERISK", pattern: "*", state: ["in-parenthesis"]},
+		{token: "PLUS", pattern: "+", state: [default_lex_state, "in-parenthesis"]},
+		{token: "DOLLAR", pattern: "$", state: ["in-braces"]},
+		{
+			token: "LPAREN", pattern: "(",
+			callback: (token, value, lex) => {
+				lex.callState("in-parenthesis");
+			}
+		},
+		{
+			token: "RPAREN", pattern: ")", state: ["in-parenthesis"],
+			callback: (token, value, lex) => {
+				lex.returnState();
+			}
+		},
+		{
+			token: "LBRACE", pattern: "{",
+			callback: (token, value, lex) => {
+				lex.callState("in-braces");
+			}
+		},
+		{
+			token: "RBRACE", pattern: "}", state: ["in-braces"],
+			callback: (token, value, lex) => {
+				lex.returnState();
+			}
+		},
+		{token: null, pattern: /(\r\n|\r|\n)+/},
+		{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
+		{token: "INVALID", pattern: /./, state: [default_lex_state, "in-parenthesis"]}
+	],
+	states: [
+		{label: "in-parenthesis", is_exclusive: true},
+		{label: "in-braces", is_exclusive: false}
+	]
+};
+
+export const test_lexstate_language: Language = {
+	lex: test_lexstate_lex,
+	grammar: {rules: [{ltoken: "S", pattern: []}], start_symbol: "S"}
+};

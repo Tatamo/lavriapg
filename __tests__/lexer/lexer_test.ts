@@ -1,11 +1,10 @@
 import {Lexer} from "../../src/lexer/lexer";
-import {test_sample_lex, test_empty_language, test_sample_language} from "../data/sample_language";
+import {test_empty_language, test_sample_language} from "../data/sample_language";
 import {SYMBOL_EOF} from "../../src/def/token";
-import {DefaultCallbackController} from "../../src/parser/callback";
 import {Language} from "../../src/def/language";
 
 describe("Lexer test", () => {
-	const empty_lang: Language = {lex: {rules: []}, grammar: {rules: [], start_symbol: ""}}
+	const empty_lang: Language = {lex: {rules: []}, grammar: {rules: [], start_symbol: ""}};
 	test("exec valid input", () => {
 		const lexer = new Lexer(test_sample_language);
 		expect(lexer.exec("xabc;x|&0ax x z;")).toEqual([
