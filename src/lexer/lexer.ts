@@ -23,8 +23,21 @@ export class LexController {
 		this._temporary_rules = new Map();
 		this._updated_rules = new Map();
 	}
+	private getBasicRules(state: LexStateLabel): Array<LexRule> {
+		let result: Array<LexRule>;
+		if (this._basic_rules.has(state)) {
+			result = this._basic_rules.get(state)!;
+		}
+		else {
+			result = [];
+		}
+		if (this._states.has(state) && !this._states.get(state)!.is_exclusive) {
+			result = result.concat(this._basic_rules.get(default_lex_state)!);
+		}
+		return result;
+	}
 	getRulesItr(): IterableIterator<LexRule> {
-		const basic_r: Array<LexRule> = this._basic_rules.has(this._current_state) ? this._basic_rules.get(this._current_state)! : [];
+		const basic_r: Array<LexRule> = this.getBasicRules(this._current_state);
 		const tmp_r: Array<LexRule> = this._temporary_rules.has(this._current_state) ? this._temporary_rules.get(this._current_state)! : [];
 		const itr_basic_rules = basic_r[Symbol.iterator]();
 		const itr_temporary_rules = tmp_r[Symbol.iterator]();
@@ -35,7 +48,7 @@ export class LexController {
 					next = itr_basic_rules.next();
 					if (next.done) next = itr_temporary_rules.next();
 					// 繰り返し終了
-					if (!next.done) return next;
+					if (next.done) return next;
 
 					if (next.value.token !== null && this._updated_rules.has(next.value.token)) {
 						next.value = this._updated_rules.get(next.value.token)!;
@@ -97,11 +110,6 @@ export class Lexer implements ILexer {
 		// initialize lex rules
 		this.rules = new Map();
 		this.rules.set(default_lex_state, []);
-		// exclusiveでない状態(デフォルト状態を除く)をまとめておく
-		const non_exclusive_states: Set<LexStateLabel> = new Set();
-		for (const [label, state] of this.states) {
-			if (label !== default_lex_state && !state.is_exclusive) non_exclusive_states.add(state.label);
-		}
 		for (const _rule of this.lex.rules) {
 			// clone rule
 			const rule = {..._rule};
@@ -110,17 +118,8 @@ export class Lexer implements ILexer {
 			if (rule.pattern instanceof RegExp) {
 				rule.pattern = Lexer.ReformatRegExp(rule.pattern);
 			}
-			// 登録するべき状態を求める
-			const states: Set<LexStateLabel> = new Set();
-			for (const state of rule.state !== undefined ? rule.state : [default_lex_state]) {
-				states.add(state);
-				// デフォルト状態に登録する場合はnon-exclusiveな状態にも登録
-				if (state === default_lex_state) {
-					for (const non_exclusive_state of non_exclusive_states) states.add(non_exclusive_state);
-				}
-			}
 			// 状態ごとに登録
-			for (const state of states) {
+			for (const state of rule.state !== undefined ? rule.state : [default_lex_state]) {
 				if (!this.rules.has(state)) {
 					this.rules.set(state, []);
 				}
@@ -134,7 +133,8 @@ export class Lexer implements ILexer {
 		const controller = new LexController(this.language, this.rules, this.states);
 		while (next_index < input.length) {
 			// 念の為undefined対策
-			const current_rules = this.rules.has(controller.getCurrentState()) ? this.rules.get(controller.getCurrentState())! : [];
+			// const current_rules = this.rules.has(controller.getCurrentState()) ? this.rules.get(controller.getCurrentState())! : [];
+			const current_rules = controller.getRulesItr();
 			const {rule, matched} = Lexer.match(current_rules, input, next_index);
 			if (rule === null) {
 				// マッチする規則がなかった
