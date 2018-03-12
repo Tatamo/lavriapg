@@ -1,4 +1,4 @@
-import {Language, LexDefinition, GrammarDefinition, default_lex_state} from "../../src/def/language";
+import {Language, LexDefinition, GrammarDefinition, default_lex_state, LexCallback} from "../../src/def/language";
 
 export const test_sample_grammar: GrammarDefinition = {
 	rules: [
@@ -171,5 +171,40 @@ export const test_lexstate_lex: LexDefinition = {
 
 export const test_lexstate_language: Language = {
 	lex: test_lexstate_lex,
+	grammar: {rules: [{ltoken: "S", pattern: []}], start_symbol: "S"}
+};
+
+export const test_dynamic_lexrules_lex: LexDefinition = {
+	rules: [
+		{
+			token: "LNEST", pattern: /%+{/,
+			callback: ((): LexCallback => {
+				let i = 0;
+				return (value, token, lex) => {
+					const label = i.toString();
+					// lex.addState({label, is_exclusive: false});
+					lex.callState(label);
+					lex.addRule(label, {
+						token: "RNEST", pattern: `}${"%".repeat(value.length - 1)}`, state: [label],
+						callback: (v, t, l) => {
+							l.returnState();
+							l.removeRule(label);
+							l.removeRule(`${label}-invalid`);
+							// lex.removeState(label);
+						}
+					});
+					lex.addRule(`${label}-invalid`, {
+						token: "INVALID", pattern: /./, state: [label]
+					});
+					i++;
+				};
+			})()
+		},
+		{token: "INVALID", pattern: /./}
+	]
+};
+
+export const test_dynamic_lexrules_language: Language = {
+	lex: test_dynamic_lexrules_lex,
 	grammar: {rules: [{ltoken: "S", pattern: []}], start_symbol: "S"}
 };

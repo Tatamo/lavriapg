@@ -1,15 +1,19 @@
-import {test_lexstate_language} from "../data/sample_language";
+import {test_dynamic_lexrules_language, test_lexstate_language} from "../data/sample_language";
 import {SYMBOL_EOF} from "../../src/def/token";
 import {Lexer} from "../../src/lexer/lexer";
 
 describe("lex state test", () => {
-	test("simple input", () => {
+	test("nested states", () => {
 		const lexer = new Lexer(test_lexstate_language);
-		expect(lexer.exec("{(123)}")).toEqual([
+		expect(lexer.exec("${$($123)$}")).toEqual([
+			{token: "INVALID", value: "$"},
 			{token: "LBRACE", value: "{"},
+			{token: "DOLLAR", value: "$"},
 			{token: "LPAREN", value: "("},
+			{token: "INVALID", value: "$"},
 			{token: "NUMBER", value: "123"},
 			{token: "RPAREN", value: ")"},
+			{token: "DOLLAR", value: "$"},
 			{token: "RBRACE", value: "}"},
 			{token: SYMBOL_EOF, value: ""}
 		]);
@@ -56,6 +60,22 @@ describe("lex state test", () => {
 			{token: "ID", value: "a"},
 			{token: "INVALID", value: "*"},
 			{token: "RBRACE", value: "}"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+	});
+});
+
+describe("dynamic lex rules test", () => {
+	test("adding and removing rules", () => {
+		const lexer = new Lexer(test_dynamic_lexrules_language);
+		expect(lexer.exec("%%{}%}%%}%%")).toEqual([
+			{token: "LNEST", value: "%%{"},
+			{token: "INVALID", value: "}"},
+			{token: "INVALID", value: "%"},
+			{token: "RNEST", value: "}%%"},
+			{token: "INVALID", value: "}"},
+			{token: "INVALID", value: "%"},
+			{token: "INVALID", value: "%"},
 			{token: SYMBOL_EOF, value: ""}
 		]);
 	});
