@@ -1,5 +1,5 @@
-import {default_lex_state, Language, LexCallback, LexDefinition, LexRule, LexState, LexStateLabel} from "../def/language";
-import {SYMBOL_EOF, Token, TokenizedInput} from "../def/token";
+import {default_lex_state, Language, LexDefinition, LexRule, LexState, LexStateLabel} from "../def/language";
+import {SYMBOL_EOF, TokenizedInput} from "../def/token";
 
 /**
  * 字句解析器用のinterface
@@ -15,11 +15,74 @@ export class LexController {
 	private _current_state: LexStateLabel;
 	private _state_stack: Array<LexStateLabel>;
 	private _temporary_rules: { states: Map<LexStateLabel, Set<string>>, rules: Map<string, LexRule> };
-	constructor(language: Language, private _basic_rules: Map<LexStateLabel, Array<LexRule>>, private _states: Map<LexStateLabel, LexState>) {
+	private _rules: Map<LexStateLabel, Array<LexRule>>;
+	private _states: Map<LexStateLabel, LexState>;
+	constructor(language: Language) {
 		this._lex = language.lex;
 		this._current_state = default_lex_state;
 		this._state_stack = [];
 		this._temporary_rules = {states: new Map(), rules: new Map()};
+
+		// initialize lex states map
+		this._states = new Map();
+		// もしlexの定義内にデフォルト状態の記述があっても上書きされるだけなので問題ない
+		this._states.set(default_lex_state, {label: default_lex_state, is_exclusive: false});
+		if (this._lex.states !== undefined) {
+			for (const state of this._lex.states) {
+				this._states.set(state.label, LexController.formatLexState(state));
+			}
+		}
+
+		// initialize lex rules
+		this._rules = new Map();
+		this._rules.set(default_lex_state, []);
+		for (const _rule of this._lex.rules) {
+			// clone rule
+			const rule = LexController.formatLexRule(_rule);
+			// 状態ごとに登録
+			for (const state of rule.state!) {
+				if (!this._rules.has(state)) {
+					this._rules.set(state, []);
+				}
+				this._rules.get(state)!.push(rule);
+			}
+		}
+	}
+	private static formatLexState(state: LexState): LexState {
+		return {
+			label: state.label,
+			is_exclusive: state.is_exclusive !== undefined ? state.is_exclusive : false
+		};
+	}
+	private static formatLexRule(rule: LexRule): LexRule {
+		// clone rule
+		const result = {...rule};
+		if (result.is_disabled === undefined) result.is_disabled = false;
+		// 状態指定を省略された場合はデフォルト状態のみとする
+		if (result.state === undefined) result.state = [default_lex_state];
+		// 正規表現を字句解析に適した形に整形
+		if (result.pattern instanceof RegExp) {
+			result.pattern = LexController.formatRegExp(result.pattern);
+		}
+		return result;
+	}
+	private static formatRegExp(pattern: RegExp): RegExp {
+		// フラグを整形する
+		let flags: string = "";
+		// gフラグは邪魔なので取り除く
+		// i,m,uフラグがあれば維持する
+		if (pattern.ignoreCase) {
+			flags += "i";
+		}
+		if (pattern.multiline) {
+			flags += "m";
+		}
+		if (pattern.unicode) {
+			flags += "u";
+		}
+		// yフラグは必ずつける
+		flags += "y";
+		return new RegExp(pattern, flags);
 	}
 	/**
 	 * 字句解析器の状態を与えると、それに対応する動的に追加されたルールを返す
@@ -45,14 +108,14 @@ export class LexController {
 	}
 	private getBasicRules(state: LexStateLabel): Array<LexRule> {
 		let result: Array<LexRule>;
-		if (this._basic_rules.has(state)) {
-			result = this._basic_rules.get(state)!;
+		if (this._rules.has(state)) {
+			result = this._rules.get(state)!;
 		}
 		else {
 			result = [];
 		}
 		if (this._states.has(state) && !this._states.get(state)!.is_exclusive) {
-			result = result.concat(this._basic_rules.get(default_lex_state)!);
+			result = result.concat(this._rules.get(default_lex_state)!);
 		}
 		return result;
 	}
@@ -88,7 +151,7 @@ export class LexController {
 		// 同名の既存ルールを破棄
 		this.removeRule(label);
 
-		const formatted_rule = Lexer.ReformatLexRule(rule);
+		const formatted_rule = LexController.formatLexRule(rule);
 		this._temporary_rules.rules.set(label, formatted_rule);
 		const states: Array<LexStateLabel> = formatted_rule.state !== undefined ? formatted_rule.state : [default_lex_state];
 		for (const state of states) {
@@ -136,42 +199,13 @@ export class LexController {
  * 入力を受け取ってトークン化する
  */
 export class Lexer implements ILexer {
-	private rules: Map<LexStateLabel, Array<LexRule>>;
-	private states: Map<LexStateLabel, LexState>;
-	private lex: LexDefinition;
 	constructor(private language: Language) {
-		this.lex = language.lex;
-		// initialize lex states map
-		this.states = new Map();
-		this.states.set(default_lex_state, {label: default_lex_state, is_exclusive: false});
-		if (this.lex.states !== undefined) {
-			for (const {label, is_exclusive} of this.lex.states) {
-				this.states.set(label, {
-					label,
-					is_exclusive: is_exclusive !== undefined ? is_exclusive : false
-				});
-			}
-		}
-
-		// initialize lex rules
-		this.rules = new Map();
-		this.rules.set(default_lex_state, []);
-		for (const _rule of this.lex.rules) {
-			// clone rule
-			const rule = Lexer.ReformatLexRule(_rule);
-			// 状態ごとに登録
-			for (const state of rule.state !== undefined ? rule.state : [default_lex_state]) {
-				if (!this.rules.has(state)) {
-					this.rules.set(state, []);
-				}
-				this.rules.get(state)!.push(rule);
-			}
-		}
+		// do nothing
 	}
 	exec(input: string): Array<TokenizedInput> {
 		const result: Array<TokenizedInput> = [];
 		let next_index = 0;
-		const controller = new LexController(this.language, this.rules, this.states);
+		const controller = new LexController(this.language);
 		while (next_index < input.length) {
 			// 念の為undefined対策
 			// const current_rules = this.rules.has(controller.getCurrentState()) ? this.rules.get(controller.getCurrentState())! : [];
@@ -245,33 +279,5 @@ export class Lexer implements ILexer {
 			}
 		}
 		return {rule: result_rule, matched: result_matched};
-	}
-	static ReformatLexRule(rule: LexRule): LexRule {
-		// clone rule
-		const result = {...rule};
-		if (result.is_disabled === undefined) result.is_disabled = false;
-		// 正規表現を字句解析に適した形に整形
-		if (result.pattern instanceof RegExp) {
-			result.pattern = Lexer.ReformatRegExp(result.pattern);
-		}
-		return result;
-	}
-	private static ReformatRegExp(pattern: RegExp): RegExp {
-		// フラグを整形する
-		let flags: string = "";
-		// gフラグは邪魔なので取り除く
-		// i,m,uフラグがあれば維持する
-		if (pattern.ignoreCase) {
-			flags += "i";
-		}
-		if (pattern.multiline) {
-			flags += "m";
-		}
-		if (pattern.unicode) {
-			flags += "u";
-		}
-		// yフラグは必ずつける
-		flags += "y";
-		return new RegExp(pattern, flags);
 	}
 }
