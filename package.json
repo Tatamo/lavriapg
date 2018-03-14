@@ -16,7 +16,7 @@
 		"test-w": "jest --watchAll",
 		"build": "gulp",
 		"watch": "gulp watch",
-		"build-doc": "gulp typedoc"
+		"build-doc": "typedoc --mode file --out docs/ --tsconfig tsconfig.json ./src"
 	},
 	"repository": {
 		"type": "git",
@@ -30,7 +30,6 @@
 		"gulp": "^3.9.1",
 		"gulp-sourcemaps": "^2.6.4",
 		"gulp-tslint": "^8.1.3",
-		"gulp-typedoc": "^2.2.0",
 		"gulp-typescript": "^4.0.1",
 		"jest": "^22.4.2",
 		"merge2": "^1.2.1",
