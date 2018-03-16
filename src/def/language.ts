@@ -9,7 +9,7 @@ export type LexStateLabel = string;
 /**
  * デフォルトの字句解析器の状態
  */
-export const default_lex_state = "default";
+export const DEFAULT_LEX_STATE = "default";
 
 /**
  * 字句解析器に与える状態

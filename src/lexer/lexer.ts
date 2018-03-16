@@ -1,4 +1,4 @@
-import {default_lex_state, Language, LexDefinition, LexRule, LexState, LexStateLabel} from "../def/language";
+import {DEFAULT_LEX_STATE, Language, LexDefinition, LexRule, LexState, LexStateLabel} from "../def/language";
 import {SYMBOL_EOF, TokenizedInput} from "../def/token";
 
 /**
@@ -28,7 +28,7 @@ class LexRuleManager {
 		// initialize lex states map
 		this.states = new Map();
 		// もしlexの定義内にデフォルト状態の記述があっても上書きされるだけなので問題ない
-		this.addState({label: default_lex_state, is_exclusive: false});
+		this.addState({label: DEFAULT_LEX_STATE, is_exclusive: false});
 		if (lex.states !== undefined) {
 			for (const state of lex.states) {
 				this.addState(state);
@@ -65,7 +65,7 @@ class LexRuleManager {
 		if (this.states.has(state.label)) {
 			return false;
 		}
-		const inheritance: LexStateLabel | null = state.is_exclusive ? null : default_lex_state;
+		const inheritance: LexStateLabel | null = state.is_exclusive ? null : DEFAULT_LEX_STATE;
 		this.states.set(state.label, {state, index: new Set(), inheritance});
 		// ループチェック
 		if (inheritance !== null) {
@@ -144,7 +144,7 @@ class LexRuleManager {
 		const result = {...rule};
 		if (result.is_disabled === undefined) result.is_disabled = false;
 		// 状態指定を省略された場合はデフォルト状態のみとする
-		if (result.state === undefined) result.state = [default_lex_state];
+		if (result.state === undefined) result.state = [DEFAULT_LEX_STATE];
 		// 正規表現を字句解析に適した形に整形
 		if (result.pattern instanceof RegExp) {
 			result.pattern = LexRuleManager.formatRegExp(result.pattern);
@@ -178,7 +178,7 @@ export class LexController {
 	private _rules: LexRuleManager;
 	constructor(language: Language) {
 		this._lex = language.lex;
-		this._current_state = default_lex_state;
+		this._current_state = DEFAULT_LEX_STATE;
 		this._state_stack = [];
 		this._rules = new LexRuleManager(language);
 	}
@@ -203,7 +203,7 @@ export class LexController {
 	}
 	returnState(): LexStateLabel | undefined {
 		const pop = this._state_stack.pop();
-		if (pop === undefined) this._current_state = default_lex_state;
+		if (pop === undefined) this._current_state = DEFAULT_LEX_STATE;
 		else this._current_state = pop;
 		return pop;
 	}
