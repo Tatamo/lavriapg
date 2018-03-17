@@ -52,5 +52,5 @@ const language: Language = {
 };
 
 console.time("process");
-console.log(JSON.stringify(ParserFactory.createAST(language, new ParserGenerator(language).getParsingTable()).parse(input), undefined, 2));
+console.log(JSON.stringify(ParserFactory.create(language, new ParserGenerator(language).getParsingTable()).parse(input), undefined, 2));
 console.timeEnd("process");
