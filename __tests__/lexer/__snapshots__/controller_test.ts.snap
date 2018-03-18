@@ -1,5 +1,59 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`begin/end callbacks test using variables 1`] = `
+Array [
+  Object {
+    "token": "A",
+    "value": "0",
+  },
+  Object {
+    "token": "A",
+    "value": "1",
+  },
+  Object {
+    "token": "A",
+    "value": "2",
+  },
+  Object {
+    "token": "A",
+    "value": "3",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`begin/end callbacks test using variables 2`] = `
+Array [
+  Object {
+    "token": "A",
+    "value": "0",
+  },
+  Object {
+    "token": "A",
+    "value": "1",
+  },
+  Object {
+    "token": "A",
+    "value": "2",
+  },
+  Object {
+    "token": "A",
+    "value": "3",
+  },
+  Object {
+    "token": "A",
+    "value": "4",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
 exports[`dynamic lex rules test adding and removing rules 1`] = `
 Array [
   Object {

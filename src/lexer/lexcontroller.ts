@@ -73,6 +73,7 @@ class LexRuleManager {
 		}
 		return true;
 	}
+	// TODO: パフォーマンス改善
 	getRulesItr(state: LexStateLabel): IterableIterator<LexRule> {
 		// そんな状態はない
 		if (!this.states.has(state)) return [][Symbol.iterator]();
@@ -171,6 +172,12 @@ export class LexController {
 		this._current_state = DEFAULT_LEX_STATE;
 		this._state_stack = [];
 		this._rules = new LexRuleManager(language);
+	}
+	onBegin(): void {
+		if (this._lex.begin_callback !== undefined) this._lex.begin_callback(this);
+	}
+	onEnd(): void {
+		if (this._lex.end_callback !== undefined) this._lex.end_callback(this);
 	}
 	getRulesItr(): IterableIterator<LexRule> {
 		return this._rules.getRulesItr(this._current_state);

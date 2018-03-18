@@ -23,6 +23,7 @@ export class Lexer implements ILexer {
 		const result: Array<TokenizedInput> = [];
 		let next_index = 0;
 		const controller = new LexController(this.language);
+		controller.onBegin();
 		while (next_index < input.length) {
 			// 念の為undefined対策
 			// const current_rules = this.rules.has(controller.getCurrentState()) ? this.rules.get(controller.getCurrentState())! : [];
@@ -63,6 +64,7 @@ export class Lexer implements ILexer {
 			}
 		}
 		result.push({token: SYMBOL_EOF, value: ""});
+		controller.onEnd();
 		return result;
 	}
 	private static match(rules: Iterable<LexRule>, input: string, next_index: number): { rule: LexRule | null, matched: string } {

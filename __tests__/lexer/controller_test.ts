@@ -35,3 +35,19 @@ describe("dynamic lex rules test", () => {
 		expect(lexer.exec("%%{}%}%%}%%")).toMatchSnapshot();
 	});
 });
+
+describe("begin/end callbacks test", () => {
+	test("using variables", () => {
+		let counter = 0;
+		const lexer = new Lexer({
+			grammar: {rules: [], start_symbol: ""}, lex: {
+				rules: [{token: "A", pattern: /a/, callback: () => ["A", (counter++).toString()]}],
+				begin_callback: () => {
+					counter = 0;
+				}
+			}
+		});
+		expect(lexer.exec("aaaa")).toMatchSnapshot();
+		expect(lexer.exec("aaaaa")).toMatchSnapshot();
+	});
+});
