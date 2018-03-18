@@ -132,7 +132,7 @@ export const test_lexstate_lex: LexDefinition = {
 	rules: [
 		{token: "NUMBER", pattern: /0|[1-9][0-9]*/, state: ["in-parenthesis"]},
 		{token: "ID", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
-		{token: "ASTERISK", pattern: "*", state: ["in-parenthesis"]},
+		{token: "ASTERISK", pattern: "*", state: ["super-in-parenthesis"]},
 		{token: "PLUS", pattern: "+", state: [DEFAULT_LEX_STATE, "in-parenthesis"]},
 		{token: "DOLLAR", pattern: "$", state: ["in-braces"]},
 		{
@@ -164,8 +164,9 @@ export const test_lexstate_lex: LexDefinition = {
 		{token: "INVALID", pattern: /./, state: [DEFAULT_LEX_STATE, "in-parenthesis"]}
 	],
 	states: [
-		{label: "in-parenthesis", is_exclusive: true},
-		{label: "in-braces", is_exclusive: false}
+		{label: "super-in-parenthesis"},
+		{label: "in-parenthesis", inheritance: "super-in-parenthesis"},
+		{label: "in-braces", inheritance: DEFAULT_LEX_STATE}
 	]
 };
 

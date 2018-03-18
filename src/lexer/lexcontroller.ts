@@ -18,7 +18,7 @@ class LexRuleManager {
 		// initialize lex states map
 		this.states = new Map();
 		// もしlexの定義内にデフォルト状態の記述があっても上書きされるだけなので問題ない
-		this.addState({label: DEFAULT_LEX_STATE, is_exclusive: false});
+		this.addState({label: DEFAULT_LEX_STATE});
 		if (lex.states !== undefined) {
 			for (const state of lex.states) {
 				this.addState(state);
@@ -55,7 +55,7 @@ class LexRuleManager {
 		if (this.states.has(state.label)) {
 			return false;
 		}
-		const inheritance: LexStateLabel | null = state.is_exclusive ? null : DEFAULT_LEX_STATE;
+		const inheritance: LexStateLabel | null = state.inheritance !== undefined ? state.inheritance : null;
 		this.states.set(state.label, {state, index: new Set(), inheritance});
 		// ループチェック
 		if (inheritance !== null) {
@@ -86,6 +86,8 @@ class LexRuleManager {
 			if (s.inheritance === null) break;
 			s = this.states.get(s.inheritance);
 		}
+		// 暫定的処置
+		result.sort((a: number, b: number) => a - b);
 
 		return (function* (self, itr) {
 			for (const id of itr) {
@@ -125,10 +127,8 @@ class LexRuleManager {
 		return rule;
 	}
 	static formatLexState(state: LexState): LexState {
-		return {
-			label: state.label,
-			is_exclusive: state.is_exclusive !== undefined ? state.is_exclusive : false
-		};
+		// clone state
+		return {...state};
 	}
 	static formatLexRule(rule: LexRule): LexRule {
 		// clone rule
