@@ -7,19 +7,7 @@ describe("Lexer test", () => {
 	const empty_lang: Language = {lex: {rules: []}, grammar: {rules: [], start_symbol: ""}};
 	test("exec valid input", () => {
 		const lexer = new Lexer(test_sample_language);
-		expect(lexer.exec("xabc;x|&0ax x z;")).toEqual([
-			{token: "ID", value: "xabc"},
-			{token: "SEMICOLON", value: ";"},
-			{token: "ATOM", value: "x"},
-			{token: "SEPARATE", value: "|"},
-			{token: "INVALID", value: "&"},
-			{token: "INVALID", value: "0"},
-			{token: "ID", value: "ax"},
-			{token: "ATOM", value: "x"},
-			{token: "ID", value: "z"},
-			{token: "SEMICOLON", value: ";"},
-			{token: SYMBOL_EOF, value: ""}
-		]);
+		expect(lexer.exec("xabc;x|&0ax x z;")).toMatchSnapshot();
 	});
 	test("exec invalid input", () => {
 		const lexer = new Lexer(test_empty_language);
@@ -49,14 +37,7 @@ describe("Lexer test", () => {
 				]
 			}
 		});
-		expect(lexer.exec("abcx\nyzdefpqra\nc")).toEqual([
-			{token: "I", value: "abc"},
-			{token: "M", value: "x\nyz"},
-			{token: "U", value: "def"},
-			{token: "G", value: "pqr"},
-			{token: "A", value: "a\nc"},
-			{token: SYMBOL_EOF, value: ""}
-		]);
+		expect(lexer.exec("abcx\nyzdefpqra\nc")).toMatchSnapshot();
 	});
 	test("skip string pattern if the following is \\w", () => {
 		const lexer = new Lexer({
@@ -69,18 +50,7 @@ describe("Lexer test", () => {
 				]
 			}
 		});
-		expect(lexer.exec("abcxyz*abc*xyz*abcabc")).toEqual([
-			{token: "REGEXP", value: "abc"},
-			{token: "XYZ", value: "xyz"},
-			{token: "ASTERISK", value: "*"},
-			{token: "STR", value: "abc"},
-			{token: "ASTERISK", value: "*"},
-			{token: "XYZ", value: "xyz"},
-			{token: "ASTERISK", value: "*"},
-			{token: "REGEXP", value: "abc"},
-			{token: "STR", value: "abc"},
-			{token: SYMBOL_EOF, value: ""}
-		]);
+		expect(lexer.exec("abcxyz*abc*xyz*abcabc")).toMatchSnapshot();
 	});
 	test("rule priority", () => {
 		const lexer = new Lexer({
@@ -100,14 +70,7 @@ describe("Lexer test", () => {
 				]
 			}
 		});
-		expect(lexer.exec(" +-+-*abcd xyzw")).toEqual([
-			{token: "PM", value: "+-"},
-			{token: "PMA", value: "+-*"},
-			{token: "ABCD2", value: "abcd"},
-			{token: "XYZ", value: "xyz"},
-			{token: "W", value: "w"},
-			{token: SYMBOL_EOF, value: ""}
-		]);
+		expect(lexer.exec(" +-+-*abcd xyzw")).toMatchSnapshot();
 	});
 	test("longest match", () => {
 		const lexer = new Lexer({
@@ -124,11 +87,6 @@ describe("Lexer test", () => {
 				]
 			}
 		});
-		expect(lexer.exec(" +-+-*abcd ")).toEqual([
-			{token: "PM", value: "+-"},
-			{token: "PMA", value: "+-*"},
-			{token: "ABCD", value: "abcd"},
-			{token: SYMBOL_EOF, value: ""}
-		]);
+		expect(lexer.exec(" +-+-*abcd ")).toMatchSnapshot();
 	});
 });

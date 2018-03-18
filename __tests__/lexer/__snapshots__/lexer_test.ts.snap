@@ -1,0 +1,176 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Lexer test exec valid input 1`] = `
+Array [
+  Object {
+    "token": "ID",
+    "value": "xabc",
+  },
+  Object {
+    "token": "SEMICOLON",
+    "value": ";",
+  },
+  Object {
+    "token": "ATOM",
+    "value": "x",
+  },
+  Object {
+    "token": "SEPARATE",
+    "value": "|",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "&",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "0",
+  },
+  Object {
+    "token": "ID",
+    "value": "ax",
+  },
+  Object {
+    "token": "ATOM",
+    "value": "x",
+  },
+  Object {
+    "token": "ID",
+    "value": "z",
+  },
+  Object {
+    "token": "SEMICOLON",
+    "value": ";",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`Lexer test longest match 1`] = `
+Array [
+  Object {
+    "token": "PM",
+    "value": "+-",
+  },
+  Object {
+    "token": "PMA",
+    "value": "+-*",
+  },
+  Object {
+    "token": "ABCD",
+    "value": "abcd",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`Lexer test regexp flags 1`] = `
+Array [
+  Object {
+    "token": "I",
+    "value": "abc",
+  },
+  Object {
+    "token": "M",
+    "value": "x
+yz",
+  },
+  Object {
+    "token": "U",
+    "value": "def",
+  },
+  Object {
+    "token": "G",
+    "value": "pqr",
+  },
+  Object {
+    "token": "A",
+    "value": "a
+c",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`Lexer test rule priority 1`] = `
+Array [
+  Object {
+    "token": "PM",
+    "value": "+-",
+  },
+  Object {
+    "token": "PMA",
+    "value": "+-*",
+  },
+  Object {
+    "token": "ABCD2",
+    "value": "abcd",
+  },
+  Object {
+    "token": "XYZ",
+    "value": "xyz",
+  },
+  Object {
+    "token": "W",
+    "value": "w",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`Lexer test skip string pattern if the following is \\w 1`] = `
+Array [
+  Object {
+    "token": "REGEXP",
+    "value": "abc",
+  },
+  Object {
+    "token": "XYZ",
+    "value": "xyz",
+  },
+  Object {
+    "token": "ASTERISK",
+    "value": "*",
+  },
+  Object {
+    "token": "STR",
+    "value": "abc",
+  },
+  Object {
+    "token": "ASTERISK",
+    "value": "*",
+  },
+  Object {
+    "token": "XYZ",
+    "value": "xyz",
+  },
+  Object {
+    "token": "ASTERISK",
+    "value": "*",
+  },
+  Object {
+    "token": "REGEXP",
+    "value": "abc",
+  },
+  Object {
+    "token": "STR",
+    "value": "abc",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;

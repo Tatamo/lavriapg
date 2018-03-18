@@ -1,0 +1,187 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`dynamic lex rules test adding and removing rules 1`] = `
+Array [
+  Object {
+    "token": "LNEST",
+    "value": "%%{",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "}",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "%",
+  },
+  Object {
+    "token": "RNEST",
+    "value": "}%%",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "}",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "%",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "%",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`lex state test exclusive state 1`] = `
+Array [
+  Object {
+    "token": "LPAREN",
+    "value": "(",
+  },
+  Object {
+    "token": "PLUS",
+    "value": "+",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "a",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "{",
+  },
+  Object {
+    "token": "ASTERISK",
+    "value": "*",
+  },
+  Object {
+    "token": "RPAREN",
+    "value": ")",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`lex state test nested states 1`] = `
+Array [
+  Object {
+    "token": "INVALID",
+    "value": "$",
+  },
+  Object {
+    "token": "LBRACE",
+    "value": "{",
+  },
+  Object {
+    "token": "DOLLAR",
+    "value": "$",
+  },
+  Object {
+    "token": "LPAREN",
+    "value": "(",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "$",
+  },
+  Object {
+    "token": "NUMBER",
+    "value": "123",
+  },
+  Object {
+    "token": "RPAREN",
+    "value": ")",
+  },
+  Object {
+    "token": "DOLLAR",
+    "value": "$",
+  },
+  Object {
+    "token": "RBRACE",
+    "value": "}",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`lex state test non-exclusive state 1`] = `
+Array [
+  Object {
+    "token": "INVALID",
+    "value": "$",
+  },
+  Object {
+    "token": "LBRACE",
+    "value": "{",
+  },
+  Object {
+    "token": "DOLLAR",
+    "value": "$",
+  },
+  Object {
+    "token": "PLUS",
+    "value": "+",
+  },
+  Object {
+    "token": "ID",
+    "value": "a",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "*",
+  },
+  Object {
+    "token": "RBRACE",
+    "value": "}",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`lex state test reset state after process 1`] = `
+Array [
+  Object {
+    "token": "LBRACE",
+    "value": "{",
+  },
+  Object {
+    "token": "LPAREN",
+    "value": "(",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`lex state test reset state after process 2`] = `
+Array [
+  Object {
+    "token": "INVALID",
+    "value": ")",
+  },
+  Object {
+    "token": "INVALID",
+    "value": "}",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
