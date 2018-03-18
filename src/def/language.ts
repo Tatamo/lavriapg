@@ -1,5 +1,6 @@
 import {Token} from "./token";
-import {ILexer, LexController} from "../lexer/lexer";
+import {ILexer} from "../lexer/lexer";
+import {LexController} from "../lexer/lexcontroller";
 
 /**
  * 字句解析器の状態を区別するためのラベル型
