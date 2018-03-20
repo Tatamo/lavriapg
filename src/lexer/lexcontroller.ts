@@ -95,7 +95,7 @@ class LexRuleManager {
 			}
 		})(this, new Set(result)[Symbol.iterator]());
 	}
-	addRule(label: LexRuleLabel, rule: LexRule): void {
+	setRule(label: LexRuleLabel, rule: LexRule): void {
 		// 同名の既存ルールを破棄
 		this.removeRule(label);
 
@@ -183,7 +183,7 @@ export class LexController {
 		return this._rules.getRulesItr(this._current_state);
 	}
 	addRule(label: string, rule: LexRule): void {
-		this._rules.addRule(label, rule);
+		this._rules.setRule(label, rule);
 	}
 	removeRule(label: string): LexRule | null {
 		return this._rules.removeRule(label);
