@@ -52,9 +52,6 @@ class LexRuleManager {
 			state = {label: s};
 		}
 		state = LexRuleManager.formatLexState(state);
-		if (this.states.has(state.label)) {
-			return false;
-		}
 		// ループチェック
 		const isLooped = (state: LexState): boolean => {
 			if (state.inheritance !== undefined) {
@@ -72,11 +69,15 @@ class LexRuleManager {
 			}
 			return false;
 		};
-		if (isLooped(state)) {
-			// 循環継承が存在するため追加できない
-			return false;
+		// 循環継承が存在する場合は追加できない
+		if (isLooped(state)) return false;
+		if (this.states.has(state.label)) {
+			// 既に追加済みの場合はindexをそのまま維持する
+			this.states.get(state.label)!.state = state;
 		}
-		this.states.set(state.label, {state, index: new Set()});
+		else {
+			this.states.set(state.label, {state, index: new Set()});
+		}
 		return true;
 	}
 	// TODO: パフォーマンス改善
