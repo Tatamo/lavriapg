@@ -183,7 +183,7 @@ export const test_dynamic_lexrules_lex: LexDefinition = {
 				let i = 0;
 				return (value, token, lex) => {
 					const label = i.toString();
-					// lex.addState({label, is_exclusive: false});
+					// lex.setState({label, is_exclusive: false});
 					lex.callState(label);
 					lex.addRule(label, {
 						token: "RNEST", pattern: `}${"%".repeat(value.length - 1)}`, state: [label],

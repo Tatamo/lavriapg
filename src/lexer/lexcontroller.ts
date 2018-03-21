@@ -18,10 +18,10 @@ class LexRuleManager {
 		// initialize lex states map
 		this.states = new Map();
 		// もしlexの定義内にデフォルト状態の記述があっても上書きされるだけなので問題ない
-		this.addState({label: DEFAULT_LEX_STATE});
+		this.setState({label: DEFAULT_LEX_STATE});
 		if (lex.states !== undefined) {
 			for (const state of lex.states) {
-				this.addState(state);
+				this.setState(state);
 			}
 		}
 
@@ -34,16 +34,16 @@ class LexRuleManager {
 			for (const state of rule.state!) {
 				// TODO: statesに入れる
 				if (!this.states.has(state)) {
-					this.addState(state);
+					this.setState(state);
 				}
 				this.states.get(state)!.index.add(this.id_counter);
 			}
 			this.id_counter += 1;
 		}
 	}
-	addState(label: LexStateLabel): boolean;
-	addState(state: LexState): boolean;
-	addState(s: LexStateLabel | LexState): boolean {
+	setState(label: LexStateLabel): boolean;
+	setState(state: LexState): boolean;
+	setState(s: LexStateLabel | LexState): boolean {
 		let state: LexState;
 		if (typeof s === "object") {
 			state = s;
@@ -112,7 +112,7 @@ class LexRuleManager {
 		this.rules.rules[id] = formatted_rule;
 		this.rules.labels.set(label, id);
 		for (const state of formatted_rule.state!) {
-			if (!this.states.has(state)) this.addState(state);
+			if (!this.states.has(state)) this.setState(state);
 			this.states.get(state)!.index.add(id);
 		}
 	}
