@@ -73,8 +73,8 @@ class LexRuleManager {
 			return false;
 		};
 		if (isLooped(state)) {
-			// 循環継承が存在する
-			state.inheritance = undefined;
+			// 循環継承が存在するため追加できない
+			return false;
 		}
 		this.states.set(state.label, {state, index: new Set()});
 		return true;
