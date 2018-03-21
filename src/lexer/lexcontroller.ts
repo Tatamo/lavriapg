@@ -4,7 +4,7 @@ export type LexRuleLabel = string;
 
 class LexRuleManager {
 	// private states: { states: Map<LexStateLabel, LexState>, index: Map<LexStateLabel, Set<number>>, inheritance: Map<LexStateLabel, LexStateLabel> };
-	private states: Map<LexStateLabel, { state: LexState, index: Set<number>, inheritance: LexStateLabel | null }>;
+	private states: Map<LexStateLabel, { state: LexState, index: Set<number> }>;
 	private rules: { rules: Array<LexRule | undefined>, labels: Map<LexRuleLabel, number> };
 	// 各ルールに一意なidを割り当てるためのカウンタ
 	private id_counter: number;
@@ -55,22 +55,28 @@ class LexRuleManager {
 		if (this.states.has(state.label)) {
 			return false;
 		}
-		const inheritance: LexStateLabel | null = state.inheritance !== undefined ? state.inheritance : null;
-		this.states.set(state.label, {state, index: new Set(), inheritance});
 		// ループチェック
-		if (inheritance !== null) {
-			let flg_loop = false;
-			let parent = this.states.get(inheritance);
-			while (parent !== undefined && parent.inheritance !== null) {
-				// 状態を追加するたびにチェックするので、自身にたどりつかないことを調べればよい
-				if (parent.inheritance === state.label) {
-					flg_loop = true;
-					break;
+		const isLooped = (state: LexState): boolean => {
+			if (state.inheritance !== undefined) {
+				let flg_loop = false;
+				let parent = this.states.get(state.inheritance);
+				while (parent !== undefined && parent.state.inheritance !== undefined) {
+					// 状態を追加するたびにチェックするので、自身にたどりつかないことを調べればよい
+					if (parent.state.inheritance === state.label) {
+						flg_loop = true;
+						break;
+					}
+					parent = this.states.get(parent.state.inheritance);
 				}
-				parent = this.states.get(parent.inheritance);
+				if (flg_loop) return true;
 			}
-			if (flg_loop) this.states.get(state.label)!.inheritance = null;
+			return false;
+		};
+		if (isLooped(state)) {
+			// 循環継承が存在する
+			state.inheritance = undefined;
 		}
+		this.states.set(state.label, {state, index: new Set()});
 		return true;
 	}
 	// TODO: パフォーマンス改善
@@ -83,8 +89,8 @@ class LexRuleManager {
 		let s = this.states.get(state);
 		while (s !== undefined) {
 			result = result.concat([...s.index]);
-			if (s.inheritance === null) break;
-			s = this.states.get(s.inheritance);
+			if (s.state.inheritance === undefined) break;
+			s = this.states.get(s.state.inheritance);
 		}
 		// 暫定的処置
 		result.sort((a: number, b: number) => a - b);
