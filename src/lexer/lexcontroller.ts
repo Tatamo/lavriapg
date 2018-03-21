@@ -1,4 +1,4 @@
-import {DEFAULT_LEX_STATE, Language, LexDefinition, LexRule, LexState, LexStateLabel} from "../def/language";
+import {DEFAULT_LEX_STATE, Language, LexCallback, LexDefinition, LexRule, LexState, LexStateLabel} from "../def/language";
 
 export type LexRuleLabel = string;
 
@@ -179,6 +179,9 @@ export class LexController {
 		this._current_state = DEFAULT_LEX_STATE;
 		this._state_stack = [];
 		this._rules = new LexRuleManager(language);
+	}
+	get defaultCallback(): LexCallback | undefined {
+		return this._lex.default_callback;
 	}
 	onBegin(): void {
 		if (this._lex.begin_callback !== undefined) this._lex.begin_callback(this);
