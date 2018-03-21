@@ -89,4 +89,34 @@ describe("Lexer test", () => {
 		});
 		expect(lexer.exec(" +-+-*abcd ")).toMatchSnapshot();
 	});
+	test("callbacks", () => {
+		// 引数として与えられるLexControllerを使用した詳細なテストはcontroller_test.tsで
+		const lexer = new Lexer({
+			grammar: {rules: [], start_symbol: ""}, lex: {
+				rules: [
+					{token: "A", pattern: /a/},
+					{token: "B", pattern: /b/, callback: (value, token) => token},
+					{token: "C", pattern: /c/, callback: (value, token) => ({token, value: "2"})},
+					{
+						token: "D", pattern: /d/,
+						callback: () => {
+							return;
+						}
+					},
+					{token: "E", pattern: /e/, callback: () => null},
+					{token: null, pattern: " "}
+				],
+				default_callback: (value, token) => {
+					return [token, "1"];
+				}
+			}
+		});
+		expect(lexer.exec("abc de")).toEqual([
+			{token: "A", value: "1"},
+			{token: "B", value: "b"},
+			{token: "C", value: "2"},
+			{token: "D", value: "d"},
+			{token: SYMBOL_EOF, value: ""}
+		]);
+	});
 });
