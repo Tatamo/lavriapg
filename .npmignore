@@ -3,6 +3,7 @@
 node_modules/
 __tests__/
 coverage/
+docs/
 .gitignore
 .npmignore
 gulpfile.js
