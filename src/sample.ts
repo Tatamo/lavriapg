@@ -9,7 +9,8 @@ const grammar: GrammarDefinition = {
 	rules: [
 		{
 			ltoken: "EXP",
-			pattern: ["EXP", "PLUS", "TERM"]
+			pattern: ["EXP", "PLUS", "TERM"],
+			callback: (c) => c[0] + c[2]
 		},
 		{
 			ltoken: "EXP",
@@ -17,7 +18,8 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "TERM",
-			pattern: ["TERM", "ASTERISK", "ATOM"]
+			pattern: ["TERM", "ASTERISK", "ATOM"],
+			callback: (c) => c[0] * c[2]
 		},
 		{
 			ltoken: "TERM",
@@ -25,11 +27,13 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "ATOM",
-			pattern: ["DIGITS"]
+			pattern: ["DIGITS"],
+			callback: (c) => +c[0]
 		},
 		{
 			ltoken: "ATOM",
-			pattern: ["LPAREN", "EXP", "RPAREN"]
+			pattern: ["LPAREN", "EXP", "RPAREN"],
+			callback: (c) => c[1]
 		}
 	],
 	start_symbol: "EXP"
