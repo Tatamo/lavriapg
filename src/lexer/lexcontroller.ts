@@ -2,6 +2,9 @@ import {DEFAULT_LEX_STATE, Language, LexCallback, LexDefinition, LexRule, LexSta
 
 export type LexRuleLabel = string;
 
+/**
+ * 字句解析器の状態と字句ルールの紐付けと管理を行うクラス
+ */
 class LexRuleManager {
 	// private states: { states: Map<LexStateLabel, LexState>, index: Map<LexStateLabel, Set<number>>, inheritance: Map<LexStateLabel, LexStateLabel> };
 	private states: Map<LexStateLabel, { state: LexState, index: Set<number> }>;
@@ -41,7 +44,17 @@ class LexRuleManager {
 			this.id_counter += 1;
 		}
 	}
+	/**
+	 * 新しい状態を追加する 既に存在している場合は上書きするが、状態に登録されたルールは維持される
+	 * @param {LexStateLabel} label 新しい状態の名前 名前以外のプロパティは初期値が用いられる
+	 * @returns {boolean} 追加に成功したかどうか　継承関係が循環していた場合、追加は行われずfalseが返る
+	 */
 	setState(label: LexStateLabel): boolean;
+	/**
+	 * 新しい状態を追加する 既に存在している場合は上書きするが、状態に登録されたルールは維持される
+	 * @param {LexState} state 新しい状態
+	 * @returns {boolean} 追加に成功したかどうか　継承関係が循環していた場合、追加は行われずfalseが返る
+	 */
 	setState(state: LexState): boolean;
 	setState(s: LexStateLabel | LexState): boolean {
 		let state: LexState;
@@ -81,13 +94,18 @@ class LexRuleManager {
 		return true;
 	}
 	// TODO: パフォーマンス改善
-	getRulesItr(state: LexStateLabel): IterableIterator<LexRule> {
+	/**
+	 * 与えられた状態に登録されている字句ルールの一覧をイテレータとして返す
+	 * @param {LexStateLabel} label 字句ルールを取得する状態の名前
+	 * @returns {IterableIterator<LexRule>} 字句ルールが得られるイテレータ
+	 */
+	getRulesItr(label: LexStateLabel): IterableIterator<LexRule> {
 		// そんな状態はない
-		if (!this.states.has(state)) return [][Symbol.iterator]();
+		if (!this.states.has(label)) return [][Symbol.iterator]();
 
 		// 継承を加味
 		let result: Array<number> = [];
-		let s = this.states.get(state);
+		let s = this.states.get(label);
 		while (s !== undefined) {
 			result = result.concat([...s.index]);
 			if (s.state.inheritance === undefined) break;
@@ -102,6 +120,12 @@ class LexRuleManager {
 			}
 		})(this, new Set(result)[Symbol.iterator]());
 	}
+	// TODO べつにlabelを省略可能にしてもいいのでは
+	/**
+	 * 新しい字句ルールを名前をつけて追加する 既に存在している場合は上書きする
+	 * @param {LexRuleLabel} label 新しいルールの名前
+	 * @param {LexRule} rule 新しく追加するルール
+	 */
 	setRule(label: LexRuleLabel, rule: LexRule): void {
 		// 同名の既存ルールを破棄
 		this.removeRule(label);
@@ -116,13 +140,18 @@ class LexRuleManager {
 			this.states.get(state)!.index.add(id);
 		}
 	}
-	removeRule(label: LexRuleLabel): LexRule | null {
+	/**
+	 * 名前がついた字句ルールを指定して削除する
+	 * @param {LexRuleLabel} label 削除するルールの名前
+	 * @returns {LexRule | undefined} 削除したルール 該当するものがない場合はundefined
+	 */
+	removeRule(label: LexRuleLabel): LexRule | undefined {
 		if (!this.rules.labels.has(label)) {
-			return null;
+			return undefined;
 		}
 		const id = this.rules.labels.get(label)!;
 		const rule = this.rules.rules[id];
-		if (rule === undefined) return null;
+		if (rule === undefined) return undefined;
 
 		for (const state of rule.state!) {
 			if (this.states.has(state)) {
@@ -133,10 +162,20 @@ class LexRuleManager {
 		this.free_ids.push(id);
 		return rule;
 	}
+	/**
+	 * 未定義プロパティに初期値を割り当てるなど、扱いやすい形に整形した新しい状態を生成する
+	 * @param {LexState} state もともとの状態
+	 * @returns {LexState} 整形された新しい状態
+	 */
 	static formatLexState(state: LexState): LexState {
 		// clone state
 		return {...state};
 	}
+	/**
+	 * 未定義プロパティに初期値を割り当てるなど、扱いやすい形に整形した新しい字句ルールを生成する
+	 * @param {LexRule} rule もともとの字句ルール
+	 * @returns {LexRule} 整形された新しい字句ルール
+	 */
 	static formatLexRule(rule: LexRule): LexRule {
 		// clone rule
 		const result = {...rule};
@@ -149,6 +188,11 @@ class LexRuleManager {
 		}
 		return result;
 	}
+	/**
+	 * 字句解析時に必要なフラグを追加し、不要なフラグを取り除いた新しい正規表現オブジェクトを生成する
+	 * @param {RegExp} pattern もともとの正規表現
+	 * @returns {RegExp} 整形された新しい正規表現
+	 */
 	private static formatRegExp(pattern: RegExp): RegExp {
 		// フラグを整形する
 		let flags: string = "";
@@ -169,6 +213,9 @@ class LexRuleManager {
 	}
 }
 
+/**
+ * 解析中の字句解析器の状態を操作するクラス
+ */
 export class LexController {
 	private _lex: LexDefinition;
 	private _current_state: LexStateLabel;
@@ -180,38 +227,78 @@ export class LexController {
 		this._state_stack = [];
 		this._rules = new LexRuleManager(language);
 	}
+	/**
+	 * 個別にコールバックが設定されていない規則に対して適用するデフォルトコールバックを得る
+	 * @returns {LexCallback | undefined} デフォルトコールバック 定義されていない場合はundefined
+	 */
 	get defaultCallback(): LexCallback | undefined {
 		return this._lex.default_callback;
 	}
+	/**
+	 * 字句解析開始時のコールバックを呼び出す
+	 */
 	onBegin(): void {
 		if (this._lex.begin_callback !== undefined) this._lex.begin_callback(this);
 	}
+	/**
+	 * 字句解析終了時のコールバックを呼び出す
+	 */
 	onEnd(): void {
 		if (this._lex.end_callback !== undefined) this._lex.end_callback(this);
 	}
+	/**
+	 * 現在の状態で適用可能な字句ルールをイテレータとして返す
+	 * @returns {IterableIterator<LexRule>} 字句ルールを得ることができるイテレータ
+	 */
 	getRulesItr(): IterableIterator<LexRule> {
 		return this._rules.getRulesItr(this._current_state);
 	}
+	/**
+	 * 新しい字句ルールを名前をつけて追加する
+	 * @param {string} label ルールの区別のために与える名前
+	 * @param {LexRule} rule 追加する字句ルール
+	 */
 	addRule(label: string, rule: LexRule): void {
 		this._rules.setRule(label, rule);
 	}
-	removeRule(label: string): LexRule | null {
+	/**
+	 * 既存の字句ルールを削除する
+	 * @param {string} label 削除するルールの名前
+	 * @returns {LexRule | undefined} 削除したルール 該当するものがない場合はundefined
+	 */
+	removeRule(label: string): LexRule | undefined {
 		return this._rules.removeRule(label);
 	}
+	/**
+	 * 現在の字句解析器の状態名を得る
+	 * @returns {LexStateLabel} 現在の状態名
+	 */
 	getCurrentState(): LexStateLabel {
 		return this._current_state;
 	}
-	jumpState(state: LexStateLabel): void {
-		this._current_state = state;
+	/**
+	 * 字句解析機の解析状態を別の状態に変更する
+	 * @param {LexStateLabel} label 新しい状態の名前
+	 */
+	jumpState(label: LexStateLabel): void {
+		this._current_state = label;
 	}
-	callState(state: LexStateLabel): void {
+	/**
+	 * 現在の状態をスタックに積んでから別の状態に変更する
+	 * @param {LexStateLabel} label 新しい状態の名前
+	 */
+	callState(label: LexStateLabel): void {
 		this._state_stack.push(this._current_state);
-		this._current_state = state;
+		this._current_state = label;
 	}
+	/**
+	 * スタックから1つ取り出し、その状態に変更する
+	 * スタックが空の場合は状態を変更しない
+	 * @returns {LexStateLabel | undefined} 変更した状態の名前 スタックが空の場合はundefined
+	 */
 	returnState(): LexStateLabel | undefined {
 		const pop = this._state_stack.pop();
-		if (pop === undefined) this._current_state = DEFAULT_LEX_STATE;
-		else this._current_state = pop;
+		if (pop !== undefined) this._current_state = pop;
 		return pop;
 	}
 }

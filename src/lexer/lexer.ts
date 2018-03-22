@@ -19,6 +19,11 @@ export class Lexer implements ILexer {
 	constructor(private language: Language) {
 		// do nothing
 	}
+	/**
+	 * 入力を受け取って字句解析を行う
+	 * @param {string} input 入力文字列
+	 * @returns {Array<TokenizedInput>} 字句規則によって分割されたトークン列
+	 */
 	exec(input: string): Array<TokenizedInput> {
 		const result: Array<TokenizedInput> = [];
 		let next_index = 0;
