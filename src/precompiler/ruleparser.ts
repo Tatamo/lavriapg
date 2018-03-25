@@ -23,6 +23,23 @@ const lex: LexDefinition = {
 		},
 		{token: "STRING", pattern: /".*"/, callback: (v) => ["STRING", v.slice(1, -1)]},
 		{token: "STRING", pattern: /'.*'/, callback: (v) => ["STRING", v.slice(1, -1)]},
+		{
+			token: "START_BLOCK", pattern: /%*{+/,
+			callback: (value, token, lex) => {
+				const match = /(%*)({+)/.exec(value)!;
+				const end_delimiter = "}".repeat(match[2].length) + match[1]!;
+				lex.callState("callback");
+				lex.addRule("body_block", {token: "BODY_BLOCK", pattern: new RegExp(`(?:.|\\s)*?(?=${end_delimiter})`), state: ["callback"]});
+				lex.addRule("end_block", {
+					token: "END_BLOCK", pattern: end_delimiter, state: ["callback"],
+					callback: (value, label, lex) => {
+						lex.returnState();
+						lex.removeRule("body_block");
+						lex.removeRule("end_block");
+					}
+				});
+			}
+		},
 		{token: null, pattern: /(\r\n|\r|\n)+/},
 		{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
 		{token: "INVALID", pattern: /./}
@@ -56,7 +73,7 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEXSECT",
-			pattern: ["LEXLABEL", "LEXDEF"],
+			pattern: ["LEXLABEL", "LEXDEF", "LEXCALLBACK"],
 			callback: (c) => ({token: c[0], pattern: c[1]})
 		},
 		{
@@ -80,6 +97,16 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXDEF",
 			pattern: ["REGEXP"]
+		},
+		{
+			ltoken: "LEXCALLBACK",
+			pattern: ["BLOCK"],
+			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "LEXCALLBACK",
+			pattern: [],
+			callback: () => []
 		},
 		{
 			ltoken: "GRAMMAR",
@@ -132,12 +159,12 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "DEF",
-			pattern: ["PATTERN", "VBAR", "DEF"],
-			callback: (c) => [c[0]].concat(c[2])
+			pattern: ["PATTERN", "CALLBACK", "VBAR", "DEF"],
+			callback: (c) => [c[0]].concat(c[3])
 		},
 		{
 			ltoken: "DEF",
-			pattern: ["PATTERN"],
+			pattern: ["PATTERN", "CALLBACK"],
 			callback: (c) => [c[0]]
 		},
 		{
@@ -158,6 +185,21 @@ const grammar: GrammarDefinition = {
 			ltoken: "SYMBOLLIST",
 			pattern: ["LABEL"],
 			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "CALLBACK",
+			pattern: ["BLOCK"],
+			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "CALLBACK",
+			pattern: [],
+			callback: () => []
+		},
+		{
+			ltoken: "BLOCK",
+			pattern: ["START_BLOCK", "BODY_BLOCK", "END_BLOCK"],
+			callback: (c) => [c[1]]
 		}
 	], start_symbol: "LANGUAGE"
 };

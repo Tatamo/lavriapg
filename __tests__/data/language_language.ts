@@ -11,6 +11,7 @@ const lex: LexDefinition = {
 		{token: "REGEXP", pattern: /\/.*\/[gimuy]*/},
 		{token: "STRING", pattern: /".*"/},
 		{token: "STRING", pattern: /'.*'/},
+		{token: "START_BLOCK", pattern: /%*{+/},
 		{token: null, pattern: /(\r\n|\r|\n)+/},
 		{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
 		{token: "INVALID", pattern: /./}
@@ -33,7 +34,7 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEXSECT",
-			pattern: ["LEXLABEL", "LEXDEF"]
+			pattern: ["LEXLABEL", "LEXDEF", "LEXCALLBACK"]
 		},
 		{
 			ltoken: "LEXLABEL",
@@ -54,6 +55,14 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXDEF",
 			pattern: ["REGEXP"]
+		},
+		{
+			ltoken: "LEXCALLBACK",
+			pattern: ["BLOCK"]
+		},
+		{
+			ltoken: "LEXCALLBACK",
+			pattern: []
 		},
 		{
 			ltoken: "GRAMMAR",
@@ -77,11 +86,11 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "DEF",
-			pattern: ["PATTERN", "VBAR", "DEF"]
+			pattern: ["PATTERN", "CALLBACK", "VBAR", "DEF"]
 		},
 		{
 			ltoken: "DEF",
-			pattern: ["PATTERN"]
+			pattern: ["PATTERN", "CALLBACK"]
 		},
 		{
 			ltoken: "PATTERN",
@@ -98,6 +107,18 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "SYMBOLLIST",
 			pattern: ["LABEL"]
+		},
+		{
+			ltoken: "CALLBACK",
+			pattern: ["BLOCK"]
+		},
+		{
+			ltoken: "CALLBACK",
+			pattern: []
+		},
+		{
+			ltoken: "BLOCK",
+			pattern: ["START_BLOCK", "BODY_BLOCK", "END_BLOCK"]
 		}
 	], start_symbol: "LANGUAGE"
 };

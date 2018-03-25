@@ -1,27 +1,45 @@
-EXCLAMATION	"!"
-VBAR		"|"
-DOLLAR		"$"
-COLON		":"
-SEMICOLON	";"
-LABEL		/[a-zA-Z_][a-zA-Z0-9_]*/
-REGEXP		/\/.*\/[gimuy]*/
-STRING		/".*"/
-STRING		/'.*'/
-!ENDLINE	/(\r\n|\r|\n)+/
-!WHITESPACE	/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/
-INVALID	/./
+EXCLAMATION		"!"
+VBAR			"|"
+DOLLAR			"$"
+COLON			":"
+SEMICOLON		";"
+LABEL			/[a-zA-Z_][a-zA-Z0-9_]*/
+REGEXP			/\/.*\/[gimuy]*/
+STRING			/".*"/
+STRING			/'.*'/
+START_BLOCK		/%*{+/ %{
+	const match = /(%*)({+)/.exec(value)!;
+	const end_delimiter = "}".repeat(match[2].length) + match[1]!;
+	lex.callState("callback");
+	lex.addRule("body_block", {token: "BODY_BLOCK", pattern: new RegExp(`(?:.|\\s)*?(?=${end_delimiter})`,"m"), state: ["callback"]});
+	lex.addRule("end_block", {
+		token: "END_BLOCK", pattern: end_delimiter, state: ["callback"],
+			callback: (value, label, lex) => {
+			lex.returnState();
+			lex.removeRule("body_block");
+			lex.removeRule("end_block");
+		}
+	});
+}%
+!ENDLINE		/(\r\n|\r|\n)+/
+!WHITESPACE		/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/
+INVALID			/./
 
 
 $LANGUAGE :	LEX GRAMMAR;
 
 LEX :		LEX LEXSECT | LEXSECT;
-LEXSECT :	LEXLABEL LEXDEF;
+LEXSECT :	LEXLABEL LEXDEF LEXCALLBACK;
 LEXLABEL :	LABEL | EXCLAMATION | EXCLAMATION LABEL;
 LEXDEF :	STRING | REGEXP;
+LEXCALLBACK : BLOCK | ;
 
 GRAMMAR :	SECT GRAMMAR | SECT;
 SECT :		SECTLABEL COLON DEF SEMICOLON;
 SECTLABEL :	LABEL | DOLLAR LABEL;
-DEF :		PATTERN VBAR DEF | PATTERN;
+DEF :		PATTERN CALLBACK VBAR DEF | PATTERN CALLBACK;
 PATTERN :	SYMBOLLIST | ;
 SYMBOLLIST :	LABEL SYMBOLLIST | LABEL;
+CALLBACK : BLOCK | ;
+
+BLOCK : START_BLOCK BODY_BLOCK END_BLOCK;
