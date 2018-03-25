@@ -7,20 +7,22 @@ LABEL			/[a-zA-Z_][a-zA-Z0-9_]*/
 REGEXP			/\/.*\/[gimuy]*/
 STRING			/".*"/
 STRING			/'.*'/
-START_BLOCK		/%*{+/ %{
+START_BLOCK		/%*{+/ %%{
 	const match = /(%*)({+)/.exec(value)!;
 	const end_delimiter = "}".repeat(match[2].length) + match[1]!;
 	lex.callState("callback");
-	lex.addRule("body_block", {token: "BODY_BLOCK", pattern: new RegExp(`(?:.|\\s)*?(?=${end_delimiter})`,"m"), state: ["callback"]});
+	lex.addRule("body_block", {token: "BODY_BLOCK", pattern: new RegExp(`(?:.|\\s)*?(?<!})(?=${end_delimiter})(?!${end_delimiter}%+)`), state: ["callback"]});
 	lex.addRule("end_block", {
 		token: "END_BLOCK", pattern: end_delimiter, state: ["callback"],
-			callback: (value, label, lex) => {
+		callback: (value, token, lex) => {
 			lex.returnState();
 			lex.removeRule("body_block");
 			lex.removeRule("end_block");
 		}
 	});
-}%
+	// test end-tag-like patterns
+	const test = "}%, }}%, }}%%, }%%%, }}%%%";
+}%%
 !ENDLINE		/(\r\n|\r|\n)+/
 !WHITESPACE		/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/
 INVALID			/./
