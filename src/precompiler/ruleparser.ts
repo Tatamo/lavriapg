@@ -77,7 +77,7 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXSECT",
 			pattern: ["LEXSTATE", "LEXLABEL", "LEXDEF", "LEXCALLBACK"],
-			callback: (c) => ({token: c[1], pattern: c[2]})
+			callback: (c) => ({token: c[1], pattern: c[2], states: [c[0]]})
 		},
 		{
 			ltoken: "LEXSECT",
@@ -108,7 +108,8 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEXSTATE",
-			pattern: ["LT", "LABEL", "GT"]
+			pattern: ["LT", "LABEL", "GT"],
+			callback: (c) => [c[1]]
 		},
 		{
 			ltoken: "LEXCALLBACK",
