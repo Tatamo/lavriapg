@@ -32,7 +32,7 @@ export type LexCallback = (value: string, token: string | null, lex: LexControll
 export interface LexRule {
 	token: Token | null;
 	pattern: string | RegExp;
-	state?: Array<LexStateLabel>;
+	states?: Array<LexStateLabel>;
 	is_disabled?: boolean;
 	priority?: number;
 	callback?: LexCallback;

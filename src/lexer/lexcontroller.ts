@@ -34,7 +34,7 @@ class LexRuleManager {
 		for (const rule of lex.rules.map((r) => LexRuleManager.formatLexRule(r))) {
 			this.rules.rules[this.id_counter] = rule;
 			// 状態ごとにインデックスを張る
-			for (const state of rule.state!) {
+			for (const state of rule.states!) {
 				// TODO: statesに入れる
 				if (!this.states.has(state)) {
 					this.setState(state);
@@ -135,7 +135,7 @@ class LexRuleManager {
 		const id = this.free_ids.length > 0 ? this.free_ids.pop()! : this.id_counter++;
 		this.rules.rules[id] = formatted_rule;
 		this.rules.labels.set(label, id);
-		for (const state of formatted_rule.state!) {
+		for (const state of formatted_rule.states!) {
 			if (!this.states.has(state)) this.setState(state);
 			this.states.get(state)!.index.add(id);
 		}
@@ -153,7 +153,7 @@ class LexRuleManager {
 		const rule = this.rules.rules[id];
 		if (rule === undefined) return undefined;
 
-		for (const state of rule.state!) {
+		for (const state of rule.states!) {
 			if (this.states.has(state)) {
 				this.states.get(state)!.index.delete(id);
 			}
@@ -178,10 +178,10 @@ class LexRuleManager {
 	 */
 	static formatLexRule(rule: LexRule): LexRule {
 		// clone rule
-		const result = {...rule};
+		const result: LexRule = {...rule};
 		if (result.is_disabled === undefined) result.is_disabled = false;
 		// 状態指定を省略された場合はデフォルト状態のみとする
-		if (result.state === undefined) result.state = [DEFAULT_LEX_STATE];
+		if (result.states === undefined) result.states = [DEFAULT_LEX_STATE];
 		// 正規表現を字句解析に適した形に整形
 		if (result.pattern instanceof RegExp) {
 			result.pattern = LexRuleManager.formatRegExp(result.pattern);
