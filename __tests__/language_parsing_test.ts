@@ -5,11 +5,14 @@ import {language_language_without_callback} from "./data/language_language";
 const input = require("fs").readFileSync("language", "utf8");
 
 describe("language parsing test", () => {
-	const parser = new ParserGenerator(language_language).getParser(); // language_parserと同一のものであることが期待される
+	const pg = new ParserGenerator(language_language);
+	test("valid parser", () => {
+		expect(pg.isConflicted()).toBeFalsy();
+	});
+	const parser = pg.getParser(); // language_parserと同一のものであることが期待される
 	test("parsing language file", () => {
-			expect(parser.parse(input)).toEqual(language_language_without_callback);
-		}
-	);
+		expect(parser.parse(input)).toEqual(language_language_without_callback);
+	});
 	// languageファイルを読み取ってパーサを生成したい
 	test("language_parser", () => {
 		expect(language_parser.parse(input)).toEqual(language_language_without_callback);
