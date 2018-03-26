@@ -70,15 +70,11 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEX",
-			pattern: ["LEXRULES"]
-		},
-		{
-			ltoken: "LEXRULES",
 			pattern: ["LEX", "LEXSECT"],
 			callback: (c) => c[0].concat([c[1]])
 		},
 		{
-			ltoken: "LEXRULES",
+			ltoken: "LEX",
 			pattern: ["LEXSECT"],
 			callback: (c) => [c[0]]
 		},
@@ -150,7 +146,7 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "RULES",
-			pattern: ["SECT", "GRAMMAR"],
+			pattern: ["SECT", "RULES"],
 			callback: (c) => {
 				let start_symbol = c[1].start_symbol;
 				if (c[0].start_symbol !== null) {
