@@ -3,6 +3,7 @@ import {ParsingOperation, ParsingTable} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {ParserFactory} from "../parser/factory";
 import {Parser} from "../parser/parser";
+import {ParserGenerator} from "../parsergenerator/parsergenerator";
 
 const lex: LexDefinition = {
 	rules: [
@@ -333,5 +334,7 @@ export const language_parsing_table: ParsingTable = [
  * 言語定義ファイルを読み込むための構文解析器
  * @type {Parser}
  */
-export const language_parser: Parser = ParserFactory.create(language_language, language_parsing_table);
 
+// language_parsing_tableの用意がまだなので直接生成する
+// export const language_parser: Parser = ParserFactory.create(language_language, language_parsing_table);
+export const language_parser: Parser = new ParserGenerator(language_language).getParser();
