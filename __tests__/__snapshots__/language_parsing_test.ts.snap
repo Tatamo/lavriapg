@@ -24,18 +24,14 @@ Object {
       Object {
         "pattern": "b",
         "states": Array [
-          Array [
-            "state",
-          ],
+          "state",
         ],
         "token": "B",
       },
       Object {
         "pattern": "b",
         "states": Array [
-          Array [
-            "default",
-          ],
+          "default",
         ],
         "token": "B2",
       },
