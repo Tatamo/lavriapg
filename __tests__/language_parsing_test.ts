@@ -6,6 +6,7 @@ const input = require("fs").readFileSync("language", "utf8");
 
 describe("language parsing test", () => {
 	const pg = new ParserGenerator(language_language);
+	console.error(pg.getTableType());
 	test("valid parser", () => {
 		expect(pg.isConflicted()).toBeFalsy();
 	});

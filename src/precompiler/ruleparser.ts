@@ -12,6 +12,8 @@ const lex: LexDefinition = {
 		{token: "DOLLAR", pattern: "$"},
 		{token: "COLON", pattern: ":"},
 		{token: "SEMICOLON", pattern: ";"},
+		{token: "LT", pattern: "<"},
+		{token: "GT", pattern: ">"},
 		{token: "LABEL", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
 		{
 			token: "REGEXP", pattern: /\/.*\/[gimuy]*/,
@@ -74,6 +76,11 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEXSECT",
+			pattern: ["LEXSTATE", "LEXLABEL", "LEXDEF", "LEXCALLBACK"],
+			callback: (c) => ({token: c[1], pattern: c[2]})
+		},
+		{
+			ltoken: "LEXSECT",
 			pattern: ["LEXLABEL", "LEXDEF", "LEXCALLBACK"],
 			callback: (c) => ({token: c[0], pattern: c[1]})
 		},
@@ -98,6 +105,10 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXDEF",
 			pattern: ["REGEXP"]
+		},
+		{
+			ltoken: "LEXSTATE",
+			pattern: ["LT", "LABEL", "GT"]
 		},
 		{
 			ltoken: "LEXCALLBACK",

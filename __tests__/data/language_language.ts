@@ -34,6 +34,10 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEXSECT",
+			pattern: ["LEXSTATE", "LEXLABEL", "LEXDEF", "LEXCALLBACK"]
+		},
+		{
+			ltoken: "LEXSECT",
 			pattern: ["LEXLABEL", "LEXDEF", "LEXCALLBACK"]
 		},
 		{
@@ -55,6 +59,10 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXDEF",
 			pattern: ["REGEXP"]
+		},
+		{
+			ltoken: "LEXSTATE",
+			pattern: ["LT", "LABEL", "GT"]
 		},
 		{
 			ltoken: "LEXCALLBACK",
