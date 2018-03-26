@@ -24,7 +24,8 @@ Object {
       Object {
         "pattern": "b",
         "states": Array [
-          "state",
+          "state1",
+          "state2",
         ],
         "token": "B",
       },

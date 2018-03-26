@@ -31,7 +31,7 @@ describe("syntax functions test", () => {
 	const parser = pg.getParser();
 	test("lex-state", () => {
 		const input = `A	"a"
-<state>B	"b"
+<state1, state2>B	"b"
 <default>B2	"b"
 C	"c"
 $S : A B2 C;

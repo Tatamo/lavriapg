@@ -14,6 +14,7 @@ const lex: LexDefinition = {
 		{token: "SEMICOLON", pattern: ";"},
 		{token: "LT", pattern: "<"},
 		{token: "GT", pattern: ">"},
+		{token: "COMMA", pattern: ","},
 		{token: "LABEL", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
 		{
 			token: "REGEXP", pattern: /\/.*\/[gimuy]*/,
@@ -76,7 +77,7 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEXSECT",
-			pattern: ["LEXSTATE", "LEXLABEL", "LEXDEF", "LEXCALLBACK"],
+			pattern: ["MULTIPLE_LEXSTATE", "LEXLABEL", "LEXDEF", "LEXCALLBACK"],
 			callback: (c) => ({token: c[1], pattern: c[2], states: c[0]})
 		},
 		{
@@ -105,6 +106,21 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXDEF",
 			pattern: ["REGEXP"]
+		},
+		{
+			ltoken: "MULTIPLE_LEXSTATE",
+			pattern: ["LT", "LEXSTATE_LIST", "GT"],
+			callback: (c) => c[1]
+		},
+		{
+			ltoken: "LEXSTATE_LIST",
+			pattern: ["LABEL", "COMMA", "LEXSTATE_LIST"],
+			callback: (c) => [c[0], ...c[2]]
+		},
+		{
+			ltoken: "LEXSTATE_LIST",
+			pattern: ["LABEL"],
+			callback: (c) => [c[0]]
 		},
 		{
 			ltoken: "LEXSTATE",
