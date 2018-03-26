@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`syntax functions test lex-state 1`] = `
+Object {
+  "grammar": Object {
+    "rules": Array [
+      Object {
+        "ltoken": "S",
+        "pattern": Array [
+          "A",
+          "B2",
+          "C",
+        ],
+      },
+    ],
+    "start_symbol": "S",
+  },
+  "lex": Object {
+    "rules": Array [
+      Object {
+        "pattern": "a",
+        "token": "A",
+      },
+      Object {
+        "pattern": "b",
+        "states": Array [
+          Array [
+            "state",
+          ],
+        ],
+        "token": "B",
+      },
+      Object {
+        "pattern": "b",
+        "states": Array [
+          Array [
+            "default",
+          ],
+        ],
+        "token": "B2",
+      },
+      Object {
+        "pattern": "c",
+        "token": "C",
+      },
+    ],
+  },
+}
+`;

@@ -1,9 +1,8 @@
 import {language_language, language_parser} from "../src/precompiler/ruleparser";
 import {ParserGenerator} from "../src/parsergenerator/parsergenerator";
 
-const input = require("fs").readFileSync("language", "utf8");
-
 describe("language parsing test", () => {
+	const input = require("fs").readFileSync("language", "utf8");
 	const lex = {...language_language.lex};
 	lex.rules = lex.rules.map((rule) => {
 		return {token: rule.token, pattern: rule.pattern};
@@ -14,7 +13,6 @@ describe("language parsing test", () => {
 	});
 	const language_language_without_callback = {lex, grammar};
 	const pg = new ParserGenerator(language_language);
-	console.error(pg.getTableType());
 	test("valid parser", () => {
 		expect(pg.isConflicted()).toBeFalsy();
 	});
@@ -28,4 +26,17 @@ describe("language parsing test", () => {
 	});
 });
 
+describe("syntax functions test", () => {
+	const pg = new ParserGenerator(language_language);
+	const parser = pg.getParser();
+	test("lex-state", () => {
+		const input = `A	"a"
+<state>B	"b"
+<default>B2	"b"
+C	"c"
+$S : A B2 C;
+`;
+		expect(parser.parse(input)).toMatchSnapshot();
+	});
+});
 // TODO: languageファイルにコールバックも記述可能にして、それを読み取れるようにする
