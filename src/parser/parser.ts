@@ -100,13 +100,13 @@ export class Parser {
 			}
 			else if (action.type == "conflict") {
 				console.error("conflict found:");
-				console.error("current state " + state + ":", JSON.stringify(this.parsingtable[state]));
+				console.error("current state " + state + ":", this.parsingtable[state]);
 				console.error("shift:", action.shift_to, ",reduce:", action.reduce_grammar);
 				action.shift_to.forEach((to: number) => {
-					console.error("shift to " + to.toString() + ":", JSON.stringify(this.parsingtable[to]));
+					console.error("shift to " + to.toString() + ":", this.parsingtable[to]);
 				});
 				action.reduce_grammar.forEach((grammar_id: number) => {
-					console.error("reduce grammar " + grammar_id.toString() + ":", JSON.stringify(this.parsingtable[grammar_id]));
+					console.error("reduce grammar " + grammar_id.toString() + ":", this.parsingtable[grammar_id]);
 				});
 				console.error("parser cannot parse conflicted grammar");
 				flg_error = true;
