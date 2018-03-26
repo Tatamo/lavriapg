@@ -15,6 +15,9 @@ const lex: LexDefinition = {
 		{token: "LT", pattern: "<"},
 		{token: "GT", pattern: ">"},
 		{token: "COMMA", pattern: ","},
+		{token: "BEGIN", pattern: "#begin"},
+		{token: "END", pattern: "#end"},
+		{token: "DEFAULT", pattern: "#default"},
 		{token: "LABEL", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
 		{
 			token: "REGEXP", pattern: /\/.*\/[gimuy]*/,
@@ -67,11 +70,15 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEX",
+			pattern: ["LEXRULES"]
+		},
+		{
+			ltoken: "LEXRULES",
 			pattern: ["LEX", "LEXSECT"],
 			callback: (c) => c[0].concat([c[1]])
 		},
 		{
-			ltoken: "LEX",
+			ltoken: "LEXRULES",
 			pattern: ["LEXSECT"],
 			callback: (c) => [c[0]]
 		},
@@ -139,6 +146,10 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "GRAMMAR",
+			pattern: ["RULES"]
+		},
+		{
+			ltoken: "RULES",
 			pattern: ["SECT", "GRAMMAR"],
 			callback: (c) => {
 				let start_symbol = c[1].start_symbol;
@@ -152,7 +163,7 @@ const grammar: GrammarDefinition = {
 			}
 		},
 		{
-			ltoken: "GRAMMAR",
+			ltoken: "RULES",
 			pattern: ["SECT"],
 			callback: (c) => {
 				let start_symbol = null;
