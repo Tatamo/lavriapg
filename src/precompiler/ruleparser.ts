@@ -57,16 +57,60 @@ const grammar: GrammarDefinition = {
 	rules: [
 		{
 			ltoken: "LANGUAGE",
-			pattern: ["LEX", "GRAMMAR"],
+			pattern: ["OPTIONAL_EX_CALLBACKS", "LEX", "EX_CALLBACKS", "GRAMMAR"]
+		},
+		{
+			ltoken: "LANGUAGE",
+			pattern: ["OPTIONAL_EX_CALLBACKS", "LEX", "GRAMMAR"],
 			callback: (c) => {
-				let start_symbol = c[1].start_symbol;
+				let start_symbol = c[2].start_symbol;
 				// 開始記号の指定がない場合、最初の規則に設定]
 				if (start_symbol === null) {
-					if (c[1].sect.length > 0) start_symbol = c[1].sect[0].ltoken;
+					if (c[2].sect.length > 0) start_symbol = c[2].sect[0].ltoken;
 					else start_symbol = "";
 				}
-				return {lex: {rules: c[0]}, grammar: {rules: c[1].grammar, start_symbol: start_symbol}};
+				return {lex: {rules: c[1]}, grammar: {rules: c[2].grammar, start_symbol: start_symbol}};
 			}
+		},
+		{
+			ltoken: "OPTIONAL_EX_CALLBACKS",
+			pattern: ["EX_CALLBACKS"]
+		},
+		{
+			ltoken: "OPTIONAL_EX_CALLBACKS",
+			pattern: []
+		},
+		{
+			ltoken: "EX_CALLBACKS",
+			pattern: ["EX_CALLBACKS", "EX_CALLBACK"]
+		},
+		{
+			ltoken: "EX_CALLBACKS",
+			pattern: ["EX_CALLBACK"]
+		},
+		{
+			ltoken: "EX_CALLBACK",
+			pattern: ["EX_CALLBACK_BEGIN"]
+		},
+		{
+			ltoken: "EX_CALLBACK",
+			pattern: ["EX_CALLBACK_END"]
+		},
+		{
+			ltoken: "EX_CALLBACK",
+			pattern: ["EX_CALLBACK_DEFAULT"]
+		},
+		{
+			ltoken: "EX_CALLBACK_BEGIN",
+			pattern: ["BEGIN", "BLOCK"]
+		},
+		{
+			ltoken: "EX_CALLBACK_END",
+			pattern: ["END", "BLOCK"]
+		},
+		{
+			ltoken: "EX_CALLBACK_DEFAULT",
+			pattern: ["DEFAULT", "BLOCK"]
 		},
 		{
 			ltoken: "LEX",
@@ -143,6 +187,8 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "GRAMMAR",
 			pattern: ["RULES"]
+			// pattern: ["EX_CALLBACKS", "RULES"],
+			// callback: (c) => c[1] // とりあえずrulesのみ返す
 		},
 		{
 			ltoken: "RULES",
