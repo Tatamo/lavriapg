@@ -57,7 +57,16 @@ const grammar: GrammarDefinition = {
 	rules: [
 		{
 			ltoken: "LANGUAGE",
-			pattern: ["OPTIONAL_EX_CALLBACKS", "LEX", "EX_CALLBACKS", "GRAMMAR"]
+			pattern: ["OPTIONAL_EX_CALLBACKS", "LEX", "EX_CALLBACKS", "GRAMMAR"],
+			callback: (c) => {
+				let start_symbol = c[3].start_symbol;
+				// 開始記号の指定がない場合、最初の規則に設定]
+				if (start_symbol === null) {
+					if (c[3].sect.length > 0) start_symbol = c[3].sect[0].ltoken;
+					else start_symbol = "";
+				}
+				return {lex: {rules: c[1]}, grammar: {rules: c[3].grammar, start_symbol: start_symbol}};
+			}
 		},
 		{
 			ltoken: "LANGUAGE",
@@ -177,12 +186,11 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXCALLBACK",
 			pattern: ["BLOCK"],
-			callback: (c) => [c[0]]
+			callback: (c) => c[0]
 		},
 		{
 			ltoken: "LEXCALLBACK",
-			pattern: [],
-			callback: () => []
+			pattern: []
 		},
 		{
 			ltoken: "GRAMMAR",
@@ -271,12 +279,11 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "CALLBACK",
 			pattern: ["BLOCK"],
-			callback: (c) => [c[0]]
+			callback: (c) => c[0]
 		},
 		{
 			ltoken: "CALLBACK",
 			pattern: [],
-			callback: () => []
 		},
 		{
 			ltoken: "BLOCK",
