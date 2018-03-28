@@ -150,6 +150,7 @@ class LexRuleManager {
 			return undefined;
 		}
 		const id = this.rules.labels.get(label)!;
+		this.rules.labels.delete(label);
 		const rule = this.rules.rules[id];
 		if (rule === undefined) return undefined;
 
