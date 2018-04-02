@@ -40,7 +40,18 @@ $S : A B2 C;
 `;
 		expect(parser.parse(input)).toMatchSnapshot();
 	});
-	test("lex-state", () => {
+	test("callbacks", () => {
+		const input = `
+A	"a" { callback_of_A(); }
+B	/b/ { callback_of_B(); }
+
+$S : T { callback_of_S(); };
+T : A { callback_of_T_1(); } | E { callback_of_T_2(); } | { callback_of_T_3(); };
+E : { callback_of_E(); } | B;
+`;
+		expect(parser.parse(input)).toMatchSnapshot();
+	});
+	test("ex-callbacks", () => {
 		const input = `
 #lex_end { lex_end_callback(); }
 #lex_begin { lex_begin_callback(); }

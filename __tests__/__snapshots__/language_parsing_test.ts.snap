@@ -1,5 +1,94 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`syntax functions test callbacks 1`] = `
+Object {
+  "grammar": Object {
+    "rules": Array [
+      Object {
+        "callback": " callback_of_S(); ",
+        "ltoken": "S",
+        "pattern": Array [
+          "T",
+        ],
+      },
+      Object {
+        "callback": " callback_of_T_1(); ",
+        "ltoken": "T",
+        "pattern": Array [
+          "A",
+        ],
+      },
+      Object {
+        "callback": " callback_of_T_2(); ",
+        "ltoken": "T",
+        "pattern": Array [
+          "E",
+        ],
+      },
+      Object {
+        "callback": " callback_of_T_3(); ",
+        "ltoken": "T",
+        "pattern": Array [],
+      },
+      Object {
+        "callback": " callback_of_E(); ",
+        "ltoken": "E",
+        "pattern": Array [],
+      },
+      Object {
+        "ltoken": "E",
+        "pattern": Array [
+          "B",
+        ],
+      },
+    ],
+    "start_symbol": "S",
+  },
+  "lex": Object {
+    "rules": Array [
+      Object {
+        "callback": " callback_of_A(); ",
+        "pattern": "a",
+        "token": "A",
+      },
+      Object {
+        "callback": " callback_of_B(); ",
+        "pattern": /b/,
+        "token": "B",
+      },
+    ],
+  },
+}
+`;
+
+exports[`syntax functions test ex-callbacks 1`] = `
+Object {
+  "grammar": Object {
+    "default_callback": " grammar_default_callback(); ",
+    "rules": Array [
+      Object {
+        "ltoken": "S",
+        "pattern": Array [
+          "A",
+        ],
+      },
+    ],
+    "start_symbol": "S",
+  },
+  "lex": Object {
+    "begin_callback": " lex_begin_callback(); ",
+    "default_callback": " lex_default_callback(); ",
+    "end_callback": " lex_end_callback(); ",
+    "rules": Array [
+      Object {
+        "pattern": "a",
+        "token": "A",
+      },
+    ],
+  },
+}
+`;
+
 exports[`syntax functions test lex-state 1`] = `
 Object {
   "grammar": Object {
