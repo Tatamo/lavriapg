@@ -69,6 +69,12 @@ const grammar: GrammarDefinition = {
 				if (c[0] !== undefined) {
 					for (const callback of c[0]) {
 						switch (callback.type) {
+							case "#lex_begin":
+								lex.begin_callback = callback.callback;
+								break;
+							case "#lex_end":
+								lex.end_callback = callback.callback;
+								break;
 							case "#lex_default":
 								lex.default_callback = callback.callback;
 								break;
