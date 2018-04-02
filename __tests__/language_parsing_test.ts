@@ -1,28 +1,29 @@
 import {language_language, language_parser} from "../src/precompiler/ruleparser";
 import {ParserGenerator} from "../src/parsergenerator/parsergenerator";
+import {Language} from "../src";
 
 describe("language parsing test", () => {
 	const input = require("fs").readFileSync("language", "utf8");
-	const lex = {...language_language.lex};
-	lex.rules = lex.rules.map((rule) => {
-		return {token: rule.token, pattern: rule.pattern};
-	});
-	const grammar = {...language_language.grammar};
-	grammar.rules = grammar.rules.map((rule) => {
-		return {ltoken: rule.ltoken, pattern: rule.pattern};
-	});
-	const language_language_without_callback = {lex, grammar};
+	const removeCallback = (language: Language): Language => {
+		const lex = {...language.lex};
+		lex.rules = lex.rules.map(({token, pattern, states}) => ({token, pattern, states}));
+		const grammar = {...language.grammar};
+		grammar.rules = grammar.rules.map(({ltoken, pattern}) => ({ltoken, pattern}));
+		return {lex, grammar};
+	};
+
+	const language_language_without_callback = removeCallback(language_language);
 	const pg = new ParserGenerator(language_language);
 	test("valid parser", () => {
 		expect(pg.isConflicted()).toBeFalsy();
 	});
 	const parser = pg.getParser(); // language_parserと同一のものであることが期待される
 	test("parsing language file", () => {
-		expect(parser.parse(input)).toEqual(language_language_without_callback);
+		expect(removeCallback(parser.parse(input))).toEqual(language_language_without_callback);
 	});
 	// languageファイルを読み取ってパーサを生成したい
 	test("language_parser", () => {
-		expect(language_parser.parse(input)).toEqual(language_language_without_callback);
+		expect(removeCallback(language_parser.parse(input))).toEqual(language_language_without_callback);
 	});
 });
 
