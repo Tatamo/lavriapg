@@ -121,30 +121,20 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEX_EX_CALLBACK",
-			pattern: ["LEX_EX_CALLBACK_BEGIN"]
-		},
-		{
-			ltoken: "LEX_EX_CALLBACK",
-			pattern: ["LEX_EX_CALLBACK_END"]
-		},
-		{
-			ltoken: "LEX_EX_CALLBACK",
-			pattern: ["LEX_EX_CALLBACK_DEFAULT"]
-		},
-		{
-			ltoken: "LEX_EX_CALLBACK_BEGIN",
-			pattern: ["LEX_BEGIN", "BLOCK"],
+			pattern: ["LEX_EX_CALLBACK_LABEL", "BLOCK"],
 			callback: (c) => ({type: c[0], callback: c[1]})
 		},
 		{
-			ltoken: "LEX_EX_CALLBACK_END",
-			pattern: ["LEX_END", "BLOCK"],
-			callback: (c) => ({type: c[0], callback: c[1]})
+			ltoken: "LEX_EX_CALLBACK_LABEL",
+			pattern: ["LEX_BEGIN"]
 		},
 		{
-			ltoken: "LEX_EX_CALLBACK_DEFAULT",
-			pattern: ["LEX_DEFAULT", "BLOCK"],
-			callback: (c) => ({type: c[0], callback: c[1]})
+			ltoken: "LEX_EX_CALLBACK_LABEL",
+			pattern: ["LEX_END"]
+		},
+		{
+			ltoken: "LEX_EX_CALLBACK_LABEL",
+			pattern: ["LEX_DEFAULT"]
 		},
 		{
 			ltoken: "LEX",
