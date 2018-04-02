@@ -44,3 +44,31 @@ Object {
   },
 }
 `;
+
+exports[`syntax functions test lex-state 2`] = `
+Object {
+  "grammar": Object {
+    "default_callback": " grammar_default_callback(); ",
+    "rules": Array [
+      Object {
+        "ltoken": "S",
+        "pattern": Array [
+          "A",
+        ],
+      },
+    ],
+    "start_symbol": "S",
+  },
+  "lex": Object {
+    "begin_callback": " lex_begin_callback(); ",
+    "default_callback": " lex_default_callback(); ",
+    "end_callback": " lex_end_callback(); ",
+    "rules": Array [
+      Object {
+        "pattern": "a",
+        "token": "A",
+      },
+    ],
+  },
+}
+`;

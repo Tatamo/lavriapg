@@ -31,11 +31,24 @@ describe("syntax functions test", () => {
 	const pg = new ParserGenerator(language_language);
 	const parser = pg.getParser();
 	test("lex-state", () => {
-		const input = `A	"a"
+		const input = `
+A	"a"
 <state1, state2>B	"b"
 <default>B2	"b"
 C	"c"
 $S : A B2 C;
+`;
+		expect(parser.parse(input)).toMatchSnapshot();
+	});
+	test("lex-state", () => {
+		const input = `
+#lex_end { lex_end_callback(); }
+#lex_begin { lex_begin_callback(); }
+#lex_default { lex_default_callback(); }
+A	"a"
+
+#default { grammar_default_callback(); }
+$S : A;
 `;
 		expect(parser.parse(input)).toMatchSnapshot();
 	});
