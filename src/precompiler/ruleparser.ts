@@ -1,7 +1,6 @@
 import {LexDefinition, Language, GrammarDefinition} from "../def/language";
 import {ParsingOperation, ParsingTable} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
-import {ParserFactory} from "../parser/factory";
 import {Parser} from "../parser/parser";
 import {ParserGenerator} from "../parsergenerator/parsergenerator";
 
@@ -135,12 +134,12 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXSECT",
 			pattern: ["MULTIPLE_LEXSTATE", "LEXLABEL", "LEXDEF", "LEXCALLBACK"],
-			callback: (c) => ({token: c[1], pattern: c[2], states: c[0]})
+			callback: (c) => (c[3] === null ? {token: c[1], pattern: c[2], states: c[0]} : {token: c[1], pattern: c[2], states: c[0], callback: [3]})
 		},
 		{
 			ltoken: "LEXSECT",
 			pattern: ["LEXLABEL", "LEXDEF", "LEXCALLBACK"],
-			callback: (c) => ({token: c[0], pattern: c[1]})
+			callback: (c) => (c[2] === null ? {token: c[0], pattern: c[1]} : {token: c[0], pattern: c[1], callback: c[2]})
 		},
 		{
 			ltoken: "LEXLABEL",
@@ -186,12 +185,12 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEXCALLBACK",
-			pattern: ["BLOCK"],
-			callback: (c) => c[0]
+			pattern: ["BLOCK"]
 		},
 		{
 			ltoken: "LEXCALLBACK",
-			pattern: []
+			pattern: [],
+			callback: () => null
 		},
 		{
 			ltoken: "DEFAULT_CALLBACK",
@@ -234,8 +233,8 @@ const grammar: GrammarDefinition = {
 			pattern: ["SECTLABEL", "COLON", "DEF", "SEMICOLON"],
 			callback: (c) => {
 				const result = [];
-				for (const pt of c[2]) {
-					result.push({ltoken: c[0].label, pattern: pt});
+				for (const def of c[2]) {
+					result.push({ltoken: c[0].label, ...def});
 				}
 				return {start_symbol: c[0].start_symbol, sect: result};
 			}
@@ -253,12 +252,12 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "DEF",
 			pattern: ["PATTERN", "CALLBACK", "VBAR", "DEF"],
-			callback: (c) => [c[0]].concat(c[3])
+			callback: (c) => [c[1] === null ? {pattern: c[0]} : {pattern: c[0], callback: c[1]}].concat(c[3])
 		},
 		{
 			ltoken: "DEF",
 			pattern: ["PATTERN", "CALLBACK"],
-			callback: (c) => [c[0]]
+			callback: (c) => [c[1] === null ? {pattern: c[0]} : {pattern: c[0], callback: c[1]}]
 		},
 		{
 			ltoken: "PATTERN",
@@ -281,17 +280,17 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "CALLBACK",
-			pattern: ["BLOCK"],
-			callback: (c) => c[0]
+			pattern: ["BLOCK"]
 		},
 		{
 			ltoken: "CALLBACK",
-			pattern: []
+			pattern: [],
+			callback: () => null
 		},
 		{
 			ltoken: "BLOCK",
 			pattern: ["START_BLOCK", "BODY_BLOCK", "END_BLOCK"],
-			callback: (c) => [c[1]]
+			callback: (c) => c[1]
 		}
 	], start_symbol: "LANGUAGE"
 };
