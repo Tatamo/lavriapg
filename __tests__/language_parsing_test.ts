@@ -63,5 +63,15 @@ $S : A;
 `;
 		expect(parser.parse(input)).toMatchSnapshot();
 	});
+	test("callback delimiters", () => {
+		const input = `
+A	"a" {{ if(1+1===3){ foo(); } }}
+
+$S : T %{ const s = {}; }%;
+T : E %%{ const t = "}%, }}%, }}%%, }%%%, }}%%%"; }%%;
+E : { const e = "}%"+"}}"; } | A;
+`;
+		expect(parser.parse(input)).toMatchSnapshot();
+	});
 });
 // TODO: languageファイルにコールバックも記述可能にして、それを読み取れるようにする
