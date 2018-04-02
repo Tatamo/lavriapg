@@ -36,7 +36,7 @@ const lex: LexDefinition = {
 				const match = /(%*)({+)/.exec(value)!;
 				const end_delimiter = "}".repeat(match[2].length) + match[1]!;
 				lex.callState("callback");
-				lex.addRule("body_block", {token: "BODY_BLOCK", pattern: new RegExp(`(?:.|\\s)*?(?<!})(?=${end_delimiter})(?!${end_delimiter}%+)`), states: ["callback"]});
+				lex.addRule("body_block", {token: "BODY_BLOCK", pattern: new RegExp(`(?:.|\\s)*?(?<!})(?=${end_delimiter})(?!${end_delimiter}%+)(?!${end_delimiter}}+)`), states: ["callback"]});
 				lex.addRule("end_block", {
 					token: "END_BLOCK", pattern: end_delimiter, states: ["callback"],
 					callback: (value, token, lex) => {
