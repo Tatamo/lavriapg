@@ -65,7 +65,17 @@ const grammar: GrammarDefinition = {
 					if (c[3].sect.length > 0) start_symbol = c[3].sect[0].ltoken;
 					else start_symbol = "";
 				}
-				return {lex: {rules: c[1]}, grammar: {rules: c[3].grammar, start_symbol: start_symbol}};
+				const lex: LexDefinition = {rules: c[1]};
+				if (c[0] !== undefined) {
+					for (const callback of c[0]) {
+						switch (callback.type) {
+							case "#lex_default":
+								lex.default_callback = callback.callback;
+								break;
+						}
+					}
+				}
+				return {lex, grammar: {rules: c[3].grammar, start_symbol: start_symbol, default_callback: c[2].callback}};
 			}
 		},
 		{
@@ -78,7 +88,17 @@ const grammar: GrammarDefinition = {
 					if (c[2].sect.length > 0) start_symbol = c[2].sect[0].ltoken;
 					else start_symbol = "";
 				}
-				return {lex: {rules: c[1]}, grammar: {rules: c[2].grammar, start_symbol: start_symbol}};
+				const lex: LexDefinition = {rules: c[1]};
+				if (c[0] !== undefined) {
+					for (const callback of c[0]) {
+						switch (callback.type) {
+							case "#lex_default":
+								lex.default_callback = callback.callback;
+								break;
+						}
+					}
+				}
+				return {lex, grammar: {rules: c[2].grammar, start_symbol: start_symbol}};
 			}
 		},
 		{
@@ -91,11 +111,13 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEX_EX_CALLBACKS",
-			pattern: ["LEX_EX_CALLBACKS", "LEX_EX_CALLBACK"]
+			pattern: ["LEX_EX_CALLBACKS", "LEX_EX_CALLBACK"],
+			callback: (c) => c[0].concat([c[1]])
 		},
 		{
 			ltoken: "LEX_EX_CALLBACKS",
-			pattern: ["LEX_EX_CALLBACK"]
+			pattern: ["LEX_EX_CALLBACK"],
+			callback: (c) => [c[0]]
 		},
 		{
 			ltoken: "LEX_EX_CALLBACK",
@@ -111,15 +133,18 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEX_EX_CALLBACK_BEGIN",
-			pattern: ["LEX_BEGIN", "BLOCK"]
+			pattern: ["LEX_BEGIN", "BLOCK"],
+			callback: (c) => ({type: c[0], callback: c[1]})
 		},
 		{
 			ltoken: "LEX_EX_CALLBACK_END",
-			pattern: ["LEX_END", "BLOCK"]
+			pattern: ["LEX_END", "BLOCK"],
+			callback: (c) => ({type: c[0], callback: c[1]})
 		},
 		{
 			ltoken: "LEX_EX_CALLBACK_DEFAULT",
-			pattern: ["LEX_DEFAULT", "BLOCK"]
+			pattern: ["LEX_DEFAULT", "BLOCK"],
+			callback: (c) => ({type: c[0], callback: c[1]})
 		},
 		{
 			ltoken: "LEX",
@@ -134,12 +159,12 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXSECT",
 			pattern: ["MULTIPLE_LEXSTATE", "LEXLABEL", "LEXDEF", "LEXCALLBACK"],
-			callback: (c) => (c[3] === null ? {token: c[1], pattern: c[2], states: c[0]} : {token: c[1], pattern: c[2], states: c[0], callback: [3]})
+			callback: (c) => (c[3] === undefined ? {token: c[1], pattern: c[2], states: c[0]} : {token: c[1], pattern: c[2], states: c[0], callback: [3]})
 		},
 		{
 			ltoken: "LEXSECT",
 			pattern: ["LEXLABEL", "LEXDEF", "LEXCALLBACK"],
-			callback: (c) => (c[2] === null ? {token: c[0], pattern: c[1]} : {token: c[0], pattern: c[1], callback: c[2]})
+			callback: (c) => (c[2] === undefined ? {token: c[0], pattern: c[1]} : {token: c[0], pattern: c[1], callback: c[2]})
 		},
 		{
 			ltoken: "LEXLABEL",
@@ -189,12 +214,12 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEXCALLBACK",
-			pattern: [],
-			callback: () => null
+			pattern: []
 		},
 		{
 			ltoken: "DEFAULT_CALLBACK",
-			pattern: ["DEFAULT", "BLOCK"]
+			pattern: ["DEFAULT", "BLOCK"],
+			callback: (c) => ({type: c[0], callback: c[1]})
 		},
 		{
 			ltoken: "GRAMMAR",
