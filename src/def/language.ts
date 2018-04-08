@@ -70,6 +70,9 @@ export interface GrammarDefinition {
 	rules: Array<GrammarRule>;
 	start_symbol: Token;
 	default_callback?: GrammarCallback;
+	// TODO: 存在はするが呼び出さないのを修正
+	begin_callback?: () => void;
+	end_callback?: () => void;
 }
 
 /**
