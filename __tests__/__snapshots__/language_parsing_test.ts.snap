@@ -108,7 +108,9 @@ Object {
 exports[`syntax functions test ex-callbacks 1`] = `
 Object {
   "grammar": Object {
+    "begin_callback": " grammar_begin_callback(); ",
     "default_callback": " grammar_default_callback(); ",
+    "end_callback": " grammar_end_callback(); ",
     "rules": Array [
       Object {
         "ltoken": "S",

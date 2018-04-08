@@ -53,11 +53,13 @@ E : { callback_of_E(); } | B;
 	});
 	test("ex-callbacks", () => {
 		const input = `
+#lex_default { lex_default_callback(); }
 #lex_end { lex_end_callback(); }
 #lex_begin { lex_begin_callback(); }
-#lex_default { lex_default_callback(); }
 A	"a"
 
+#begin { grammar_begin_callback(); }
+#end { grammar_end_callback(); }
 #default { grammar_default_callback(); }
 $S : A;
 `;

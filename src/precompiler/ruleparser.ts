@@ -17,6 +17,8 @@ const lex: LexDefinition = {
 		{token: "LEX_BEGIN", pattern: "#lex_begin"},
 		{token: "LEX_END", pattern: "#lex_end"},
 		{token: "LEX_DEFAULT", pattern: "#lex_default"},
+		{token: "BEGIN", pattern: "#begin"},
+		{token: "END", pattern: "#end"},
 		{token: "DEFAULT", pattern: "#default"},
 		{token: "LABEL", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
 		{
@@ -57,7 +59,7 @@ const grammar: GrammarDefinition = {
 	rules: [
 		{
 			ltoken: "LANGUAGE",
-			pattern: ["OPTIONAL_LEX_EX_CALLBACKS", "LEX", "DEFAULT_CALLBACK", "GRAMMAR"],
+			pattern: ["OPTIONAL_LEX_EX_CALLBACKS", "LEX", "EX_CALLBACKS", "GRAMMAR"],
 			callback: (c) => {
 				let start_symbol = c[3].start_symbol;
 				// 開始記号の指定がない場合、最初の規則に設定]
@@ -81,7 +83,23 @@ const grammar: GrammarDefinition = {
 						}
 					}
 				}
-				return {lex, grammar: {rules: c[3].grammar, start_symbol: start_symbol, default_callback: c[2].callback}};
+				const grammar: GrammarDefinition = {rules: c[3].grammar, start_symbol};
+				if (c[2] !== undefined) {
+					for (const callback of c[2]) {
+						switch (callback.type) {
+							case "#begin":
+								grammar.begin_callback = callback.callback;
+								break;
+							case "#end":
+								grammar.end_callback = callback.callback;
+								break;
+							case "#default":
+								grammar.default_callback = callback.callback;
+								break;
+						}
+					}
+				}
+				return {lex, grammar};
 			}
 		},
 		{
@@ -98,6 +116,12 @@ const grammar: GrammarDefinition = {
 				if (c[0] !== undefined) {
 					for (const callback of c[0]) {
 						switch (callback.type) {
+							case "#lex_begin":
+								lex.begin_callback = callback.callback;
+								break;
+							case "#lex_end":
+								lex.end_callback = callback.callback;
+								break;
 							case "#lex_default":
 								lex.default_callback = callback.callback;
 								break;
@@ -213,9 +237,31 @@ const grammar: GrammarDefinition = {
 			pattern: []
 		},
 		{
-			ltoken: "DEFAULT_CALLBACK",
-			pattern: ["DEFAULT", "BLOCK"],
+			ltoken: "EX_CALLBACKS",
+			pattern: ["EX_CALLBACKS", "EX_CALLBACK"],
+			callback: (c) => c[0].concat([c[1]])
+		},
+		{
+			ltoken: "EX_CALLBACKS",
+			pattern: ["EX_CALLBACK"],
+			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "EX_CALLBACK",
+			pattern: ["EX_CALLBACK_LABEL", "BLOCK"],
 			callback: (c) => ({type: c[0], callback: c[1]})
+		},
+		{
+			ltoken: "EX_CALLBACK_LABEL",
+			pattern: ["BEGIN"]
+		},
+		{
+			ltoken: "EX_CALLBACK_LABEL",
+			pattern: ["END"]
+		},
+		{
+			ltoken: "EX_CALLBACK_LABEL",
+			pattern: ["DEFAULT"]
 		},
 		{
 			ltoken: "GRAMMAR",
