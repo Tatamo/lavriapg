@@ -17,6 +17,7 @@ const lex: LexDefinition = {
 		{token: "LEX_BEGIN", pattern: "#lex_begin"},
 		{token: "LEX_END", pattern: "#lex_end"},
 		{token: "LEX_DEFAULT", pattern: "#lex_default"},
+		{token: "START", pattern: "#start"},
 		{token: "BEGIN", pattern: "#begin"},
 		{token: "END", pattern: "#end"},
 		{token: "DEFAULT", pattern: "#default"},
@@ -59,7 +60,7 @@ const grammar: GrammarDefinition = {
 	rules: [
 		{
 			ltoken: "LANGUAGE",
-			pattern: ["OPTIONAL_LEX_EX_CALLBACKS", "LEX", "EX_CALLBACKS", "GRAMMAR"],
+			pattern: ["LEX_OPTIONS", "LEX", "EX_CALLBACKS", "GRAMMAR"],
 			callback: (c) => {
 				let start_symbol = c[3].start_symbol;
 				// 開始記号の指定がない場合、最初の規則に設定]
@@ -68,8 +69,8 @@ const grammar: GrammarDefinition = {
 					else start_symbol = "";
 				}
 				const lex: LexDefinition = {rules: c[1]};
-				if (c[0] !== undefined) {
-					for (const callback of c[0]) {
+				if (c[0].callbacks !== undefined) {
+					for (const callback of c[0].callbacks) {
 						switch (callback.type) {
 							case "#lex_begin":
 								lex.begin_callback = callback.callback;
@@ -104,7 +105,7 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LANGUAGE",
-			pattern: ["OPTIONAL_LEX_EX_CALLBACKS", "LEX", "GRAMMAR"],
+			pattern: ["LEX_OPTIONS", "LEX", "GRAMMAR"],
 			callback: (c) => {
 				let start_symbol = c[2].start_symbol;
 				// 開始記号の指定がない場合、最初の規則に設定]
@@ -113,8 +114,8 @@ const grammar: GrammarDefinition = {
 					else start_symbol = "";
 				}
 				const lex: LexDefinition = {rules: c[1]};
-				if (c[0] !== undefined) {
-					for (const callback of c[0]) {
+				if (c[0].callbacks !== undefined) {
+					for (const callback of c[0].callbacks) {
 						switch (callback.type) {
 							case "#lex_begin":
 								lex.begin_callback = callback.callback;
@@ -130,6 +131,28 @@ const grammar: GrammarDefinition = {
 				}
 				return {lex, grammar: {rules: c[2].grammar, start_symbol: start_symbol}};
 			}
+		},
+		{
+			ltoken: "LEX_OPTIONS",
+			pattern: ["OPTIONAL_LEX_EX_CALLBACKS", "LEX_STATES"],
+			callback: (c) => ({callbacks: c[0], states: c[1]})
+		},
+		{
+			ltoken: "LEX_STATES",
+			pattern: ["LEXSTATE_DEFINITIONS"]
+		},
+		{
+			ltoken: "LEX_STATES",
+			pattern: []
+		},
+		{
+			ltoken: "LEXSTATE_DEFINITIONS",
+			pattern: ["STARTSTATE"]
+		},
+		{
+			ltoken: "STARTSTATE",
+			pattern: ["START", "LEXSTATE"],
+			callback: (c) => c[1]
 		},
 		{
 			ltoken: "OPTIONAL_LEX_EX_CALLBACKS",
