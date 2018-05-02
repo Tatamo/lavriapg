@@ -224,7 +224,7 @@ export class LexController {
 	private _rules: LexRuleManager;
 	constructor(language: Language) {
 		this._lex = language.lex;
-		this._current_state = DEFAULT_LEX_STATE;
+		this._current_state = language.lex.start_state !== undefined ? language.lex.start_state : DEFAULT_LEX_STATE;
 		this._state_stack = [];
 		this._rules = new LexRuleManager(language);
 	}

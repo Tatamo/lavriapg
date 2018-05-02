@@ -153,11 +153,11 @@ Object {
   "lex": Object {
     "rules": Array [
       Object {
-        "pattern": "a",
+        "pattern": /a/,
         "token": "A",
       },
       Object {
-        "pattern": "b",
+        "pattern": /b/,
         "states": Array [
           "state1",
           "state2",
@@ -165,17 +165,18 @@ Object {
         "token": "B",
       },
       Object {
-        "pattern": "b",
+        "pattern": /b/,
         "states": Array [
           "default",
         ],
         "token": "B2",
       },
       Object {
-        "pattern": "c",
+        "pattern": /c/,
         "token": "C",
       },
     ],
+    "start_state": "state1",
   },
 }
 `;

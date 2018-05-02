@@ -1,6 +1,8 @@
 import {language_language, language_parser} from "../src/precompiler/ruleparser";
 import {ParserGenerator} from "../src/parsergenerator/parsergenerator";
 import {Language} from "../src";
+import {Lexer} from "../src/lexer/lexer";
+import {SYMBOL_EOF} from "../src/def/token";
 
 describe("language parsing test", () => {
 	const input = require("fs").readFileSync("language", "utf8");
@@ -34,12 +36,14 @@ describe("syntax functions test", () => {
 		const input = `
 #start <state1>
 
-A	"a"
-<state1, state2>B	"b"
-<default>B2	"b"
-C	"c"
+A	/a/
+<state1, state2>B	/b/
+<default>B2	/b/
+C	/c/
 $S : A B2 C;
 `;
+		expect(new Lexer(parser.parse(input)).exec("b")).toEqual([{token: "B", value: "b"}, {token: SYMBOL_EOF, value: ""}]);
+		expect(() => new Lexer(parser.parse(input)).exec("a")).toThrow();
 		expect(parser.parse(input)).toMatchSnapshot();
 	});
 	test("callbacks", () => {

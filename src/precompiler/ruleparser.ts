@@ -84,6 +84,9 @@ const grammar: GrammarDefinition = {
 						}
 					}
 				}
+				if (c[0].start_state !== undefined) {
+					lex.start_state = c[0].start_state;
+				}
 				const grammar: GrammarDefinition = {rules: c[3].grammar, start_symbol};
 				if (c[2] !== undefined) {
 					for (const callback of c[2]) {
@@ -129,13 +132,16 @@ const grammar: GrammarDefinition = {
 						}
 					}
 				}
+				if (c[0].start_state !== undefined) {
+					lex.start_state = c[0].start_state;
+				}
 				return {lex, grammar: {rules: c[2].grammar, start_symbol: start_symbol}};
 			}
 		},
 		{
 			ltoken: "LEX_OPTIONS",
 			pattern: ["OPTIONAL_LEX_EX_CALLBACKS", "LEX_STATES"],
-			callback: (c) => ({callbacks: c[0], states: c[1]})
+			callback: (c) => ({callbacks: c[0], start_state: c[1]})
 		},
 		{
 			ltoken: "LEX_STATES",
@@ -249,7 +255,7 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXSTATE",
 			pattern: ["LT", "LABEL", "GT"],
-			callback: (c) => [c[1]]
+			callback: (c) => c[1]
 		},
 		{
 			ltoken: "LEXCALLBACK",

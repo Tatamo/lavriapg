@@ -44,6 +44,7 @@ export interface LexRule {
 export interface LexDefinition {
 	rules: Array<LexRule>;
 	states?: Array<LexState>;
+	start_state?: LexStateLabel;
 	default_callback?: LexCallback;
 	begin_callback?: (lex: LexController) => void;
 	end_callback?: (lex: LexController) => void;
