@@ -34,16 +34,26 @@ describe("syntax functions test", () => {
 	const parser = pg.getParser();
 	test("lex-state", () => {
 		const input = `
-#start <state1>
-
 A	/a/
 <state1, state2>B	/b/
 <default>B2	/b/
 C	/c/
 $S : A B2 C;
 `;
-		expect(new Lexer(parser.parse(input)).exec("b")).toEqual([{token: "B", value: "b"}, {token: SYMBOL_EOF, value: ""}]);
-		expect(() => new Lexer(parser.parse(input)).exec("a")).toThrow();
+		expect(new Lexer(parser.parse(input)).exec("b")).toEqual([{token: "B2", value: "b"}, {token: SYMBOL_EOF, value: ""}]);
+		expect(parser.parse(input)).toMatchSnapshot();
+	});
+	test("#start", () => {
+		const input = `
+#start <state1>
+
+<default>A	/a/
+<state1, state2>A2	/a/
+B	/b/
+$S : A B;
+`;
+		expect(new Lexer(parser.parse(input)).exec("a")).toEqual([{token: "A2", value: "a"}, {token: SYMBOL_EOF, value: ""}]);
+		expect(() => new Lexer(parser.parse(input)).exec("b")).toThrow();
 		expect(parser.parse(input)).toMatchSnapshot();
 	});
 	test("callbacks", () => {
