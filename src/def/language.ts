@@ -32,7 +32,7 @@ export type LexCallback = (value: string, token: string | null, lex: LexControll
 export interface LexRule {
 	token: Token | null;
 	pattern: string | RegExp;
-	state?: Array<LexStateLabel>;
+	states?: Array<LexStateLabel>;
 	is_disabled?: boolean;
 	priority?: number;
 	callback?: LexCallback;
@@ -44,6 +44,7 @@ export interface LexRule {
 export interface LexDefinition {
 	rules: Array<LexRule>;
 	states?: Array<LexState>;
+	start_state?: LexStateLabel;
 	default_callback?: LexCallback;
 	begin_callback?: (lex: LexController) => void;
 	end_callback?: (lex: LexController) => void;
@@ -70,6 +71,9 @@ export interface GrammarDefinition {
 	rules: Array<GrammarRule>;
 	start_symbol: Token;
 	default_callback?: GrammarCallback;
+	// TODO: 存在はするが呼び出さないのを修正
+	begin_callback?: () => void;
+	end_callback?: () => void;
 }
 
 /**

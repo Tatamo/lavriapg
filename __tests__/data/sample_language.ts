@@ -130,11 +130,11 @@ ATOM : DIGITS | LPAREN EXP RPAREN;
 
 export const test_lexstate_lex: LexDefinition = {
 	rules: [
-		{token: "NUMBER", pattern: /0|[1-9][0-9]*/, state: ["in-parenthesis"]},
+		{token: "NUMBER", pattern: /0|[1-9][0-9]*/, states: ["in-parenthesis"]},
 		{token: "ID", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
-		{token: "ASTERISK", pattern: "*", state: ["super-in-parenthesis"]},
-		{token: "PLUS", pattern: "+", state: [DEFAULT_LEX_STATE, "in-parenthesis"]},
-		{token: "DOLLAR", pattern: "$", state: ["in-braces"]},
+		{token: "ASTERISK", pattern: "*", states: ["super-in-parenthesis"]},
+		{token: "PLUS", pattern: "+", states: [DEFAULT_LEX_STATE, "in-parenthesis"]},
+		{token: "DOLLAR", pattern: "$", states: ["in-braces"]},
 		{
 			token: "LPAREN", pattern: "(",
 			callback: (token, value, lex) => {
@@ -142,7 +142,7 @@ export const test_lexstate_lex: LexDefinition = {
 			}
 		},
 		{
-			token: "RPAREN", pattern: ")", state: ["in-parenthesis"],
+			token: "RPAREN", pattern: ")", states: ["in-parenthesis"],
 			callback: (token, value, lex) => {
 				lex.returnState();
 			}
@@ -154,14 +154,14 @@ export const test_lexstate_lex: LexDefinition = {
 			}
 		},
 		{
-			token: "RBRACE", pattern: "}", state: ["in-braces"],
+			token: "RBRACE", pattern: "}", states: ["in-braces"],
 			callback: (token, value, lex) => {
 				lex.returnState();
 			}
 		},
 		{token: null, pattern: /(\r\n|\r|\n)+/},
 		{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
-		{token: "INVALID", pattern: /./, state: [DEFAULT_LEX_STATE, "in-parenthesis"]}
+		{token: "INVALID", pattern: /./, states: [DEFAULT_LEX_STATE, "in-parenthesis"]}
 	],
 	states: [
 		{label: "super-in-parenthesis"},
@@ -186,7 +186,7 @@ export const test_dynamic_lexrules_lex: LexDefinition = {
 					// lex.setState({label, is_exclusive: false});
 					lex.callState(label);
 					lex.addRule(label, {
-						token: "RNEST", pattern: `}${"%".repeat(value.length - 1)}`, state: [label],
+						token: "RNEST", pattern: `}${"%".repeat(value.length - 1)}`, states: [label],
 						callback: (v, t, l) => {
 							l.returnState();
 							l.removeRule(label);
@@ -195,7 +195,7 @@ export const test_dynamic_lexrules_lex: LexDefinition = {
 						}
 					});
 					lex.addRule(`${label}-invalid`, {
-						token: "INVALID", pattern: /./, state: [label]
+						token: "INVALID", pattern: /./, states: [label]
 					});
 					i++;
 				};

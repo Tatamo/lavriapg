@@ -1,8 +1,8 @@
-import {LexDefinition, Language, GrammarDefinition} from "../def/language";
+import {LexDefinition, Language, GrammarDefinition, LexStateLabel, LexState} from "../def/language";
 import {ParsingOperation, ParsingTable} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
-import {ParserFactory} from "../parser/factory";
 import {Parser} from "../parser/parser";
+import {ParserGenerator} from "../parsergenerator/parsergenerator";
 
 const lex: LexDefinition = {
 	rules: [
@@ -11,6 +11,17 @@ const lex: LexDefinition = {
 		{token: "DOLLAR", pattern: "$"},
 		{token: "COLON", pattern: ":"},
 		{token: "SEMICOLON", pattern: ";"},
+		{token: "LT", pattern: "<"},
+		{token: "GT", pattern: ">"},
+		{token: "COMMA", pattern: ","},
+		{token: "LEX_BEGIN", pattern: "#lex_begin"},
+		{token: "LEX_END", pattern: "#lex_end"},
+		{token: "LEX_DEFAULT", pattern: "#lex_default"},
+		{token: "START", pattern: "#start"},
+		{token: "EXTEND", pattern: "#extend"},
+		{token: "BEGIN", pattern: "#begin"},
+		{token: "END", pattern: "#end"},
+		{token: "DEFAULT", pattern: "#default"},
 		{token: "LABEL", pattern: /[a-zA-Z_][a-zA-Z0-9_]*/},
 		{
 			token: "REGEXP", pattern: /\/.*\/[gimuy]*/,
@@ -23,6 +34,23 @@ const lex: LexDefinition = {
 		},
 		{token: "STRING", pattern: /".*"/, callback: (v) => ["STRING", v.slice(1, -1)]},
 		{token: "STRING", pattern: /'.*'/, callback: (v) => ["STRING", v.slice(1, -1)]},
+		{
+			token: "START_BLOCK", pattern: /%*{+/,
+			callback: (value, token, lex) => {
+				const match = /(%*)({+)/.exec(value)!;
+				const end_delimiter = "}".repeat(match[2].length) + match[1]!;
+				lex.callState("callback");
+				lex.addRule("body_block", {token: "BODY_BLOCK", pattern: new RegExp(`(?:.|\\s)*?(?<!})(?=${end_delimiter})(?!${end_delimiter}%+)(?!${end_delimiter}}+)`), states: ["callback"]});
+				lex.addRule("end_block", {
+					token: "END_BLOCK", pattern: end_delimiter, states: ["callback"],
+					callback: (value, token, lex) => {
+						lex.returnState();
+						lex.removeRule("body_block");
+						lex.removeRule("end_block");
+					}
+				});
+			}
+		},
 		{token: null, pattern: /(\r\n|\r|\n)+/},
 		{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
 		{token: "INVALID", pattern: /./}
@@ -33,16 +61,181 @@ const grammar: GrammarDefinition = {
 	rules: [
 		{
 			ltoken: "LANGUAGE",
-			pattern: ["LEX", "GRAMMAR"],
+			pattern: ["LEX_OPTIONS", "LEX", "EX_CALLBACKS", "GRAMMAR"],
 			callback: (c) => {
-				let start_symbol = c[1].start_symbol;
+				let start_symbol = c[3].start_symbol;
 				// 開始記号の指定がない場合、最初の規則に設定]
 				if (start_symbol === null) {
-					if (c[1].sect.length > 0) start_symbol = c[1].sect[0].ltoken;
+					if (c[3].sect.length > 0) start_symbol = c[3].sect[0].ltoken;
 					else start_symbol = "";
 				}
-				return {lex: {rules: c[0]}, grammar: {rules: c[1].grammar, start_symbol: start_symbol}};
+				const lex: LexDefinition = {rules: c[1]};
+				if (c[0].callbacks !== undefined) {
+					for (const callback of c[0].callbacks) {
+						switch (callback.type) {
+							case "#lex_begin":
+								lex.begin_callback = callback.callback;
+								break;
+							case "#lex_end":
+								lex.end_callback = callback.callback;
+								break;
+							case "#lex_default":
+								lex.default_callback = callback.callback;
+								break;
+						}
+					}
+				}
+				if (c[0].start_state !== undefined) {
+					lex.start_state = c[0].start_state;
+				}
+				if (c[0].states.length > 0) {
+					lex.states = c[0].states;
+				}
+				const grammar: GrammarDefinition = {rules: c[3].grammar, start_symbol};
+				if (c[2] !== undefined) {
+					for (const callback of c[2]) {
+						switch (callback.type) {
+							case "#begin":
+								grammar.begin_callback = callback.callback;
+								break;
+							case "#end":
+								grammar.end_callback = callback.callback;
+								break;
+							case "#default":
+								grammar.default_callback = callback.callback;
+								break;
+						}
+					}
+				}
+				return {lex, grammar};
 			}
+		},
+		{
+			ltoken: "LANGUAGE",
+			pattern: ["LEX_OPTIONS", "LEX", "GRAMMAR"],
+			callback: (c) => {
+				let start_symbol = c[2].start_symbol;
+				// 開始記号の指定がない場合、最初の規則に設定]
+				if (start_symbol === null) {
+					if (c[2].sect.length > 0) start_symbol = c[2].sect[0].ltoken;
+					else start_symbol = "";
+				}
+				const lex: LexDefinition = {rules: c[1]};
+				if (c[0].callbacks !== undefined) {
+					for (const callback of c[0].callbacks) {
+						switch (callback.type) {
+							case "#lex_begin":
+								lex.begin_callback = callback.callback;
+								break;
+							case "#lex_end":
+								lex.end_callback = callback.callback;
+								break;
+							case "#lex_default":
+								lex.default_callback = callback.callback;
+								break;
+						}
+					}
+				}
+				if (c[0].start_state !== undefined) {
+					lex.start_state = c[0].start_state;
+				}
+				if (c[0].states.length > 0) {
+					lex.states = c[0].states;
+				}
+				return {lex, grammar: {rules: c[2].grammar, start_symbol: start_symbol}};
+			}
+		},
+		{
+			ltoken: "LEX_OPTIONS",
+			pattern: ["OPTIONAL_LEX_EX_CALLBACKS", "LEX_STATES"],
+			callback: (c) => {
+				const states: Array<LexState> = [];
+				const states_set = new Set<LexStateLabel>();
+				for (const inherit of c[1].inheritance) {
+					for (const sub_state of inherit.sub) {
+						if (states_set.has(inherit.sub)) {
+							// 既に登録されている場合、一つのstateが複数のstateを継承することはできない
+							continue;
+						}
+						states.push({label: sub_state, inheritance: inherit.base});
+						states_set.add(sub_state);
+					}
+				}
+				return {callbacks: c[0], start_state: c[1].start_state, states};
+			}
+		},
+		{
+			ltoken: "LEX_STATES",
+			pattern: ["LEX_STATES", "LEXSTATE_DEFINITIONS"],
+			callback: ([c1, c2]) => {
+				if (c2.type === "#start") {
+					c1.start_state = c2.value;
+				}
+				else if (c2.type === "#extend") {
+					c1.inheritance.push(c2.value);
+				}
+				return c1;
+			}
+		},
+		{
+			ltoken: "LEX_STATES",
+			pattern: [],
+			callback: () => ({start_state: undefined, inheritance: []})
+		},
+		{
+			ltoken: "LEXSTATE_DEFINITIONS",
+			pattern: ["STARTSTATE"],
+			callback: ([c]) => ({type: "#start", value: c})
+		},
+		{
+			ltoken: "LEXSTATE_DEFINITIONS",
+			pattern: ["STATE_EXTEND"],
+			callback: ([c]) => ({type: "#extend", value: c})
+		},
+		{
+			ltoken: "STARTSTATE",
+			pattern: ["START", "LEXSTATE"],
+			callback: (c) => c[1]
+		},
+		{
+			ltoken: "STATE_EXTEND",
+			pattern: ["EXTEND", "MULTIPLE_LEXSTATE", "LEXSTATE"],
+			callback: (c) => ({sub: c[1], base: c[2]})
+		},
+		{
+			ltoken: "OPTIONAL_LEX_EX_CALLBACKS",
+			pattern: ["LEX_EX_CALLBACKS"]
+		},
+		{
+			ltoken: "OPTIONAL_LEX_EX_CALLBACKS",
+			pattern: []
+		},
+		{
+			ltoken: "LEX_EX_CALLBACKS",
+			pattern: ["LEX_EX_CALLBACKS", "LEX_EX_CALLBACK"],
+			callback: (c) => c[0].concat([c[1]])
+		},
+		{
+			ltoken: "LEX_EX_CALLBACKS",
+			pattern: ["LEX_EX_CALLBACK"],
+			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "LEX_EX_CALLBACK",
+			pattern: ["LEX_EX_CALLBACK_LABEL", "BLOCK"],
+			callback: (c) => ({type: c[0], callback: c[1]})
+		},
+		{
+			ltoken: "LEX_EX_CALLBACK_LABEL",
+			pattern: ["LEX_BEGIN"]
+		},
+		{
+			ltoken: "LEX_EX_CALLBACK_LABEL",
+			pattern: ["LEX_END"]
+		},
+		{
+			ltoken: "LEX_EX_CALLBACK_LABEL",
+			pattern: ["LEX_DEFAULT"]
 		},
 		{
 			ltoken: "LEX",
@@ -56,8 +249,13 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "LEXSECT",
-			pattern: ["LEXLABEL", "LEXDEF"],
-			callback: (c) => ({token: c[0], pattern: c[1]})
+			pattern: ["MULTIPLE_LEXSTATE", "LEXLABEL", "LEXDEF", "LEXCALLBACK"],
+			callback: (c) => (c[3] === undefined ? {token: c[1], pattern: c[2], states: c[0]} : {token: c[1], pattern: c[2], states: c[0], callback: [3]})
+		},
+		{
+			ltoken: "LEXSECT",
+			pattern: ["LEXLABEL", "LEXDEF", "LEXCALLBACK"],
+			callback: (c) => (c[2] === undefined ? {token: c[0], pattern: c[1]} : {token: c[0], pattern: c[1], callback: c[2]})
 		},
 		{
 			ltoken: "LEXLABEL",
@@ -82,8 +280,67 @@ const grammar: GrammarDefinition = {
 			pattern: ["REGEXP"]
 		},
 		{
+			ltoken: "MULTIPLE_LEXSTATE",
+			pattern: ["LT", "LEXSTATE_LIST", "GT"],
+			callback: (c) => c[1]
+		},
+		{
+			ltoken: "LEXSTATE_LIST",
+			pattern: ["LABEL", "COMMA", "LEXSTATE_LIST"],
+			callback: (c) => [c[0], ...c[2]]
+		},
+		{
+			ltoken: "LEXSTATE_LIST",
+			pattern: ["LABEL"],
+			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "LEXSTATE",
+			pattern: ["LT", "LABEL", "GT"],
+			callback: (c) => c[1]
+		},
+		{
+			ltoken: "LEXCALLBACK",
+			pattern: ["BLOCK"]
+		},
+		{
+			ltoken: "LEXCALLBACK",
+			pattern: []
+		},
+		{
+			ltoken: "EX_CALLBACKS",
+			pattern: ["EX_CALLBACKS", "EX_CALLBACK"],
+			callback: (c) => c[0].concat([c[1]])
+		},
+		{
+			ltoken: "EX_CALLBACKS",
+			pattern: ["EX_CALLBACK"],
+			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "EX_CALLBACK",
+			pattern: ["EX_CALLBACK_LABEL", "BLOCK"],
+			callback: (c) => ({type: c[0], callback: c[1]})
+		},
+		{
+			ltoken: "EX_CALLBACK_LABEL",
+			pattern: ["BEGIN"]
+		},
+		{
+			ltoken: "EX_CALLBACK_LABEL",
+			pattern: ["END"]
+		},
+		{
+			ltoken: "EX_CALLBACK_LABEL",
+			pattern: ["DEFAULT"]
+		},
+		{
 			ltoken: "GRAMMAR",
-			pattern: ["SECT", "GRAMMAR"],
+			pattern: ["RULES"]
+		},
+		{
+			ltoken: "RULES",
+			pattern: ["SECT", "RULES"],
 			callback: (c) => {
 				let start_symbol = c[1].start_symbol;
 				if (c[0].start_symbol !== null) {
@@ -96,7 +353,7 @@ const grammar: GrammarDefinition = {
 			}
 		},
 		{
-			ltoken: "GRAMMAR",
+			ltoken: "RULES",
 			pattern: ["SECT"],
 			callback: (c) => {
 				let start_symbol = null;
@@ -114,8 +371,8 @@ const grammar: GrammarDefinition = {
 			pattern: ["SECTLABEL", "COLON", "DEF", "SEMICOLON"],
 			callback: (c) => {
 				const result = [];
-				for (const pt of c[2]) {
-					result.push({ltoken: c[0].label, pattern: pt});
+				for (const def of c[2]) {
+					result.push({ltoken: c[0].label, ...def});
 				}
 				return {start_symbol: c[0].start_symbol, sect: result};
 			}
@@ -132,13 +389,13 @@ const grammar: GrammarDefinition = {
 		},
 		{
 			ltoken: "DEF",
-			pattern: ["PATTERN", "VBAR", "DEF"],
-			callback: (c) => [c[0]].concat(c[2])
+			pattern: ["PATTERN", "CALLBACK", "VBAR", "DEF"],
+			callback: (c) => [c[1] === null ? {pattern: c[0]} : {pattern: c[0], callback: c[1]}].concat(c[3])
 		},
 		{
 			ltoken: "DEF",
-			pattern: ["PATTERN"],
-			callback: (c) => [c[0]]
+			pattern: ["PATTERN", "CALLBACK"],
+			callback: (c) => [c[1] === null ? {pattern: c[0]} : {pattern: c[0], callback: c[1]}]
 		},
 		{
 			ltoken: "PATTERN",
@@ -158,6 +415,20 @@ const grammar: GrammarDefinition = {
 			ltoken: "SYMBOLLIST",
 			pattern: ["LABEL"],
 			callback: (c) => [c[0]]
+		},
+		{
+			ltoken: "CALLBACK",
+			pattern: ["BLOCK"]
+		},
+		{
+			ltoken: "CALLBACK",
+			pattern: [],
+			callback: () => null
+		},
+		{
+			ltoken: "BLOCK",
+			pattern: ["START_BLOCK", "BODY_BLOCK", "END_BLOCK"],
+			callback: (c) => c[1]
 		}
 	], start_symbol: "LANGUAGE"
 };
@@ -291,5 +562,7 @@ export const language_parsing_table: ParsingTable = [
  * 言語定義ファイルを読み込むための構文解析器
  * @type {Parser}
  */
-export const language_parser: Parser = ParserFactory.create(language_language, language_parsing_table);
 
+// language_parsing_tableの用意がまだなので直接生成する
+// export const language_parser: Parser = ParserFactory.create(language_language, language_parsing_table);
+export const language_parser: Parser = new ParserGenerator(language_language).getParser();
