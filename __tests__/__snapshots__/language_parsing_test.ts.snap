@@ -1,5 +1,84 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`syntax functions test #extend 1`] = `
+Array [
+  Object {
+    "token": "A",
+    "value": "a",
+  },
+  Object {
+    "token": "B",
+    "value": "b",
+  },
+  Object {
+    "token": "C",
+    "value": "c",
+  },
+  Object {
+    "token": Symbol(EOF),
+    "value": "",
+  },
+]
+`;
+
+exports[`syntax functions test #extend 2`] = `
+Object {
+  "grammar": Object {
+    "rules": Array [
+      Object {
+        "ltoken": "S",
+        "pattern": Array [
+          "A",
+          "B",
+          "C",
+        ],
+      },
+    ],
+    "start_symbol": "S",
+  },
+  "lex": Object {
+    "rules": Array [
+      Object {
+        "pattern": /a/,
+        "states": Array [
+          "state3",
+        ],
+        "token": "A",
+      },
+      Object {
+        "pattern": /b/,
+        "states": Array [
+          "state2",
+        ],
+        "token": "B",
+      },
+      Object {
+        "pattern": /c/,
+        "states": Array [
+          "default",
+        ],
+        "token": "C",
+      },
+    ],
+    "start_state": "state3",
+    "states": Array [
+      Object {
+        "inheritance": "default",
+        "label": "state1",
+      },
+      Object {
+        "inheritance": "default",
+        "label": "state2",
+      },
+      Object {
+        "inheritance": "state2",
+        "label": "state3",
+      },
+    ],
+  },
+}
+`;
+
 exports[`syntax functions test #start 1`] = `
 Object {
   "grammar": Object {

@@ -59,6 +59,20 @@ $S : A B;
 		expect(() => new Lexer(parser.parse(input)).exec("b")).toThrow();
 		expect(parser.parse(input)).toMatchSnapshot();
 	});
+	test("#extend", () => {
+		const input = `
+#start <state3>
+#extend <state1, state2> <default>
+#extend <state3><state2>
+
+<state3>A	/a/
+<state2>B	/b/
+<default>C	/c/
+$S : A B C;
+`;
+		expect(new Lexer(parser.parse(input)).exec("abc")).toMatchSnapshot();
+		expect(parser.parse(input)).toMatchSnapshot();
+	});
 	test("callbacks", () => {
 		const input = `
 A	"a" { callback_of_A(); }
