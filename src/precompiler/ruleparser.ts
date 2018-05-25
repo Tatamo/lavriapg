@@ -1,4 +1,4 @@
-import {LexDefinition, Language, GrammarDefinition} from "../def/language";
+import {LexDefinition, Language, GrammarDefinition, LexStateLabel, LexState} from "../def/language";
 import {ParsingOperation, ParsingTable} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {Parser} from "../parser/parser";
@@ -18,6 +18,7 @@ const lex: LexDefinition = {
 		{token: "LEX_END", pattern: "#lex_end"},
 		{token: "LEX_DEFAULT", pattern: "#lex_default"},
 		{token: "START", pattern: "#start"},
+		{token: "EXTEND", pattern: "#extend"},
 		{token: "BEGIN", pattern: "#begin"},
 		{token: "END", pattern: "#end"},
 		{token: "DEFAULT", pattern: "#default"},
@@ -87,6 +88,9 @@ const grammar: GrammarDefinition = {
 				if (c[0].start_state !== undefined) {
 					lex.start_state = c[0].start_state;
 				}
+				if (c[0].states.length > 0) {
+					lex.states = c[0].states;
+				}
 				const grammar: GrammarDefinition = {rules: c[3].grammar, start_symbol};
 				if (c[2] !== undefined) {
 					for (const callback of c[2]) {
@@ -135,13 +139,30 @@ const grammar: GrammarDefinition = {
 				if (c[0].start_state !== undefined) {
 					lex.start_state = c[0].start_state;
 				}
+				if (c[0].states.length > 0) {
+					lex.states = c[0].states;
+				}
 				return {lex, grammar: {rules: c[2].grammar, start_symbol: start_symbol}};
 			}
 		},
 		{
 			ltoken: "LEX_OPTIONS",
 			pattern: ["OPTIONAL_LEX_EX_CALLBACKS", "LEX_STATES"],
-			callback: (c) => ({callbacks: c[0], start_state: c[1].start_state})
+			callback: (c) => {
+				const states: Array<LexState> = [];
+				const states_set = new Set<LexStateLabel>();
+				for (const inherit of c[1].inheritance) {
+					for (const sub_state of inherit.sub) {
+						if (states_set.has(inherit.sub)) {
+							// 既に登録されている場合、一つのstateが複数のstateを継承することはできない
+							continue;
+						}
+						states.push({label: sub_state, inheritance: inherit.base});
+						states_set.add(sub_state);
+					}
+				}
+				return {callbacks: c[0], start_state: c[1].start_state, states};
+			}
 		},
 		{
 			ltoken: "LEX_STATES",
@@ -150,13 +171,16 @@ const grammar: GrammarDefinition = {
 				if (c2.type === "#start") {
 					c1.start_state = c2.value;
 				}
+				else if (c2.type === "#extend") {
+					c1.inheritance.push(c2.value);
+				}
 				return c1;
 			}
 		},
 		{
 			ltoken: "LEX_STATES",
 			pattern: [],
-			callback: () => ({start_state: undefined})
+			callback: () => ({start_state: undefined, inheritance: []})
 		},
 		{
 			ltoken: "LEXSTATE_DEFINITIONS",
@@ -164,9 +188,19 @@ const grammar: GrammarDefinition = {
 			callback: ([c]) => ({type: "#start", value: c})
 		},
 		{
+			ltoken: "LEXSTATE_DEFINITIONS",
+			pattern: ["STATE_EXTEND"],
+			callback: ([c]) => ({type: "#extend", value: c})
+		},
+		{
 			ltoken: "STARTSTATE",
 			pattern: ["START", "LEXSTATE"],
 			callback: (c) => c[1]
+		},
+		{
+			ltoken: "STATE_EXTEND",
+			pattern: ["EXTEND", "MULTIPLE_LEXSTATE", "LEXSTATE"],
+			callback: (c) => ({sub: c[1], base: c[2]})
 		},
 		{
 			ltoken: "OPTIONAL_LEX_EX_CALLBACKS",
