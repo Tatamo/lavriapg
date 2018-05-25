@@ -44,7 +44,10 @@ $S : A B2 C;
 		expect(parser.parse(input)).toMatchSnapshot();
 	});
 	test("#start", () => {
+		// #startが複数ある場合は一番下を採用
+		// TODO: 明示された仕様とするか、それとも複数の#startを許容しないようにするか
 		const input = `
+#start <default>
 #start <state1>
 
 <default>A	/a/

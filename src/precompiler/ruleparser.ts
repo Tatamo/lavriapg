@@ -141,19 +141,27 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEX_OPTIONS",
 			pattern: ["OPTIONAL_LEX_EX_CALLBACKS", "LEX_STATES"],
-			callback: (c) => ({callbacks: c[0], start_state: c[1]})
+			callback: (c) => ({callbacks: c[0], start_state: c[1].start_state})
 		},
 		{
 			ltoken: "LEX_STATES",
-			pattern: ["LEXSTATE_DEFINITIONS"]
+			pattern: ["LEX_STATES", "LEXSTATE_DEFINITIONS"],
+			callback: ([c1, c2]) => {
+				if (c2.type === "#start") {
+					c1.start_state = c2.value;
+				}
+				return c1;
+			}
 		},
 		{
 			ltoken: "LEX_STATES",
-			pattern: []
+			pattern: [],
+			callback: () => ({start_state: undefined})
 		},
 		{
 			ltoken: "LEXSTATE_DEFINITIONS",
-			pattern: ["STARTSTATE"]
+			pattern: ["STARTSTATE"],
+			callback: ([c]) => ({type: "#start", value: c})
 		},
 		{
 			ltoken: "STARTSTATE",
