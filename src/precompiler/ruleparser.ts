@@ -1,4 +1,4 @@
-import {LexDefinition, Language, GrammarDefinition, LexStateLabel, LexState} from "../def/language";
+import {LexDefinition, Language, GrammarDefinition, LexStateLabel, LexState, LexCallback, GrammarCallback} from "../def/language";
 import {ParsingOperation, ParsingTable} from "../def/parsingtable";
 import {SYMBOL_EOF, Token} from "../def/token";
 import {Parser} from "../parser/parser";
@@ -55,6 +55,14 @@ const lex: LexDefinition = {
 		{token: null, pattern: /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/},
 		{token: "INVALID", pattern: /./}
 	]
+};
+
+const makeLexCallback = (body: string): LexCallback => {
+	return new Function("value", "token", "lex", body) as LexCallback;
+};
+
+const makeGrammarCallback = (body: string): GrammarCallback => {
+	return new Function("children", "token", "lexer", body) as GrammarCallback;
 };
 
 const grammar: GrammarDefinition = {
@@ -223,7 +231,7 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEX_EX_CALLBACK",
 			pattern: ["LEX_EX_CALLBACK_LABEL", "BLOCK"],
-			callback: (c) => ({type: c[0], callback: c[1]})
+			callback: (c) => ({type: c[0], callback: makeLexCallback(c[1])})
 		},
 		{
 			ltoken: "LEX_EX_CALLBACK_LABEL",
@@ -250,12 +258,12 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "LEXSECT",
 			pattern: ["MULTIPLE_LEXSTATE", "LEXLABEL", "LEXDEF", "LEXCALLBACK"],
-			callback: (c) => (c[3] === undefined ? {token: c[1], pattern: c[2], states: c[0]} : {token: c[1], pattern: c[2], states: c[0], callback: [3]})
+			callback: (c) => (c[3] === undefined ? {token: c[1], pattern: c[2], states: c[0]} : {token: c[1], pattern: c[2], states: c[0], callback: makeLexCallback(c[3])})
 		},
 		{
 			ltoken: "LEXSECT",
 			pattern: ["LEXLABEL", "LEXDEF", "LEXCALLBACK"],
-			callback: (c) => (c[2] === undefined ? {token: c[0], pattern: c[1]} : {token: c[0], pattern: c[1], callback: c[2]})
+			callback: (c) => (c[2] === undefined ? {token: c[0], pattern: c[1]} : {token: c[0], pattern: c[1], callback: makeLexCallback(c[2])})
 		},
 		{
 			ltoken: "LEXLABEL",
@@ -320,7 +328,7 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "EX_CALLBACK",
 			pattern: ["EX_CALLBACK_LABEL", "BLOCK"],
-			callback: (c) => ({type: c[0], callback: c[1]})
+			callback: (c) => ({type: c[0], callback: makeGrammarCallback(c[1])})
 		},
 		{
 			ltoken: "EX_CALLBACK_LABEL",
@@ -390,12 +398,12 @@ const grammar: GrammarDefinition = {
 		{
 			ltoken: "DEF",
 			pattern: ["PATTERN", "CALLBACK", "VBAR", "DEF"],
-			callback: (c) => [c[1] === null ? {pattern: c[0]} : {pattern: c[0], callback: c[1]}].concat(c[3])
+			callback: (c) => [c[1] === null ? {pattern: c[0]} : {pattern: c[0], callback: makeGrammarCallback(c[1])}].concat(c[3])
 		},
 		{
 			ltoken: "DEF",
 			pattern: ["PATTERN", "CALLBACK"],
-			callback: (c) => [c[1] === null ? {pattern: c[0]} : {pattern: c[0], callback: c[1]}]
+			callback: (c) => [c[1] === null ? {pattern: c[0]} : {pattern: c[0], callback: makeGrammarCallback(c[1])}]
 		},
 		{
 			ltoken: "PATTERN",
