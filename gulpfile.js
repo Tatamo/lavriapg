@@ -17,8 +17,8 @@ gulp.task("tsc", () => {
 	]);
 });
 
-gulp.task("watch-tsc", ["tsc"], () => {
-	gulp.watch("src/**/*.ts", ["tsc"]);
+gulp.task("watch-tsc", gulp.task("tsc"), () => {
+	gulp.watch("src/**/*.ts", gulp.task("tsc"));
 });
 
 gulp.task("tslint", () => {
@@ -29,9 +29,9 @@ gulp.task("tslint", () => {
 		.pipe(tslint.report());
 });
 
-gulp.task("watch-tslint", ["tslint"], () => {
-	gulp.watch("src/**/*.ts", ["tslint"]);
+gulp.task("watch-tslint", gulp.task("tslint"), () => {
+	gulp.watch("src/**/*.ts", gulp.task("tslint"));
 });
 
-gulp.task("default", ["tsc", "tslint"]);
-gulp.task("watch", ["watch-tsc", "watch-tslint"]);
+gulp.task("default", gulp.series("tsc", "tslint"));
+gulp.task("watch", gulp.series("watch-tsc", "watch-tslint"));
