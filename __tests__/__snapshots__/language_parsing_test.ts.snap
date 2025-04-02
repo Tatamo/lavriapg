@@ -125,21 +125,21 @@ Object {
   "grammar": Object {
     "rules": Array [
       Object {
-        "callback": " const s = {}; ",
+        "callback": [Function],
         "ltoken": "S",
         "pattern": Array [
           "T",
         ],
       },
       Object {
-        "callback": " const t = \\"}%, }}%, }}%%, }%%%, }}%%%\\"; ",
+        "callback": [Function],
         "ltoken": "T",
         "pattern": Array [
           "E",
         ],
       },
       Object {
-        "callback": " const e = \\"}%\\"+\\"}}\\"; ",
+        "callback": [Function],
         "ltoken": "E",
         "pattern": Array [],
       },
@@ -155,7 +155,7 @@ Object {
   "lex": Object {
     "rules": Array [
       Object {
-        "callback": " if(1+1===3){ foo(); } ",
+        "callback": [Function],
         "pattern": "a",
         "token": "A",
       },
@@ -164,38 +164,56 @@ Object {
 }
 `;
 
+exports[`syntax functions test callback delimiters 2`] = `
+Array [
+  "function anonymous(children,token,lexer
+) {
+ const s = {}; 
+}",
+  "function anonymous(children,token,lexer
+) {
+ const t = \\"}%, }}%, }}%%, }%%%, }}%%%\\"; 
+}",
+  "function anonymous(children,token,lexer
+) {
+ const e = \\"}%\\"+\\"}}\\"; 
+}",
+  undefined,
+]
+`;
+
 exports[`syntax functions test callbacks 1`] = `
 Object {
   "grammar": Object {
     "rules": Array [
       Object {
-        "callback": " callback_of_S(); ",
+        "callback": [Function],
         "ltoken": "S",
         "pattern": Array [
           "T",
         ],
       },
       Object {
-        "callback": " callback_of_T_1(); ",
+        "callback": [Function],
         "ltoken": "T",
         "pattern": Array [
           "A",
         ],
       },
       Object {
-        "callback": " callback_of_T_2(); ",
+        "callback": [Function],
         "ltoken": "T",
         "pattern": Array [
           "E",
         ],
       },
       Object {
-        "callback": " callback_of_T_3(); ",
+        "callback": [Function],
         "ltoken": "T",
         "pattern": Array [],
       },
       Object {
-        "callback": " callback_of_E(); ",
+        "callback": [Function],
         "ltoken": "E",
         "pattern": Array [],
       },
@@ -211,12 +229,12 @@ Object {
   "lex": Object {
     "rules": Array [
       Object {
-        "callback": " callback_of_A(); ",
+        "callback": [Function],
         "pattern": "a",
         "token": "A",
       },
       Object {
-        "callback": " callback_of_B(); ",
+        "callback": [Function],
         "pattern": /b/,
         "token": "B",
       },
@@ -225,12 +243,38 @@ Object {
 }
 `;
 
+exports[`syntax functions test callbacks 2`] = `
+Array [
+  "function anonymous(children,token,lexer
+) {
+ callback_of_S(); 
+}",
+  "function anonymous(children,token,lexer
+) {
+ callback_of_T_1(); 
+}",
+  "function anonymous(children,token,lexer
+) {
+ callback_of_T_2(); 
+}",
+  "function anonymous(children,token,lexer
+) {
+ callback_of_T_3(); 
+}",
+  "function anonymous(children,token,lexer
+) {
+ callback_of_E(); 
+}",
+  undefined,
+]
+`;
+
 exports[`syntax functions test ex-callbacks 1`] = `
 Object {
   "grammar": Object {
-    "begin_callback": " grammar_begin_callback(); ",
-    "default_callback": " grammar_default_callback(); ",
-    "end_callback": " grammar_end_callback(); ",
+    "begin_callback": [Function],
+    "default_callback": [Function],
+    "end_callback": [Function],
     "rules": Array [
       Object {
         "ltoken": "S",
@@ -242,9 +286,9 @@ Object {
     "start_symbol": "S",
   },
   "lex": Object {
-    "begin_callback": " lex_begin_callback(); ",
-    "default_callback": " lex_default_callback(); ",
-    "end_callback": " lex_end_callback(); ",
+    "begin_callback": [Function],
+    "default_callback": [Function],
+    "end_callback": [Function],
     "rules": Array [
       Object {
         "pattern": "a",
@@ -253,6 +297,48 @@ Object {
     ],
   },
 }
+`;
+
+exports[`syntax functions test ex-callbacks 2`] = `
+"function anonymous(value,token,lex
+) {
+ lex_begin_callback(); 
+}"
+`;
+
+exports[`syntax functions test ex-callbacks 3`] = `
+"function anonymous(value,token,lex
+) {
+ lex_default_callback(); 
+}"
+`;
+
+exports[`syntax functions test ex-callbacks 4`] = `
+"function anonymous(value,token,lex
+) {
+ lex_end_callback(); 
+}"
+`;
+
+exports[`syntax functions test ex-callbacks 5`] = `
+"function anonymous(children,token,lexer
+) {
+ grammar_begin_callback(); 
+}"
+`;
+
+exports[`syntax functions test ex-callbacks 6`] = `
+"function anonymous(children,token,lexer
+) {
+ grammar_default_callback(); 
+}"
+`;
+
+exports[`syntax functions test ex-callbacks 7`] = `
+"function anonymous(children,token,lexer
+) {
+ grammar_end_callback(); 
+}"
 `;
 
 exports[`syntax functions test lex-state 1`] = `

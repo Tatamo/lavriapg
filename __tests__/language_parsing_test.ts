@@ -82,7 +82,10 @@ $S : T { callback_of_S(); };
 T : A { callback_of_T_1(); } | E { callback_of_T_2(); } | { callback_of_T_3(); };
 E : { callback_of_E(); } | B;
 `;
-		expect(parser.parse(input)).toMatchSnapshot();
+		const result = parser.parse(input);
+		expect(result).toMatchSnapshot();
+		// @ts-ignore
+		expect(result.grammar.rules.map((rule) => "callback" in rule ? rule.callback.toString() : undefined)).toMatchSnapshot();
 	});
 	test("ex-callbacks", () => {
 		const input = `
@@ -96,7 +99,14 @@ A	"a"
 #default { grammar_default_callback(); }
 $S : A;
 `;
-		expect(parser.parse(input)).toMatchSnapshot();
+		const result = parser.parse(input);
+		expect(result).toMatchSnapshot();
+		expect(result.lex.begin_callback.toString()).toMatchSnapshot();
+		expect(result.lex.default_callback.toString()).toMatchSnapshot();
+		expect(result.lex.end_callback.toString()).toMatchSnapshot();
+		expect(result.grammar.begin_callback.toString()).toMatchSnapshot();
+		expect(result.grammar.default_callback.toString()).toMatchSnapshot();
+		expect(result.grammar.end_callback.toString()).toMatchSnapshot();
 	});
 	test("callback delimiters", () => {
 		const input = `
@@ -106,7 +116,9 @@ $S : T %{ const s = {}; }%;
 T : E %%{ const t = "}%, }}%, }}%%, }%%%, }}%%%"; }%%;
 E : { const e = "}%"+"}}"; } | A;
 `;
-		expect(parser.parse(input)).toMatchSnapshot();
+		const result = parser.parse(input);
+		expect(result).toMatchSnapshot();
+		// @ts-ignore
+		expect(result.grammar.rules.map((rule) => "callback" in rule ? rule.callback.toString() : undefined)).toMatchSnapshot();
 	});
 });
-// TODO: languageファイルにコールバックも記述可能にして、それを読み取れるようにする
