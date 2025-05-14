@@ -1,76 +1,245 @@
-EXCLAMATION		"!"
-VBAR			"|"
-DOLLAR			"$"
-COLON			":"
-SEMICOLON		";"
-LT				"<"
-GT				">"
-COMMA			","
-LEX_BEGIN		"#lex_begin"
-LEX_END			"#lex_end"
-LEX_DEFAULT		"#lex_default"
-START			"#start"
-EXTEND			"#extend"
-BEGIN			"#begin"
-END				"#end"
-DEFAULT			"#default"
-LABEL			/[a-zA-Z_][a-zA-Z0-9_]*/
-REGEXP			/\/.*\/[gimuy]*/
-STRING			/".*"/
-STRING			/'.*'/
-START_BLOCK		/%*{+/ %%{
-	const match = /(%*)({+)/.exec(value);
-	const end_delimiter = "}".repeat(match[2].length) + match[1];
-	lex.callState("callback");
-	lex.addRule("body_block", {token: "BODY_BLOCK", pattern: new RegExp(`(?:.|\\s)*?(?<!})(?=${end_delimiter})(?!${end_delimiter}%+)(?!${end_delimiter}}+)`), states: ["callback"]});
-	lex.addRule("end_block", {
-		token: "END_BLOCK", pattern: end_delimiter, states: ["callback"],
-		callback: (value, token, lex) => {
-			lex.returnState();
-			lex.removeRule("body_block");
-			lex.removeRule("end_block");
-		}
-	});
+EXCLAMATION   "!"
+VBAR          "|"
+DOLLAR        "$"
+COLON         ":"
+SEMICOLON     ";"
+LT            "<"
+GT            ">"
+COMMA         ","
+LEX_BEGIN     "#lex_begin"
+LEX_END       "#lex_end"
+LEX_DEFAULT   "#lex_default"
+START         "#start"
+EXTEND        "#extend"
+BEGIN         "#begin"
+END           "#end"
+DEFAULT       "#default"
+LABEL         /[a-zA-Z_][a-zA-Z0-9_]*/
+REGEXP        /\/.*\/[gimuy]*/ {
+  const match = /\/(.*)\/([gimuy]*)/.exec(value);
+  return ["REGEXP", new RegExp(match[1], match[2])];
+}
+STRING        /".*"/ { return ["STRING", value.slice(1, -1)] }
+STRING        /'.*'/ { return ["STRING", value.slice(1, -1)] }
+START_BLOCK   /%*{+/ %%{
+  const match = /(%*)({+)/.exec(value);
+  const end_delimiter = "}".repeat(match[2].length) + match[1];
+  lex.callState("callback");
+  lex.addRule("body_block", {
+    token: "BODY_BLOCK",
+    pattern: new RegExp(`(?:.|\\s)*?(?<!})(?=${end_delimiter})(?!${end_delimiter}%+)(?!${end_delimiter}}+)`),
+    states: ["callback"]
+  });
+  lex.addRule("end_block", {
+    token: "END_BLOCK",
+    pattern: end_delimiter,
+    states: ["callback"],
+    callback: (value, token, lex) => {
+      lex.returnState();
+      lex.removeRule("body_block");
+      lex.removeRule("end_block");
+    }
+  });
 }%%
-!ENDLINE		/(\r\n|\r|\n)+/
-!WHITESPACE		/[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/
-INVALID			/./
+!ENDLINE      /(\r\n|\r|\n)+/
+!WHITESPACE   /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/
+INVALID       /./
 
 
-$LANGUAGE :	LEX_OPTIONS LEX EX_CALLBACKS GRAMMAR | LEX_OPTIONS LEX GRAMMAR;
+$LANGUAGE
+  : LEX_OPTIONS LEX EX_CALLBACKS GRAMMAR %{
+    let start_symbol = children[3].start_symbol;
+    // 開始記号の指定がない場合、最初の規則に設定
+    if (start_symbol === null) {
+      if (children[3].sect.length > 0) start_symbol = children[3].sect[0].ltoken;
+      else start_symbol = "";
+    }
+    const lex = {rules: children[1]};
+    if (children[0].callbacks !== undefined) {
+      for (const callback of children[0].callbacks) {
+        switch (callback.type) {
+          case "#lex_begin":
+            lex.begin_callback = callback.callback;
+            break;
+          case "#lex_end":
+            lex.end_callback = callback.callback;
+            break;
+          case "#lex_default":
+            lex.default_callback = callback.callback;
+            break;
+          }
+      }
+    }
+    if (children[0].start_state !== undefined) {
+        lex.start_state = children[0].start_state;
+    }
+    if (children[0].states.length > 0) {
+        lex.states = children[0].states;
+    }
+    const grammar = {rules: children[3].grammar, start_symbol};
+    if (children[2] !== undefined) {
+        for (const callback of children[2]) {
+            switch (callback.type) {
+                case "#begin":
+                    grammar.begin_callback = callback.callback;
+                    break;
+                case "#end":
+                    grammar.end_callback = callback.callback;
+                    break;
+                case "#default":
+                    grammar.default_callback = callback.callback;
+                    break;
+            }
+        }
+    }
+    return {lex, grammar};
+  }%
+  | LEX_OPTIONS LEX GRAMMAR %{
+    let start_symbol = children[2].start_symbol;
+    // 開始記号の指定がない場合、最初の規則に設定
+    if (start_symbol === null) {
+      if (children[2].sect.length > 0) start_symbol = children[2].sect[0].ltoken;
+      else start_symbol = "";
+    }
+    const lex = {rules: children[1]};
+    if (children[0].callbacks !== undefined) {
+      for (const callback of children[0].callbacks) {
+        switch (callback.type) {
+          case "#lex_begin":
+            lex.begin_callback = callback.callback;
+            break;
+          case "#lex_end":
+            lex.end_callback = callback.callback;
+            break;
+          case "#lex_default":
+            lex.default_callback = callback.callback;
+            break;
+        }
+      }
+    }
+    if (children[0].start_state !== undefined) {
+      lex.start_state = children[0].start_state;
+    }
+    if (children[0].states.length > 0) {
+      lex.states = children[0].states;
+    }
+    return {lex, grammar: {rules: children[2].grammar, start_symbol: start_symbol}};
+}%;
 
-LEX_OPTIONS : OPTIONAL_LEX_EX_CALLBACKS LEX_STATES;
-LEX_STATES : LEX_STATES LEXSTATE_DEFINITIONS | ;
-LEXSTATE_DEFINITIONS : STARTSTATE | STATE_EXTEND;
-STARTSTATE : START LEXSTATE;
-STATE_EXTEND : EXTEND MULTIPLE_LEXSTATE LEXSTATE;
+LEX_OPTIONS
+  : OPTIONAL_LEX_EX_CALLBACKS LEX_STATES %{
+    const states = [];
+    const states_set = new Set();
+    for (const inherit of children[1].inheritance) {
+      for (const sub_state of inherit.sub) {
+        if (states_set.has(inherit.sub)) {
+          // 既に登録されている場合、一つのstateが複数のstateを継承することはできない
+          continue;
+        }
+        states.push({label: sub_state, inheritance: inherit.base});
+        states_set.add(sub_state);
+      }
+    }
+    return {callbacks: children[0], start_state: children[1].start_state, states};
+  }%;
+LEX_STATES
+  : LEX_STATES LEXSTATE_DEFINITIONS %{
+    if (children[1].type === "#start") {
+      children[0].start_state = children[1].value;
+    }
+    else if (children[1].type === "#extend") {
+      children[0].inheritance.push(children[1].value);
+    }
+    return children[0];
+  }%
+  | %{ return {start_state: undefined, inheritance: []}; }%;
+LEXSTATE_DEFINITIONS
+  : STARTSTATE %{ return {type: "#start", value: children[0]}; }%
+  | STATE_EXTEND %{ return {type: "#extend", value: children[0]}; }%;
+STARTSTATE : START LEXSTATE { return children[0]; };
+STATE_EXTEND : EXTEND MULTIPLE_LEXSTATE LEXSTATE %{ return {sub: children[1], base: children[2]}; }%;
 
 OPTIONAL_LEX_EX_CALLBACKS : LEX_EX_CALLBACKS | ;
-LEX_EX_CALLBACKS :	LEX_EX_CALLBACKS LEX_EX_CALLBACK | LEX_EX_CALLBACK;
-LEX_EX_CALLBACK :	LEX_EX_CALLBACK_LABEL BLOCK;
-LEX_EX_CALLBACK_LABEL :	LEX_BEGIN | LEX_END | LEX_DEFAULT;
+LEX_EX_CALLBACKS
+  : LEX_EX_CALLBACKS LEX_EX_CALLBACK { return children[0].concat([children[1]]); }
+  | LEX_EX_CALLBACK { return [children[0]]; } ;
+LEX_EX_CALLBACK : LEX_EX_CALLBACK_LABEL BLOCK %{ return {type: children[0], callback: makeLexCallback(children[1])}; }%;
+LEX_EX_CALLBACK_LABEL : LEX_BEGIN | LEX_END | LEX_DEFAULT;
 
-LEX :		LEX LEXSECT | LEXSECT;
-LEXSECT :	MULTIPLE_LEXSTATE LEXLABEL LEXDEF LEXCALLBACK | LEXLABEL LEXDEF LEXCALLBACK;
-LEXLABEL :	LABEL | EXCLAMATION | EXCLAMATION LABEL;
-LEXDEF :	STRING | REGEXP;
+LEX
+  : LEX LEXSECT { return children[0].concat([children[1]]); }
+  | LEXSECT { return [children[0]]; };
+LEXSECT
+  : MULTIPLE_LEXSTATE LEXLABEL LEXDEF LEXCALLBACK %{
+    return children[3] === undefined ?
+      {token: children[1], pattern: children[2], states: children[0]} :
+      {token: children[1], pattern: children[2], states: children[0], callback: new Function("value", "token", "lex", children[3])};
+  }%
+  | LEXLABEL LEXDEF LEXCALLBACK %{
+    return children[2] === undefined ?
+      {token: children[0], pattern: children[1]} :
+      {token: children[0], pattern: children[1], callback: new Function("value", "token", "lex", children[2])};
+  }%;
+LEXLABEL
+  : LABEL
+  | EXCLAMATION { return null; }
+  | EXCLAMATION LABEL {return null; };
+LEXDEF : STRING | REGEXP;
 
-MULTIPLE_LEXSTATE :	LT LEXSTATE_LIST GT;
-LEXSTATE_LIST :	LABEL COMMA LEXSTATE_LIST | LABEL;
-LEXSTATE :	LT LABEL GT;
-LEXCALLBACK :	BLOCK | ;
+MULTIPLE_LEXSTATE : LT LEXSTATE_LIST GT { return children[1]; };
+LEXSTATE_LIST
+  : LABEL COMMA LEXSTATE_LIST { return [children[0]].concat(children[2]); }
+  | LABEL { return [children[0]]; };
+LEXSTATE : LT LABEL GT { return children[1]; };
+LEXCALLBACK : BLOCK | ;
 
-EX_CALLBACKS : EX_CALLBACKS EX_CALLBACK | EX_CALLBACK;
-EX_CALLBACK : EX_CALLBACK_LABEL BLOCK;
+EX_CALLBACKS
+  : EX_CALLBACKS EX_CALLBACK { return children[0].concat([children[1]]); }
+  | EX_CALLBACK { return [children[0]]; };
+EX_CALLBACK : EX_CALLBACK_LABEL BLOCK %{ return {type: children[0], callback: new Function("children", "token", "lexer", children[1])}; }%;
 EX_CALLBACK_LABEL : BEGIN | END | DEFAULT;
 
-GRAMMAR :	RULES;
-RULES :		SECT RULES | SECT;
-SECT :		SECTLABEL COLON DEF SEMICOLON;
-SECTLABEL :	LABEL | DOLLAR LABEL;
-DEF :		PATTERN CALLBACK VBAR DEF | PATTERN CALLBACK;
-PATTERN :	SYMBOLLIST | ;
-SYMBOLLIST :	LABEL SYMBOLLIST | LABEL;
-CALLBACK :	BLOCK | ;
+GRAMMAR : RULES;
+RULES
+  : SECT RULES %{
+    let start_symbol = children[1].start_symbol;
+    if (children[0].start_symbol !== null) {
+      start_symbol = children[0].start_symbol;
+    }
+    return {
+      start_symbol,
+      grammar: children[0].sect.concat(children[1].grammar)
+    };
+  }%
+  | SECT %{
+    let start_symbol = null;
+    if (children[0].start_symbol !== null) {
+      start_symbol = children[0].start_symbol;
+    }
+    return {
+      start_symbol,
+      grammar: children[0].sect
+    };
+  }%;
+SECT : SECTLABEL COLON DEF SEMICOLON %{
+  const result = [];
+  for (const def of children[2]) {
+    result.push({ltoken: children[0].label, ...def});
+  }
+  return {start_symbol: children[0].start_symbol, sect: result};
+}%;
+SECTLABEL
+  : LABEL %{ return {start_symbol: null, label: children[0]}; }%
+  | DOLLAR LABEL %{ return {start_symbol: children[1], label: children[1]}; }%;
+DEF
+  : PATTERN CALLBACK VBAR DEF %{ return [children[1] === null ? {pattern: children[0]} : {pattern: children[0], callback: new Function("children", "token", "lexer", children[1])}].concat(children[3]); }%
+  | PATTERN CALLBACK %{ return [children[1] === null ? {pattern: children[0]} : {pattern: children[0], callback: new Function("children", "token", "lexer", children[1])}]; }%;
+PATTERN
+  : SYMBOLLIST
+  | { return []; };
+SYMBOLLIST
+  : LABEL SYMBOLLIST { return [children[0]].concat(children[1]); }
+  | LABEL { return [children[0]]; };
+CALLBACK : BLOCK | { return null; };
 
-BLOCK : START_BLOCK BODY_BLOCK END_BLOCK;
+BLOCK : START_BLOCK BODY_BLOCK END_BLOCK { return children[1]; };
