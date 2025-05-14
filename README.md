@@ -1,8 +1,7 @@
 # LavRia
 TypeScript LALR(1) Parser Generator
 
-## install
-requirement: npm
+## Installation
 ```
 $ mkdir pg
 $ cd pg
@@ -10,13 +9,15 @@ $ npm init
 $ npm install lavriapg --save
 ```
 
-### sample
+### Examples
 ```
 $ echo 1+1 | node ./node_modules/lavriapg/dist/sample.js
 ```
 
-## usage
-edit [language](/language) and run the following code:
+[language](/language) and [json_language](/json_language) are sample language definitions.
+`language_parser` parses the language definition file to generate a parser.
+
+Run the following code to see how it works:
 ```TypeScript
 // TypeScript
 import {language_parser, ParserGenerator} from "lavriapg";
@@ -34,12 +35,10 @@ const input = `{
 const language = language_parser.parse(readFileSync("./node_modules/lavriapg/json_language", "utf8") as string);
 const parser = new ParserGenerator(language).getParser();
 console.log(JSON.stringify(parser.parse(input), undefined, 2));
-
-
 ```
 
 ```JavaScript
-// JavaScript(CommonJS)
+// JavaScript (CommonJS)
 const pg = require("lavriapg");
 const fs = require("fs");
 const input = `{
@@ -55,11 +54,12 @@ const parser = new pg.ParserGenerator(language).getParser();
 console.log(JSON.stringify(parser.parse(input), undefined, 2));
 ```
 
-this program parses input (from stdin) that has the lex and grammar rules defined by [language](/language) and shows its AST.
+## Usage
+[language](/language) is its own language definition:
 ```TypeScript
 // TypeScript
 const input = readFileSync("./node_modules/lavriapg/language", "utf8") as string;
-const language = language_parser.parse(input); // set the language file path
+const language = language_parser.parse(input);
 
 const replacer = (key: string, value: any) => {
   if (typeof value === "function") return value.toString();
@@ -73,4 +73,5 @@ const parser = new ParserGenerator(language).getParser();
 console.log(JSON.stringify(parser.parse(input), replacer, 2));
 ```
 
-[language](/language) is language file and it expresses itself.
+`language_parser` parses [language](/language) to generate a language definition.
+The parser generated from that definition behaves just like `language_parser`.
