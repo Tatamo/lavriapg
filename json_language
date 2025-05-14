@@ -1,0 +1,48 @@
+true        "true"
+false       "false"
+null        "null"
+lbrace      "{"
+rbrace      "}"
+lbracket    "["
+rbracket    "]"
+colon       ":"
+comma       ","
+digit1_9    /[1-9]/
+digit0      /0/
+minus       "-"
+period      "."
+string      /".*?"/ %{ return {token: "string", value: value.slice(1, -1)}; }%
+!           /(\r\n|\r|\n)+/
+!           /[ \f\t\v\u00a0\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]+/
+invalid     /./
+
+#default { return children[0] }
+
+digit :     digit1_9 | digit0;
+digits :    digit |
+            digit digits { return children[0] + children[1] };
+int :       digit |
+            digit1_9 digits { return children[0] + children[1] } |
+            minus digit { return children[0] + children[1] } |
+            minus digit1_9 digits { return children[0] + children[1] + children[2] };
+frac :      period digits { return children[0] + children[1] };
+number :    int { return +children[0] } |
+            int frac { return +(children[0] + children[1]) };
+
+object :    lbrace rbrace %{ return {} }% |
+            lbrace members rbrace %{ return children[1] }%;
+members :   pair { return [children[0]] } |
+            pair comma members { return [children[0], ...children[2]] };
+pair :      string colon value %{ return {key: children[0], ...children[2]} }%;
+array :     lbracket rbracket { return [] } |
+            lbracket elements rbracket { return children[1] };
+elements :  value { return [children[0]] } |
+            value comma elements { return [children[0], ...children[2]] };
+$value :
+  string    %{ return {type: "string", value: children[0]} }% |
+  number    %{ return {type: "number", value: children[0]} }% |
+  object    %{ return {type: "object", value: children[0]} }% |
+  array     %{ return {type: "array", value: children[0]} }% |
+  true      %{ return {type: "boolean", value: true} }% |
+  false     %{ return {type: "boolean", value: false} }% |
+  null      %{ return {type: "null", value: null} }%;
